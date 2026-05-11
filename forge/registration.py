@@ -8,6 +8,9 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Protocol
 
+from forge import error
+from forge.logger import logger
+
 MODULE_ID_RE = re.compile(r"^(?:(?P<namespace>[\w:-]+)\/)?(?:(?P<name>.+))$")
 
 
@@ -56,7 +59,7 @@ class ModuleSpec:
 # 全局module注册
 registry: dict[str, ModuleSpec] = {}
 # 支持的namespace
-namespaces: set[str] = {"mission", "entity", "prototype", "agent", "node"}
+namespaces: set[str] = {"action", "entity", "agent", "node"}
 
 
 def parse_module_id(module_id: str) -> tuple[str | None, str]:
