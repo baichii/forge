@@ -6,7 +6,7 @@
 
 `forge` 负责定义“怎么问”和“怎么运行”：
 
-- entity reference and snapshot contracts
+- long-lived entity and subordinate entity-reference contracts
 - relation and capability query contracts
 - planner-facing action intents
 - environment-facing action commands
@@ -16,7 +16,7 @@
 
 `manager` 负责定义当前开发主线上的状态维护和查询入口：
 
-- `UnitManager`: entity facts and latest snapshots
+- `UnitManager`: long-lived entities and intelligence facts
 - `CapabilityManager`: capability judgement
 - `RelationManager`: relation and association queries
 - `ActionManager`: action lifecycle and pending actions
@@ -66,7 +66,7 @@ its supporting managers, not to the entity dataclass itself.
 - `TaskAgent.run(...)` is for async task or LLM workflow execution.
 
 `ManagerHub` is the shared lifecycle container for managers. Its input should
-converge toward typed observation/snapshot contracts,
+converge toward typed observation/entity contracts,
 because first-frame global situation and realtime structured updates can have
 different shapes.
 
