@@ -1,46 +1,42 @@
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import TYPE_CHECKING
 
-from forge.lib.entity import EntityRef, EntitySnapshot
+from forge.lib.entity import Entity
 from forge.manager.manager import Manager
+
+if TYPE_CHECKING:
+    from forge.manager.hub import ManagerHub
 
 
 class UnitManager(Manager):
-    """Maintains entity facts and latest snapshots."""
+    """ 维护己方单位信息
+    """
 
-    def __init__(self, agent: object, config: dict, manager_hub):
+    def __init__(self, agent: object, config: dict, manager_hub: ManagerHub):
         super().__init__(agent, config, manager_hub)
-        self.units: dict[str, EntitySnapshot] = {}
+        self.units: dict[str, Entity] = {}
 
     def reset(self) -> None:
         self.units.clear()
 
-    async def update(self, **kwargs) -> None:
-        snapshots = kwargs.get("units") or kwargs.get("entities") or []
-        self.update_units(snapshots)
+    async def update(self, unit_infos: dict[str, dict]) -> None:
+        for unit_id, unit_info in unit_infos.items():
+            if unit_id in self.units:
+                self.units[unit_id].update(unit_info)
+            else:
+                self.units[unit_id] = Entity(unit_info)
 
-    def update_units(self, snapshots: Iterable[EntitySnapshot | dict[str, Any]]) -> None:
-        for snapshot in snapshots:
-            entity_snapshot = self._coerce_snapshot(snapshot)
-            self.units[entity_snapshot.ref.entity_id] = entity_snapshot
+    def get_unit_by_id(self, unit_id: str) -> Entity | None:
+        return self.units.get(unit_id)
 
-    def get(self, entity_ref: EntityRef | str) -> EntitySnapshot | None:
-        entity_id = entity_ref.entity_id if isinstance(entity_ref, EntityRef) else entity_ref
-        return self.units.get(entity_id)
+    def get_unit_by_type(self, type, subtype=None, category=None) -> list[Entity]:
+        result = []
+        for unit in self.units.values():
+            if unit.type == type and (subtype is None or unit.subtype == subtype) and (category is None or unit.category == category):
+                result.append(unit)
+        return result
 
-    def _coerce_snapshot(self, snapshot: EntitySnapshot | dict[str, Any]) -> EntitySnapshot:
-        if isinstance(snapshot, EntitySnapshot):
-            return snapshot
-        ref = snapshot.get("ref")
-        if not isinstance(ref, EntityRef):
-            ref = EntityRef(
-                entity_id=str(snapshot["entity_id"]),
-                entity_type=snapshot.get("entity_type"),
-                env_id=snapshot.get("env_id"),
-            )
-        return EntitySnapshot(
-            ref=ref,
-            attributes=dict(snapshot.get("attributes", {})),
-            raw=snapshot,
-        )
+    def get(self, condition) -> list[Entity]:
+        """条件查询"""
+        pass

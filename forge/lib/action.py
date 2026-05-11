@@ -1,66 +1,71 @@
 from __future__ import annotations
 
-from abc import abstractmethod
-from dataclasses import dataclass, field
-from enum import StrEnum
+from abc import abstractmethod, ABCMeta
+from dataclasses import dataclass
+import enum
 from typing import TYPE_CHECKING, Any, Union
 
 if TYPE_CHECKING:
-    from forge.lib.entity import EntityRef
     from forge.manager.hub import ManagerHub
-
-
-@dataclass(frozen=True)
-class ActionIntent:
-    """Planner-facing action intent."""
-
-    name: str
-    actor: "EntityRef"
-    target: "EntityRef | None" = None
-    params: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass(frozen=True)
-class ActionCommand:
-    """Environment-facing executable command."""
-
-    name: str
-    payload: dict[str, Any] = field(default_factory=dict)
-    env_id: str | None = None
-
-
-@dataclass(frozen=True)
-class ActionResult:
-    ok: bool
-    message: str = ""
-    payload: dict[str, Any] = field(default_factory=dict)
-
 
 @dataclass
 class ActionParams:
-    params: dict[str, Any]
-    camp_id: str | int
-    agent_name: str
-    action_id: Union[int | str]
+    """ 行动参数, 阵营参数
+    """
+    params: dict[str, Any]  # 行动参数
+    persistent: bool   # 是否是持续性命令
+    camp_id: str | int  # 行动主语阵营
+    side_id: str | int  # 行动主语side
+    agent_name: str  # 下发这个指令的智能体
+    action_id: str | int | None = None  # 行动id，全局唯一，在action_manager中生成, 由action_manager维护
 
 
-class ActionState(StrEnum):
-    Ready = "ready"
-    Pending = "pending"
+class ActionStatus(enum.StrEnum):
+    """ 标记action的运行状态表示, 逻辑状态，非业务层面状态(描述状态)
+    """
+    Invalid = enum.auto()
+    Created = enum.auto()
+    Waiting = enum.auto()
+    Ready = enum.auto()
+    Running = enum.auto()
+    Paused = enum.auto()
+    Exited = enum.auto()
+    Error = enum.auto()
 
 
-class Action:
+class Action(metaclass=ABCMeta):
     """Action definition with a manager-backed lifecycle."""
 
     def __init__(self, action_params: ActionParams, manager_hub: "ManagerHub"):
-        self.camp_id = action_params.camp_id
-        self.agent_name = action_params.agent_name
-        self.action_id = action_params.action_id
+        self.action_params = action_params
+        self.params = action_params.params
         self.manager_hub = manager_hub
+        self.action_status = ActionStatus.Created
 
     @abstractmethod
-    def build(self) -> ActionState:
+    def build(self) -> ActionStatus:
         """Initialize or transition action state."""
 
     def step(self) -> tuple:
-        """"""
+        """step入口方法, 用不会调捕获, 请不要直接修改这个方法"""
+        return self._step_implement()
+
+    @abstractmethod
+    def _step_implement(self) -> tuple:
+        """step具体实现方法"""
+
+    @property
+    def camp_id(self):
+        return self.action_params.camp_id
+
+    @property
+    def side_id(self):
+        return self.action_params.side_id
+
+    @property
+    def agent_name(self):
+        return self.action_params.agent_name
+
+    @property
+    def action_id(self):
+        return self.action_params.action_id
