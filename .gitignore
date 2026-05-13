@@ -51,4 +51,4 @@ pythonlib/
 
 
 # local test
-*/.env
+*.env
