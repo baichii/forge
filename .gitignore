@@ -48,3 +48,7 @@ __pycache__/
 # custom
 *.ttc
 pythonlib/
+
+
+# local test
+*/.env
