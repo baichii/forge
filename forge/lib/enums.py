@@ -21,6 +21,6 @@ class UnitType(enum.StrEnum):
     Null = enum.auto()
 
 
-class TargetTag:
+class WweaponTargetTag:
     """目标检索tag"""
-
+    ...

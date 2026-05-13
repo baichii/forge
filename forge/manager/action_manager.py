@@ -20,6 +20,10 @@ class ActionManager(Manager):
         self.action_params.clear()
         self.actions.clear()
 
+    def update(self, **kwargs) -> None:
+        """action manager 不需要独立维护update"""
+        pass
+
     def step(self) -> list:
         # 添加一个time step累计的所有action到执行
         for action_param in self.action_params:
@@ -42,8 +46,6 @@ class ActionManager(Manager):
 
         # todo: 定义一个构建规则
         construct()
-
-
 
     def record_action(self, action_param: Union[list[ActionParams], ActionParams]) -> None:
         if isinstance(action_param, list):

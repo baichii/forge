@@ -7,5 +7,5 @@ class AttackUtility:
     """
 
     def can_attack(self, unit, target, manager_hub):
-        # todo: 实现打击判定, 混存统一当manager_hub中，以实现跨sub-agent的状态管理
+        # todo: 实现打击判定, 统一当manager_hub中，以实现跨sub-agent的状态管理
         return True

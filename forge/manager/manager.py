@@ -25,6 +25,11 @@ class Manager(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    async def update(self, **kwargs) -> None:
-        """Update manager state from environment data."""
+    def update(self, **kwargs) -> None:
+        """Update manager state from environment data.
+
+        Note:
+            1. 并非所有manager都需要维护update方法
+
+        """
         raise NotImplementedError
