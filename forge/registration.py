@@ -58,7 +58,9 @@ class ModuleSpec:
 # 全局module注册
 registry: dict[str, ModuleSpec] = {}
 # 支持的namespace
-namespaces: set[str] = {"action", "entity", "agent", "node"}
+# action 自定义行动
+# manager 自定义信息管理模块, 建议使用版本号命名空间, 例如 unit_manager/v1
+namespaces: set[str] = {"action", "entity", "agent", "node", "manager"}
 
 
 def parse_module_id(module_id: str) -> tuple[str | None, str]:
@@ -230,3 +232,16 @@ def spec(module_id: str) -> ModuleSpec:
             f"Expected the registry for {module_id} to be an `ModuleSpec`, actual type is {type(module_spec)}"
         )
         return module_spec
+
+
+def register_action(
+    name: str, entry_point: ModuleCreator | str
+) -> ModuleCreator:
+    """注册action module"""
+    module_id = f"action/{name}"
+    return register(module_id, entry_point)
+
+def make_action(name: str, **kwargs):
+    """创建action module"""
+    module_id = f"action/{name}"
+    return make(module_id, **kwargs)

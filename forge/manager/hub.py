@@ -8,6 +8,7 @@ from forge.utils import construct
 
 
 class ManagerHubConfig(BaseModel):
+    side: str
     managers: dict[str, dict[str, Any]] = Field(default_factory=dict, description="manager registry")
 
 
@@ -40,3 +41,7 @@ class ManagerHub:
 
     def get(self, name: str) -> object:
         return self.managers[name]
+
+    @property
+    def side(self) -> str:
+        return self.config.side

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 @dataclass
 class ActionParams:
     """动作参数, 包含执行参数和source信息"""
-
+    action_type: str  # 行动类型
     params: dict[str, Any]  # 行动参数
     camp_id: str | int  # 行动主语阵营
     side_id: str | int  # 行动主语side

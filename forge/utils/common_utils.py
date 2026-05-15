@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import enum
+from typing import Optional, Callable, Any
 from functools import wraps
 
 
@@ -33,9 +35,24 @@ def construct(class_dict: dict, *, unpack_params: bool = True, params_key: str =
     return class_(params=params_, **kwargs)
 
 
-def id_generator() -> str:
-    """生成8位唯一id"""
-    return uuid4().hex[:8]
+def make_id_generator(side_name: Optional[str] = None) -> Callable[[Any], str]:
+    """id generator"""
+    def generate_id(type_: Any) -> str:
+        if isinstance(type_, enum.Enum):
+            type_ = type_.name
+        if type_ not in generate_id.id_dict:
+            generate_id.id_dict[type_] = 1
+        else:
+            generate_id.id_dict[type_] += 1
+
+        unique_id = f"{type_}_{generate_id.id_dict[type_]}"
+        if side_name is not None:
+            unique_id = f"{side_name}_{unique_id}"
+        return unique_id
+
+    generate_id.id_dict = {}
+    generate_id.reset = lambda: generate_id.id_dict.clear()
+    return generate_id
 
 
 def safe_query(default_value):
