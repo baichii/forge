@@ -11,10 +11,9 @@ if TYPE_CHECKING:
 
 @dataclass
 class ActionParams:
-    """行动参数, 阵营参数"""
+    """动作参数, 包含执行参数和source信息"""
 
     params: dict[str, Any]  # 行动参数
-    persistent: bool  # 是否是持续性命令
     camp_id: str | int  # 行动主语阵营
     side_id: str | int  # 行动主语side
     agent_name: str  # 下发这个指令的智能体

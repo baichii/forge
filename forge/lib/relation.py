@@ -12,6 +12,7 @@ class RelationQuery:
 
     relation: str
     source: Entity | str
+    target: Entity | str | None | Any = None  # 关系定义
     context: Any | None = None
     params: dict[str, Any] = field(default_factory=dict)
 
@@ -26,6 +27,6 @@ class RelationResult:
 
 
 class RelationProvider(Protocol):
-    """用于描述非能力范畴的关系"""
+    """用于描述非capability范畴的关系"""
 
     def query(self, query: RelationQuery) -> RelationResult: ...

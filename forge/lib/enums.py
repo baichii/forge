@@ -22,7 +22,11 @@ class UnitType(enum.StrEnum):
     Null = enum.auto()
 
 
-class WweaponTargetTag:
-    """目标检索tag"""
+class SearchTargetTag(enum.StrEnum):
+    """检索目标tag"""
+    ...
 
+
+class WeaponTargetTag:
+    """目标检索tag"""
     ...

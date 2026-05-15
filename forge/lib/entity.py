@@ -7,6 +7,7 @@ class Entity(object):
     定位:
         1. 用于持久化长期决策需要的信息
         2. 当前时刻单位快照
+        3. 3层类型判定, type-subtype-category, 适用于单位定义
 
     Note:
         1. entity不一定是单位，还可能是area、position、group

@@ -14,7 +14,7 @@ class CapabilityQuery:
 
     capability: str
     unit: Entity | str
-    target: Entity | str | None = None
+    target: Entity | str | None | Any = None  # 支持目标/tag/类型定义
     context: Any | None = None
     params: dict[str, Any] = field(default_factory=dict)
 
