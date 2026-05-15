@@ -48,7 +48,7 @@ class Action(metaclass=ABCMeta):
         """Initialize or transition action state."""
 
     def step(self) -> tuple:
-        """step入口方法, 用不会调捕获, 请不要直接修改这个方法"""
+        """step入口方法, 仅用于hook/callback挂载, 不要直接修改这个方法"""
         return self._step_implement()
 
     @abstractmethod

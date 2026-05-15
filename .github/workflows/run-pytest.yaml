@@ -1,4 +1,4 @@
-name: Run Tests on Main
+name: CI
 
 on:
   push:
@@ -26,7 +26,10 @@ jobs:
       - name: Install dependencies with uv
         run: uv sync --all-groups
 
+      - name: Check formatting
+        run: make format-check
+
       - name: Run unit tests
         env:
           PYTHONPATH: .:./pythonlib
-        run: uv run pytest forge/tests/ -v -s
+        run: make test

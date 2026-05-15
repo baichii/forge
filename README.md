@@ -15,8 +15,8 @@ observe -> normalize -> query/reason -> plan -> translate -> act -> update
 - `forge.integrations`: LangGraph、openai-agents 等可选编排集成。
 - `battle_planner`: 基于 forge manager/lib 的业务 planner，不进入 forge 基础层。
 
-安装 LLM 编排依赖时使用：
+安装依赖时使用：
 
 ```bash
-uv sync --extra llm
+uv sync --all-groups
 ```

@@ -17,7 +17,7 @@ dependencies = [
 [dependency-groups]
 dev = [
   "pytest>=8",
-  "ruff>=0.8",
+  "ruff>=0.15.13",
   "pre-commit>=4",
 ]
 
@@ -49,6 +49,6 @@ line-ending = "lf"
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
-known-first-party = ["matrix"]
+known-first-party = ["forge", "examples"]
 known-third-party = ["numpy", "pandas", "requests"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
