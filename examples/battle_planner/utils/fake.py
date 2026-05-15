@@ -82,7 +82,9 @@ class FakeEnv:
         pressure_gain = max(0.0, min(1.0, pressure_gain))
         damage = max(0.0, risk * 0.12 + scenario.enemy_pressure * 0.02)
 
-        self._target_pressure = max(0.0, min(1.0, self._target_pressure + pressure_gain / scenario.max_ticks))
+        self._target_pressure = max(
+            0.0, min(1.0, self._target_pressure + pressure_gain / scenario.max_ticks)
+        )
         self._unit_integrity = max(0.0, self._unit_integrity - damage / scenario.max_ticks)
 
         reward = pressure_gain * 10.0 + cohesion * 3.0 - risk * 5.0

@@ -11,10 +11,11 @@ if TYPE_CHECKING:
 @dataclass
 class WeaponSpec:
     """定义一个武器的属性"""
+
     name: str
     num: int
     range: Any
-    target_tags: set[str] # 目标tag类型
+    target_tags: set[str]  # 目标tag类型
     params: dict[str, Any] = None  # 其他扩展属性
 
 
@@ -26,7 +27,7 @@ class Weapon:
 
     def has_attack(self, target_tags: set[str | int]) -> bool:
         weapon_target_tags = set(self.weapon_spec.target_tags).intersection(target_tags)
-        has_weapon =  len(weapon_target_tags) > 0
+        has_weapon = len(weapon_target_tags) > 0
         return has_weapon and self.weapon_spec.num > 0
 
     @property
@@ -45,6 +46,7 @@ class Weapon:
 
 class Weapons:
     """描述一组武器, 例如一个单位的所有武器"""
+
     def __init__(self, weapons):
         self.weapons = weapons
 

@@ -1,5 +1,6 @@
 from enum import Enum, StrEnum
 
+
 class SimX1Action(Enum):
     """SimX1 action space"""
 
@@ -25,4 +26,3 @@ class UnitType(StrEnum):
     SHIP = "ship"
     SUBMARINE = "submarine"
     FACILITY = "facility"
-

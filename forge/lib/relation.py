@@ -9,6 +9,7 @@ from forge.lib.entity import Entity
 @dataclass(frozen=True)
 class RelationQuery:
     """"""
+
     relation: str
     source: Entity | str
     context: Any | None = None
@@ -18,15 +19,13 @@ class RelationQuery:
 @dataclass(frozen=True)
 class RelationResult:
     """"""
+
     allowed: bool
     reason: str = ""
     evidence: dict[str, Any] = field(default_factory=dict)
 
 
 class RelationProvider(Protocol):
-    """ 用于描述非能力范畴的关系
+    """用于描述非能力范畴的关系"""
 
-    """
-
-    def query(self, query: RelationQuery) -> RelationResult:
-        ...
+    def query(self, query: RelationQuery) -> RelationResult: ...

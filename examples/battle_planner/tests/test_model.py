@@ -7,16 +7,11 @@ load_dotenv()
 
 
 class TestModel:
-
     def test_connection(self):
-        client = OpenAI(
-            api_key=os.environ.get("OPENAI_API_KEY"),
-            base_url=os.environ.get("OPENAI_API_URL")
-        )
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), base_url=os.environ.get("OPENAI_API_URL"))
 
         response = client.chat.completions.create(
-            model=os.environ.get("OPENAI_MODEL"),
-            messages=[{"role": "user", "content": "hello"}]
+            model=os.environ.get("OPENAI_MODEL"), messages=[{"role": "user", "content": "hello"}]
         )
 
         assert len(response.choices[0].message.content) > 0, "Model response should not be empty"
@@ -24,7 +19,7 @@ class TestModel:
     def test_local_connection(self):
         client = OpenAI(
             api_key=os.environ.get("LOCAL_OPENAI_API_KEY", ""),
-            base_url=os.environ.get("LOCAL_OPENAI_API_URL", "")
+            base_url=os.environ.get("LOCAL_OPENAI_API_URL", ""),
         )
 
         response = client.chat.completions.create(
@@ -41,7 +36,7 @@ class TestModel:
     def test_local_stream_connection(self):
         client = OpenAI(
             api_key=os.environ.get("LOCAL_OPENAI_API_KEY", ""),
-            base_url=os.environ.get("LOCAL_OPENAI_API_URL", "")
+            base_url=os.environ.get("LOCAL_OPENAI_API_URL", ""),
         )
 
         stream = client.chat.completions.create(
@@ -69,7 +64,7 @@ class TestModel:
     def test_local_tool_call_connection(self):
         client = OpenAI(
             api_key=os.environ.get("LOCAL_OPENAI_API_KEY", ""),
-            base_url=os.environ.get("LOCAL_OPENAI_API_URL", "")
+            base_url=os.environ.get("LOCAL_OPENAI_API_URL", ""),
         )
 
         response = client.chat.completions.create(
@@ -130,7 +125,7 @@ class TestModel:
         assert "bp-20260514-0007" in tool_call.function.arguments
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_model = TestModel()
     # test_model.test_connection()
     # test_model.test_local_connection()

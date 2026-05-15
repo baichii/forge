@@ -30,9 +30,9 @@ class ApiConfig(BaseModel):
             local_openai_model=os.getenv("LOCAL_OPENAI_MODEL", ""),
         )
 
+
 class SystemConfig(BaseModel):
     max_retry: int = Field(default=10, description="最大重试次数")
-
 
 
 @dataclass

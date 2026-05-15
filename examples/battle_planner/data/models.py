@@ -3,10 +3,9 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-
 class TickAgentParam(BaseModel):
-    """描述tick agent参数
-    """
+    """描述tick agent参数"""
+
     name: str
     description: str
     type: str
@@ -19,6 +18,7 @@ class TickAgentParam(BaseModel):
 
 class TickAgent(BaseModel):
     """同于描述通过step执行的智能体描述, todo: 添加智能体地址"""
+
     name: str
     description: str
     function_description: str = Field(default="", description="智能体功能说明")
@@ -33,15 +33,13 @@ class Strategy(BaseModel):
     source: TickAgent | None = Field(description="策略关联的tick agent runtime")
 
 
-
 class PlanBranch(BaseModel):
-    """分支方案，
-    """
-
+    """分支方案，"""
 
 
 class Plan(BaseModel):
     """方案"""
+
     name: str
     description: str
     plan_branches: list[PlanBranch]
@@ -59,6 +57,7 @@ class EnvInstance(BaseModel):
 
 class PlanExecuteResult(BaseModel):
     """方案运行效果"""
+
     execute_id: int
     plan: Plan
     env_instance: EnvInstance

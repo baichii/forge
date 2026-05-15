@@ -7,12 +7,48 @@ requires-python = ">=3.13"
 dependencies = [
     "dotenv>=0.9.9",
     "loguru>=0.7.3",
+    "openai>=2.35.1",
     "pydantic>=2.0",
-]
-
-[project.optional-dependencies]
-llm = [
     "agents-sdk-models>=0.0.23",
     "langgraph>=1.1.10",
     "openai-agents>=0.16.0",
 ]
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "ruff>=0.8",
+  "pre-commit>=4",
+]
+
+[tool.ruff]
+line-length = 108
+lint.select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+]
+lint.ignore = ["E501", "F401", "B904"]
+exclude = [
+    ".venv",
+    "migrations",
+    "__pycache__",
+    "build",
+    "dist",
+    "cache",
+    "pythonlib",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+known-first-party = ["matrix"]
+known-third-party = ["numpy", "pandas", "requests"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]

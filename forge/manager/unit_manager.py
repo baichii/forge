@@ -10,8 +10,7 @@ if TYPE_CHECKING:
 
 
 class UnitManager(Manager):
-    """ 维护己方单位信息
-    """
+    """维护己方单位信息"""
 
     def __init__(self, agent: object, config: dict, manager_hub: ManagerHub):
         super().__init__(agent, config, manager_hub)
@@ -33,7 +32,11 @@ class UnitManager(Manager):
     def get_unit_by_type(self, type, subtype=None, category=None) -> list[Entity]:
         result = []
         for unit in self.units.values():
-            if unit.type == type and (subtype is None or unit.subtype == subtype) and (category is None or unit.category == category):
+            if (
+                unit.type == type
+                and (subtype is None or unit.subtype == subtype)
+                and (category is None or unit.category == category)
+            ):
                 result.append(unit)
         return result
 

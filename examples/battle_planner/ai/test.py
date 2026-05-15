@@ -19,6 +19,7 @@ def is_auto_mode() -> bool:
     """Return True when examples should bypass interactive prompts."""
     return os.environ.get("EXAMPLES_INTERACTIVE_MODE", "").lower() == "auto"
 
+
 def confirm_with_fallback(prompt: str, default: bool = True) -> bool:
     """Return default in auto mode; otherwise ask the user."""
     if is_auto_mode():

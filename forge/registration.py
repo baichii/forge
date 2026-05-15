@@ -1,6 +1,5 @@
 """注册模块"""
 
-
 import copy
 import difflib
 import importlib
@@ -66,7 +65,9 @@ def parse_module_id(module_id: str) -> tuple[str | None, str]:
     """解析 module ID"""
     match = MODULE_ID_RE.fullmatch(module_id)
     if not match:
-        raise error.RegistrationError(f"Malformed module ID: {module_id}. Currently all IDs must be of the form [namespace/](module-name)). (namespace is optional))")
+        raise error.RegistrationError(
+            f"Malformed module ID: {module_id}. Currently all IDs must be of the form [namespace/](module-name)). (namespace is optional))"
+        )
     ns, name = match.group("namespace", "name")
     return ns, name
 
@@ -103,9 +104,7 @@ def _check_name_exists(ns: str | None, name: str):
     """检查模块名称是否在namespace中存在"""
     _check_namespace_exists(ns)
 
-    names: set[str] = {
-        module_spec.name for module_spec in registry.values() if module_spec.namespace == ns
-    }
+    names: set[str] = {module_spec.name for module_spec in registry.values() if module_spec.namespace == ns}
     if name in names:
         return
 
@@ -155,7 +154,9 @@ def load_module_creator(name: str) -> ModuleCreator:
     return fn
 
 
-def register(module_id: str, entry_point: ModuleCreator | str, kwargs: dict | None = None, data: dict | None = None) -> ModuleCreator:
+def register(
+    module_id: str, entry_point: ModuleCreator | str, kwargs: dict | None = None, data: dict | None = None
+) -> ModuleCreator:
     ns, name = parse_module_id(module_id)
     if kwargs is None:
         kwargs = dict()

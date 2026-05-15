@@ -8,12 +8,13 @@ from typing import TYPE_CHECKING, Any, Union
 if TYPE_CHECKING:
     from forge.manager.hub import ManagerHub
 
+
 @dataclass
 class ActionParams:
-    """ 行动参数, 阵营参数
-    """
+    """行动参数, 阵营参数"""
+
     params: dict[str, Any]  # 行动参数
-    persistent: bool   # 是否是持续性命令
+    persistent: bool  # 是否是持续性命令
     camp_id: str | int  # 行动主语阵营
     side_id: str | int  # 行动主语side
     agent_name: str  # 下发这个指令的智能体
@@ -21,8 +22,8 @@ class ActionParams:
 
 
 class ActionStatus(enum.StrEnum):
-    """ 标记action的运行状态表示, 逻辑状态，非业务层面状态(描述状态)
-    """
+    """标记action的运行状态表示, 逻辑状态，非业务层面状态(描述状态)"""
+
     Invalid = enum.auto()
     Created = enum.auto()
     Waiting = enum.auto()

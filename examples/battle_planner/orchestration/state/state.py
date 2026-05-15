@@ -16,6 +16,7 @@ from battle_planner.data.models import (
 
 class WorkflowState(StrEnum):
     """定义业务状态推进情况状态"""
+
     START = "start"
     COMPLETE = "complete"
     ERROR = "error"

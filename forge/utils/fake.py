@@ -1,7 +1,4 @@
-
-
 class Infoman:
-
     def __init__(self, **kwargs):
         pass
 

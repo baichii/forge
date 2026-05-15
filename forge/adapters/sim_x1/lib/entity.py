@@ -3,7 +3,6 @@ from forge.adapters.sim_x1.lib.weapon import Weapon, Weapons
 
 
 class Entity(BaseEntity):
-
     def __init__(self, entity_dict: dict):
         super().__init__(entity_dict)
 

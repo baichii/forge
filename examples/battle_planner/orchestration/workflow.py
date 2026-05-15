@@ -62,4 +62,3 @@ def route_after_summary(state: StrategyOptimizationState) -> str:
 
 def build_fake_optimization_graph():
     return BattlePlannerWorkflow().build_graph()
-

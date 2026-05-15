@@ -40,9 +40,7 @@ class StrategyPlanAgent:
         previous_params: StrategyParameterSet | None = None,
         recommendation: StrategyRecommendation | None = None,
     ) -> StrategyParameterSet:
-        params: dict[str, Any] = {
-            param.name: param.default for param in tick_agent.params
-        }
+        params: dict[str, Any] = {param.name: param.default for param in tick_agent.params}
 
         rationale = "使用 tick agent 默认参数生成第一轮方案。"
         if previous_params is not None:

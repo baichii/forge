@@ -1,4 +1,5 @@
 """一个简单的human in loop demo"""
+
 from idlelib import config
 from typing import TypedDict
 from unittest import result
@@ -29,9 +30,7 @@ def plan_node(state: State):
 def human_review_node(state: State):
     print("审核节点")
 
-    approved = interrupt(
-        "是否批准？ 输入 1/0"
-    )
+    approved = interrupt("是否批准？ 输入 1/0")
     print(f"审核结构: {type(approved)}, {approved}")
     return {"approved": approved == "1"}
 
@@ -44,9 +43,7 @@ def execute_node(state: State):
     else:
         result = f"开始执行 {state.plan}"
     print("res: ", result)
-    return {
-        "result": result
-    }
+    return {"result": result}
 
 
 def build_graph():
@@ -68,16 +65,10 @@ def build_graph():
 
 
 def main():
-    initial_state = State(
-        user_input="hello world"
-    )
+    initial_state = State(user_input="hello world")
 
     graph = build_graph()
-    config = {
-        "configurable": {
-            "thread_id": "user_1"
-        }
-    }
+    config = {"configurable": {"thread_id": "user_1"}}
     result = graph.invoke(initial_state, config=config)
 
     if "__interrupt__" in result:
@@ -88,14 +79,11 @@ def main():
 
         user_approval = input("输入 1 or 0")
         print("输入结果: ", user_approval)
-        resumed_result= graph.invoke(
-            Command(resume=user_approval), config=config
-        )
+        resumed_result = graph.invoke(Command(resume=user_approval), config=config)
 
         print("\n 结果")
         print(resumed_result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-

@@ -5,7 +5,6 @@ from battle_planner.data.models import PlanExecuteResult
 
 
 class SqliteClient:
-
     def __init__(self, db_path: str = "replay.db"):
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row

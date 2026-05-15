@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from forge.manager.hub import ManagerHub
 
 
-
 @dataclass(frozen=True)
 class CapabilityQuery:
     """Question asked by a planner or agent."""
@@ -26,6 +25,7 @@ class CapabilityQuery:
 @dataclass(frozen=True)
 class CapabilityResult:
     """Result of a capability query"""
+
     allowed: bool
     reason: str = ""
     confidence: float = 1.0
@@ -43,9 +43,9 @@ class ICapabilityProvider(Protocol):
            c2: 传统实现，定时更新，设置不同的更新间隔
 
     """
+
     def __init__(self, manager_hub: ManagerHub):
         self.manager_hub = manager_hub
-
 
     def can(self, query: CapabilityQuery) -> CapabilityResult:
         """判定当前时刻是否可以执行某种能力, 考虑单位自身属性和环境因素, 例如距离, 视野等"""

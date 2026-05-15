@@ -1,6 +1,4 @@
-""" Tool for caching attribute value
-
-"""
+"""Tool for caching attribute value"""
 
 
 def property_cache_interval(f, interval: int = 60):

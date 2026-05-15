@@ -14,14 +14,14 @@ if TYPE_CHECKING:
 
 class Capability(enum.StrEnum):
     """能力定义，用于测试"""
-    CommonAttack = enum.auto() # 面对面
+
+    CommonAttack = enum.auto()  # 面对面
     AirAttack = enum.auto()  # 空对面
     AirIntercept = enum.auto()  # 空对空
 
 
 class CapabilityProvider(ICapabilityProvider):
-
-    def __init__(self, manager_hub:ManagerHub):
+    def __init__(self, manager_hub: ManagerHub):
         super().__init__(manager_hub)
 
     def can(self, query: CapabilityQuery):

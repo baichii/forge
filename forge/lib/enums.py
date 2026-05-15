@@ -12,6 +12,7 @@ import enum
 
 class UnitType(enum.StrEnum):
     """单位类型"""
+
     Aircraft = enum.auto()
     Facility = enum.auto()
     Ship = enum.auto()
@@ -23,4 +24,5 @@ class UnitType(enum.StrEnum):
 
 class WweaponTargetTag:
     """目标检索tag"""
+
     ...

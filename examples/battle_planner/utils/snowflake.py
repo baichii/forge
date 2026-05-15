@@ -1,6 +1,7 @@
 import time
 from dataclasses import dataclass
 
+
 @dataclass
 class SnowflakeInfo:
     timestamp: int
@@ -8,6 +9,7 @@ class SnowflakeInfo:
     cluster_id: int
     node_id: int
     sequence: int
+
 
 from backend.common.exception import errors
 from backend.core.conf import settings

@@ -66,7 +66,6 @@ class SummaryPlanAgent:
             param_adjustments=adjustments,
             should_continue=should_continue,
             reason=(
-                f"score={result.score}, best_score={best_score}, "
-                f"target_score={self.config.target_score}"
+                f"score={result.score}, best_score={best_score}, target_score={self.config.target_score}"
             ),
         )

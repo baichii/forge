@@ -23,7 +23,7 @@ def construct(class_dict: dict, *, unpack_params: bool = True, params_key: str =
     if not is_class_dict(class_dict):
         raise ValueError(
             f"Expected a dict with keys `class` and `params` or `config`. but get {class_dict}"
-    )
+        )
     class_ = class_dict["class"]
     if params_key not in class_dict and params_key == "params":
         params_key = "config"
@@ -61,4 +61,3 @@ def safe_process(func):
             return None
 
     return wrapper
-
