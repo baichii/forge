@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import BaseModel, Field
 
-
 ENV_PATH = Path(__file__).with_name(".env")
 load_dotenv(ENV_PATH)
 
@@ -33,6 +32,10 @@ class ApiConfig(BaseModel):
 
 class SystemConfig(BaseModel):
     max_retry: int = Field(default=10, description="最大重试次数")
+    model_provider: str = Field(
+        default=os.getenv("BATTLE_PLANNER_MODEL_PROVIDER", "auto"),
+        description="Model provider: auto, local, openai, or offline.",
+    )
 
 
 @dataclass
