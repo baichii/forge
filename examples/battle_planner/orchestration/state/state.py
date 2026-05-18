@@ -5,6 +5,7 @@ from battle_planner.data.demo_models import (
     FakeTickAgentSpec,
     LLMTrace,
     PlannedAgentParams,
+    PlannerKnowledgePack,
     SimulationRunResult,
 )
 from pydantic import BaseModel, Field
@@ -16,6 +17,7 @@ class BattlePlannerState(BaseModel):
     scenario_name: str | None = None
     scenario_conf: dict[str, Any] = Field(default_factory=dict)
     scenario_conf_summary: dict[str, Any] = Field(default_factory=dict)
+    planner_knowledge_pack: PlannerKnowledgePack | None = None
     scenario_understanding_md: str = ""
     battle_plan_md: str = ""
     fake_agent_specs: list[FakeTickAgentSpec] = Field(default_factory=list)

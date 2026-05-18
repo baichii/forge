@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from battle_planner.adapters.zc_drill_env import run_zc_lite_drill_env
+from battle_planner.config import config
 from battle_planner.orchestration.node_logging import log_node_end, log_node_error, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
 
@@ -14,7 +15,7 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
             (item for item in state.planned_agent_params if item.agent_name == "mission_timing_planner"),
             None,
         )
-        max_steps = 3
+        max_steps = config.simulation.max_decision_steps
         if timing is not None:
             max_steps = int(timing.params.get("max_decision_steps", max_steps))
         state.simulation_result = run_zc_lite_drill_env(

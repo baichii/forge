@@ -7,7 +7,7 @@
 ## Run
 
 ```bash
-uv run python examples/battle_planner/run_zc_lite_demo.py
+uv run python examples/battle_planner/tests/run_zc_lite_demo.py
 ```
 
 当前真实环境优先尝试 `pythonlib/example_zc/training/DrillEnv`。如果本地缺少外部 `drill` 包，会 fallback 到真实底层 `pysim.Sim` 执行有限步空指令推演。
@@ -20,12 +20,13 @@ examples/battle_planner/
   agents/            # fake tick agent 的说明、适用场景和参数 schema
   data/              # demo workflow 使用的 Pydantic 数据模型
   evaluation/        # 独立评估组件；首版指标为占位/随机
+  knowledge/          # 想定 + 环境知识 -> PlannerKnowledgePack
   orchestration/     # LangGraph workflow、state 和节点
   planning/          # LLM 规划环节：想定理解、方案生成、参数生成、总结
   runtime/           # model provider、middleware、fallback 和 trace 记录
+  tick_agents/       # 可实时运行的 tick agent 示例和 declaration/factory
   tools/             # 首版本地查询工具描述，占位替代 forge manager 能力
-  tests/             # 本地模型连接和 tool-call 探测用例
-  run_zc_lite_demo.py
+  tests/             # 测试用例和可直接运行的 demo 验证入口
 ```
 
 ## Workflow
@@ -40,6 +41,8 @@ prepare_scenario
  -> evaluation
  -> summary
 ```
+
+`prepare_scenario` 会把 `scenario_zc_lite` 转成 `PlannerKnowledgePack`，其中包含想定摘要、作战目标、可用智能体能力、mission schema、约束、未知项和证据来源。后续 `scenario_understanding` 与 `battle_plan_generation` 都基于这个知识包工作。
 
 每个 LLM 环节都会记录 trace，包括输入消息、原始输出、解析结果、fallback 状态和错误信息。模型不可用或输出不适合展示时，demo 会使用模板或默认参数继续跑完。
 
@@ -69,3 +72,11 @@ agent 输入统一支持：
 - `local`：使用 `LOCAL_OPENAI_*`
 - `openai`：使用 `OPENAI_*`
 - `offline`：不请求模型，直接走 fallback
+
+运行配置集中在 `config.py`。配置优先级为：
+
+```text
+容器/系统环境变量 > examples/battle_planner/.env > config.py 默认值
+```
+
+`.env.example` 按 `API / Model / Workflow / Simulation / Report` 分组列出可调参数。本地调试可复制为 `.env`，容器化部署时建议通过启动环境变量传入参数。

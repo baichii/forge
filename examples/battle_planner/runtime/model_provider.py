@@ -10,7 +10,7 @@ from openai import OpenAI
 @dataclass
 class ModelRequest:
     messages: list[dict[str, str]]
-    max_tokens: int = 1024
+    max_tokens: int = 2048
 
 
 @dataclass
@@ -94,7 +94,8 @@ class OfflineModelProvider(ModelProvider):
 
 def build_model_provider() -> ModelProvider:
     api = config.api
-    provider = config.system.model_provider
+    model_config = config.model
+    provider = model_config.provider
 
     if provider == "offline":
         return OfflineModelProvider()
@@ -104,6 +105,7 @@ def build_model_provider() -> ModelProvider:
             base_url=api.openai_api_url,
             api_key=api.openai_api_key,
             model=api.openai_model,
+            timeout=model_config.timeout_seconds,
         )
     if provider == "local":
         return OpenAICompatibleModelProvider(
@@ -111,6 +113,7 @@ def build_model_provider() -> ModelProvider:
             base_url=api.local_openai_api_url,
             api_key=api.local_openai_api_key,
             model=api.local_openai_model,
+            timeout=model_config.timeout_seconds,
         )
 
     if api.local_openai_api_url and api.local_openai_model:
@@ -119,6 +122,7 @@ def build_model_provider() -> ModelProvider:
             base_url=api.local_openai_api_url,
             api_key=api.local_openai_api_key,
             model=api.local_openai_model,
+            timeout=model_config.timeout_seconds,
         )
     if api.openai_api_url and api.openai_model:
         return OpenAICompatibleModelProvider(
@@ -126,5 +130,6 @@ def build_model_provider() -> ModelProvider:
             base_url=api.openai_api_url,
             api_key=api.openai_api_key,
             model=api.openai_model,
+            timeout=model_config.timeout_seconds,
         )
     return OfflineModelProvider()

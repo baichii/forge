@@ -10,7 +10,10 @@ def battle_plan_generation_node(state: BattlePlannerState) -> BattlePlannerState
         "battle_plan_generation",
         scenario_md_chars=len(state.scenario_understanding_md),
     )
-    output, trace = generate_battle_plan(state.scenario_understanding_md)
+    output, trace = generate_battle_plan(
+        state.scenario_understanding_md,
+        knowledge_pack=state.planner_knowledge_pack,
+    )
     state.battle_plan_md = output
     state.add_trace(trace)
     state.cur_stage = "battle_plan_generation"

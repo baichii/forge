@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from time import perf_counter
 from typing import Any
 
 from battle_planner.adapters.scenario_loader import ensure_pythonlib_path
@@ -119,13 +120,21 @@ def run_zc_lite_drill_env(
     done = False
     steps = 0
     last_obs_keys: list[str] = []
+    started_at = perf_counter()
     for step_index in range(max_decision_steps):
+        step_started_at = perf_counter()
         obs, done = env.step(command_dict={scenario_conf["name"]: {"missions": []}})
+        step_elapsed = perf_counter() - step_started_at
         steps = step_index + 1
         last_obs_keys = list(obs.keys())
-        logs.append(f"decision_step={steps} done={done} obs_keys={last_obs_keys}")
+        logs.append(
+            f"decision_step={steps} done={done} elapsed_seconds={step_elapsed:.4f} "
+            f"obs_keys={last_obs_keys}"
+        )
         if done:
             break
+    elapsed_seconds = perf_counter() - started_at
+    logs.append(f"simulation_elapsed_seconds={elapsed_seconds:.4f}")
 
     return SimulationRunResult(
         scenario_name=scenario_conf["name"],
@@ -135,6 +144,7 @@ def run_zc_lite_drill_env(
         raw_summary={
             "env": "DrillEnv",
             "max_decision_steps": max_decision_steps,
+            "elapsed_seconds": elapsed_seconds,
             "last_obs_keys": last_obs_keys,
         },
     )
@@ -156,23 +166,32 @@ def run_zc_lite_sim_fallback(
     env.reset(scenario_conf["units"])
     logs = [fallback_reason, f"reset scenario={scenario_conf['name']} with pysim.Sim"]
     done = False
+    steps = 0
+    started_at = perf_counter()
     for step_index in range(max_steps):
+        step_started_at = perf_counter()
         _, _, terminated, truncated, info = env.step(action=[])
+        step_elapsed = perf_counter() - step_started_at
         done = bool(terminated or truncated)
+        steps = step_index + 1
         logs.append(
-            f"sim_step={step_index + 1} done={done} damage_keys={list(info.get('damage', {}).keys())}"
+            f"sim_step={steps} done={done} elapsed_seconds={step_elapsed:.4f} "
+            f"damage_keys={list(info.get('damage', {}).keys())}"
         )
         if done:
             break
+    elapsed_seconds = perf_counter() - started_at
+    logs.append(f"simulation_elapsed_seconds={elapsed_seconds:.4f}")
 
     return SimulationRunResult(
         scenario_name=scenario_conf["name"],
-        steps=max_steps,
+        steps=steps,
         done=done,
         logs=logs,
         raw_summary={
             "env": "pysim.Sim",
             "fallback_reason": fallback_reason,
             "max_steps": max_steps,
+            "elapsed_seconds": elapsed_seconds,
         },
     )

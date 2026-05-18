@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Generic, TypeVar
 
+from battle_planner.config import config
 from battle_planner.data.demo_models import LLMTrace
 from battle_planner.runtime.middleware import (
     AgentMiddleware,
@@ -33,7 +34,7 @@ class AgentRunResult(Generic[TOutput]):
 
 class BasePlanningAgent(ABC, Generic[TOutput]):
     name: str = "base_planning_agent"
-    max_tokens: int = 1024
+    max_tokens: int = config.model.max_tokens
 
     def __init__(
         self,

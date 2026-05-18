@@ -1,9 +1,22 @@
 import os
 
-from openai import OpenAI
+import pytest
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
+
+RUN_MODEL_TESTS = os.getenv("BATTLE_PLANNER_RUN_MODEL_TESTS", "").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+pytestmark = pytest.mark.skipif(
+    not RUN_MODEL_TESTS,
+    reason="set BATTLE_PLANNER_RUN_MODEL_TESTS=true to run live model probes",
+)
 
 
 class TestModel:

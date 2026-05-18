@@ -7,7 +7,10 @@ from battle_planner.planning.scenario_understanding import understand_scenario
 
 def scenario_understanding_node(state: BattlePlannerState) -> BattlePlannerState:
     log_node_start("scenario_understanding", scenario=state.scenario_name)
-    output, trace = understand_scenario(state.scenario_conf_summary)
+    output, trace = understand_scenario(
+        state.scenario_conf_summary,
+        knowledge_pack=state.planner_knowledge_pack,
+    )
     state.scenario_understanding_md = output
     state.add_trace(trace)
     state.cur_stage = "scenario_understanding"
