@@ -11,9 +11,8 @@ class TickAgent(ABC):
 
     declaration: TickAgentSpec | None = None
 
-    def __init__(self, params: Any | None = None, runtime_context: Any | None = None):
+    def __init__(self, params: Any | None = None):
         self.params = params
-        self.runtime_context = runtime_context
 
     @abstractmethod
     def reset(self) -> None:

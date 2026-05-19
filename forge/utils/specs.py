@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class ParamType:
     """参数输入类型"""
+
     INT = "int"
     FLOAT = "float"
     BOOL = "bool"
@@ -50,11 +51,23 @@ class ParamSpec:
         required=True,
         description="智能体停止运行时间。",
     )
+    unit_id = ParamSpecTemplate(
+        name="unit_id",
+        type=ParamType.STRING,
+        required=True,
+        description="执行任务的单位 id。",
+    )
     unit_ids = ParamSpecTemplate(
         name="unit_ids",
         type=ParamType.LIST,
         required=True,
         description="执行任务的单位 id 列表。",
+    )
+    target_id = ParamSpecTemplate(
+        name="target_id",
+        type=ParamType.STRING,
+        required=True,
+        description="目标单位 id。",
     )
     target_ids = ParamSpecTemplate(
         name="target_ids",
@@ -65,13 +78,44 @@ class ParamSpec:
 
 
 class TickAgentSpec(BaseModel):
-    name: str = Field(description="智能体名称")
+    name: str = Field(description="智能体类型名称")
     description: str = Field(description="智能体描述")
     params: dict[str, ParamSpecTemplate] = Field(default_factory=dict, description="智能体参数规范")
-    entrypoint: str | None = Field(default=None, description="智能体执行入口，默认为 None")
+    entrypoint: str  = Field(description="智能体执行入口，path:Module格式")
     status: list[str] = Field(default_factory=list, description="描述智能体在执行过程中可以返回的状态列表")
     version: str = "0.1"  # 0.1为初始版本，仅用于默认值填充
 
-    def export_json_schema(self) -> dict[str, Any]:
-        return self.model_dump()
 
+class EnvMode:
+    """环境获取方式."""
+
+    CREATE = "create"
+    CONNECT = "connect"
+
+
+class EnvLink:
+    """环境连接风格."""
+
+    GYM = "gym"
+    INFOMAN = "infoman"
+    CUSTOM = "custom"
+
+
+class EnvSpec(BaseModel):
+    """环境获取与连接规范.
+
+    mode 表示环境怎么来，create 由 runner 创建或启动，connect 连接已有环境。
+    link 表示 runner 用什么风格和环境交互。
+    """
+
+    name: str = Field(description="环境名称")
+    mode: str = Field(default=EnvMode.CREATE, description="环境获取方式")
+    link: str = Field(default=EnvLink.GYM, description="环境连接风格")
+    params: dict[str, Any] = Field(default_factory=dict, description="环境连接配置")
+
+
+
+class CallbackSpec:
+    name: str = Field(default="回调名称")
+    entropy_point = Field(description="callback执行入口，path:Module格式")
+    params: dict[str, Any] = Field(description="回调函数自定义参数")

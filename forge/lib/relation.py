@@ -27,6 +27,6 @@ class RelationResult:
 
 
 class RelationProvider(Protocol):
-    """用于描述非capability范畴的关系"""
+    """用于描述非capability范畴的关系, 主要用于展示和推理, 不直接影响智能体的决策"""
 
     def query(self, query: RelationQuery) -> RelationResult: ...

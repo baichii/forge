@@ -71,8 +71,8 @@ declaration = TickAgentSpec(
 class Agent(TickAgent):
     declaration = declaration
 
-    def __init__(self, params: AirToSeaStrikeParams, runtime_context: TickAgentRuntimeContext):
-        super().__init__(params=params, runtime_context=runtime_context)
+    def __init__(self, params: AirToSeaStrikeParams):
+        super().__init__(params=params)
         self._dispatched = False
 
     def reset(self) -> None:

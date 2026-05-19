@@ -19,6 +19,11 @@ dependencies = [
     "openai-agents>=0.16.0",
 ]
 
+[project.optional-dependencies]
+pysim = [
+    "pygame>=2.6.1",
+]
+
 [dependency-groups]
 dev = [
   "pytest>=8",

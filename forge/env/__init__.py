@@ -1,3 +1,3 @@
-from forge.adapters.infoman import Infoman
+from forge.env.runner import Runner
 
-__all__ = ["Infoman"]
+__all__ = ["Runner"]
