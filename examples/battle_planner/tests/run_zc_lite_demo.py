@@ -5,8 +5,10 @@ from pathlib import Path
 from time import perf_counter
 
 EXAMPLES_ROOT = Path(__file__).resolve().parents[2]
-if str(EXAMPLES_ROOT) not in sys.path:
-    sys.path.insert(0, str(EXAMPLES_ROOT))
+REPO_ROOT = Path(__file__).resolve().parents[3]
+for path in (REPO_ROOT, EXAMPLES_ROOT):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 from battle_planner.orchestration.workflow import BattlePlannerDemoWorkflow  # noqa: E402
 

@@ -2,13 +2,14 @@ from typing import Any
 
 from battle_planner.data.demo_models import (
     EvaluationReport,
-    FakeTickAgentSpec,
     LLMTrace,
     PlannedAgentParams,
     PlannerKnowledgePack,
     SimulationRunResult,
 )
 from pydantic import BaseModel, Field
+
+from forge.utils.specs import TickAgentSpec
 
 
 class BattlePlannerState(BaseModel):
@@ -20,7 +21,7 @@ class BattlePlannerState(BaseModel):
     planner_knowledge_pack: PlannerKnowledgePack | None = None
     scenario_understanding_md: str = ""
     battle_plan_md: str = ""
-    fake_agent_specs: list[FakeTickAgentSpec] = Field(default_factory=list)
+    tick_agent_specs: list[TickAgentSpec] = Field(default_factory=list)
     available_tools: list[dict[str, Any]] = Field(default_factory=list)
     planned_agent_params: list[PlannedAgentParams] = Field(default_factory=list)
     simulation_result: SimulationRunResult | None = None

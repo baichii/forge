@@ -10,21 +10,20 @@
 uv run python examples/battle_planner/tests/run_zc_lite_demo.py
 ```
 
-当前真实环境优先尝试 `pythonlib/example_zc/training/DrillEnv`。如果本地缺少外部 `drill` 包，会 fallback 到真实底层 `pysim.Sim` 执行有限步空指令推演。
+当前测试环境通过 battle-planner 本地 registry 构造 `pysim` 环境，并由 runner 驱动有限步推演。
 
 ## Directory
 
 ```text
 examples/battle_planner/
-  adapters/          # 外部想定和环境适配，包含 scenario_zc_lite 加载和 zc 环境运行
-  agents/            # fake tick agent 的说明、适用场景和参数 schema
+  adapters/          # 外部想定和环境适配，包含 scenario_zc_lite 加载、pysim factory 和 runner
   data/              # demo workflow 使用的 Pydantic 数据模型
   evaluation/        # 独立评估组件；首版指标为占位/随机
   knowledge/          # 想定 + 环境知识 -> PlannerKnowledgePack
   orchestration/     # LangGraph workflow、state 和节点
   planning/          # LLM 规划环节：想定理解、方案生成、参数生成、总结
   runtime/           # model provider、middleware、fallback 和 trace 记录
-  tick_agents/       # 可实时运行的 tick agent 示例和 declaration/factory
+  tick_agents/       # 可实时运行的 tick agent 示例、declaration 和 schema 加载入口
   tools/             # 首版本地查询工具描述，占位替代 forge manager 能力
   tests/             # 测试用例和可直接运行的 demo 验证入口
 ```

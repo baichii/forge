@@ -33,6 +33,7 @@ dev = [
 
 [tool.ruff]
 line-length = 108
+force-exclude = true
 lint.select = [
     "E",   # pycodestyle errors
     "F",   # pyflakes

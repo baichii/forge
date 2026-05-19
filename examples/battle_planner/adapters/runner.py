@@ -1,11 +1,20 @@
+import sys
 import time
-import datetime
+from pathlib import Path
 from typing import Any
 
-from forge.utils.specs import EnvSpec, EnvMode, EnvLink, TickAgentSpec, CallbackSpec
-from forge.env import Runner as BaseRuner
-from forge.lib.callback import CallBackList
+REPO_ROOT = Path(__file__).resolve().parents[3]
+EXAMPLES_ROOT = Path(__file__).resolve().parents[2]
+for path in (REPO_ROOT, EXAMPLES_ROOT):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
+from battle_planner.registry import register_battle_planner_modules  # noqa: E402
+
+from forge.env import Runner as BaseRuner  # noqa: E402
+from forge.lib.callback import CallBackList  # noqa: E402
+from forge.registration import make_callback, make_env, make_tick_agent  # noqa: E402
+from forge.utils.specs import CallbackSpec, EnvLink, EnvMode, EnvSpec  # noqa: E402
 
 
 class Runner(BaseRuner):
@@ -17,28 +26,25 @@ class Runner(BaseRuner):
 
     """
 
-    def __init__(self, env_spec, tick_agents: list[TickAgentSpec], callbacks: list[CallbackSpec]):
+    def __init__(self, env_spec, tick_agents: list[Any], callbacks: list[CallbackSpec]):
 
-        # env/agent/callback init
         self._init_env(env_spec)
         self._init_tick_agents(tick_agents)
         self._init_callbacks(callbacks)
 
-        #
-        self._on_begin()
+        self._callbacks.on_begin()
 
-        # others
         self._last_actions = []
         self._start_time = time.time()
         self._end_time = self._start_time
 
     def reset(self):
-        self.env.reset()
+        self._env.reset()
 
-    def run(self, max_step: int | None=None) -> Any:
+    def run(self, max_step: int | None = None) -> Any:
         step = 0
         while True:
-            observation, terminated, truncated, info =  self.run_step()
+            observation, terminated, truncated, info = self.run_step()
             step += 1
 
             done = False
@@ -57,58 +63,53 @@ class Runner(BaseRuner):
 
             if done:
                 break
-        self._callbacks.on_begin()
+        self._callbacks.on_end()
 
     def run_step(self):
-        self._on_step_begin()
-        observation, _, terminated, truncated, info = self.env.step(self._last_actions)
+        self._callbacks.on_step_begin()
+        observation, _, terminated, truncated, info = self._env.step(self._last_actions)
         actions = []
         for _, tick_agent in self._tick_agents.items():
             action, status, done, info = tick_agent.step(observation)
             actions.extend(action)
         self._last_actions = actions
-        self._on_step_end()
+        self._callbacks.on_step_end()
         return observation, terminated, truncated, info
 
     def _init_env(self, env_spec) -> None:
-        # todo: 优化为参数解析
-        from pysim import Sim
-        from scenario.scenario_zc_lite import scenario_conf
-        self._env = Sim(scenario_conf, subscribe_cont=True)
+        self._env = make_env(env_spec.name, **env_spec.params)
 
-    def _init_tick_agents(self, tick_agents: list[TickAgentSpec]) -> None:
+    def _init_tick_agents(self, tick_agents: list[Any]) -> None:
         self._tick_agents = {}
         for tick_agent in tick_agents:
-            # todo: 初始化agent
-            pass
+            if hasattr(tick_agent, "name"):
+                name = tick_agent.name
+            else:
+                name = tick_agent.agent_name
+            self._tick_agents[name] = make_tick_agent(name, params=tick_agent.params)
 
     def _init_callbacks(self, callbacks: list[CallbackSpec]) -> None:
         callbacks_ = []
         for callback in callbacks:
-            pass
+            callbacks_.append(make_callback(callback.name, **callback.params))
         self._callbacks: CallBackList = CallBackList(callbacks_)
-
-
-
+        self._callbacks.set_runner(self)
 
 
 def test_runner():
+    register_battle_planner_modules()
     test_env_spec = EnvSpec(
-        name="test env spec",
+        name="pysim",
         mode=EnvMode.CREATE,
         link=EnvLink.GYM,
-        params={
-            "scenario": "zc3_lite",
-            "seed": 42,
-        }
     )
 
     test_agents = []
     test_callbacks = []
     runner = Runner(test_env_spec, test_agents, test_callbacks)
     runner.reset()
-    runner.run()
+    runner.run(max_step=None)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_runner()

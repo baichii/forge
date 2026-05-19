@@ -59,8 +59,11 @@ class ModuleSpec:
 registry: dict[str, ModuleSpec] = {}
 # 支持的namespace
 # action 自定义行动
+# env 环境或环境连接
+# tick_agent 实时决策智能体
+# callback runner callback
 # manager 自定义信息管理模块, 建议使用版本号命名空间, 例如 unit_manager/v1
-namespaces: set[str] = {"action", "entity", "agent", "node", "manager"}
+namespaces: set[str] = {"action", "entity", "node", "manager", "env", "tick_agent", "callback"}
 
 
 def parse_module_id(module_id: str) -> tuple[str | None, str]:
@@ -235,13 +238,68 @@ def spec(module_id: str) -> ModuleSpec:
 
 
 def register_action(
-    name: str, entry_point: ModuleCreator | str
+    name: str,
+    entry_point: ModuleCreator | str,
+    kwargs: dict | None = None,
+    data: dict | None = None,
 ) -> ModuleCreator:
     """注册action module"""
     module_id = f"action/{name}"
-    return register(module_id, entry_point)
+    return register(module_id, entry_point, kwargs=kwargs, data=data)
+
 
 def make_action(name: str, **kwargs):
     """创建action module"""
     module_id = f"action/{name}"
+    return make(module_id, **kwargs)
+
+
+def register_env(
+    name: str,
+    entry_point: ModuleCreator | str,
+    kwargs: dict | None = None,
+    data: dict | None = None,
+) -> ModuleCreator:
+    """注册env module"""
+    module_id = f"env/{name}"
+    return register(module_id, entry_point, kwargs=kwargs, data=data)
+
+
+def make_env(name: str, **kwargs):
+    """创建env module"""
+    module_id = f"env/{name}"
+    return make(module_id, **kwargs)
+
+
+def register_tick_agent(
+    name: str,
+    entry_point: ModuleCreator | str,
+    kwargs: dict | None = None,
+    data: dict | None = None,
+) -> ModuleCreator:
+    """注册tick_agent module"""
+    module_id = f"tick_agent/{name}"
+    return register(module_id, entry_point, kwargs=kwargs, data=data)
+
+
+def make_tick_agent(name: str, **kwargs):
+    """创建tick_agent module"""
+    module_id = f"tick_agent/{name}"
+    return make(module_id, **kwargs)
+
+
+def register_callback(
+    name: str,
+    entry_point: ModuleCreator | str,
+    kwargs: dict | None = None,
+    data: dict | None = None,
+) -> ModuleCreator:
+    """注册callback module"""
+    module_id = f"callback/{name}"
+    return register(module_id, entry_point, kwargs=kwargs, data=data)
+
+
+def make_callback(name: str, **kwargs):
+    """创建callback module"""
+    module_id = f"callback/{name}"
     return make(module_id, **kwargs)

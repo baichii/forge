@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from battle_planner.adapters.scenario_loader import ensure_pythonlib_path
-from battle_planner.tick_agents.base import TickAgent, TickAgentRuntimeContext
-from pydantic import BaseModel
+from battle_planner.tick_agents.base import TickAgent
 
 from forge.utils.specs import ParamSpec, ParamSpecTemplate, ParamType, TickAgentSpec
 
@@ -12,15 +11,6 @@ ensure_pythonlib_path()
 from pysim.schema.action import MissionFormatter  # noqa: E402
 
 TASK_TYPE = "NavalAsuWStrike_Naval"
-
-
-class NavalToSeaStrikeParams(BaseModel):
-    start_time: float
-    end_time: float
-    unit_ids: list[str]
-    target_ids: list[str]
-    wp_num: int = 2
-    clear_targets: bool = True
 
 
 declaration = TickAgentSpec(
@@ -44,8 +34,12 @@ declaration = TickAgentSpec(
 """,
     status=["running", "finished"],
     params={
-        "start_time": ParamSpec.start_time.redeclaration(type=ParamType.FLOAT, description="智能体开始运行时间，单位秒。"),
-        "end_time": ParamSpec.end_time.redeclaration(type=ParamType.FLOAT, description="智能体停止运行时间，单位秒。"),
+        "start_time": ParamSpec.start_time.redeclaration(
+            type=ParamType.FLOAT, description="智能体开始运行时间，单位秒。"
+        ),
+        "end_time": ParamSpec.end_time.redeclaration(
+            type=ParamType.FLOAT, description="智能体停止运行时间，单位秒。"
+        ),
         "unit_ids": ParamSpec.unit_ids.redeclaration(description="执行任务的舰艇单位 id 列表。"),
         "target_ids": ParamSpec.target_ids.redeclaration(description="海上目标单位 id 列表。"),
         "wp_num": ParamSpecTemplate(
@@ -71,8 +65,8 @@ declaration = TickAgentSpec(
 class Agent(TickAgent):
     declaration = declaration
 
-    def __init__(self, params: NavalToSeaStrikeParams, runtime_context: TickAgentRuntimeContext):
-        super().__init__(params=params, runtime_context=runtime_context)
+    def __init__(self, params: dict[str, Any]):
+        super().__init__(params=params)
         self._dispatched = False
 
     def reset(self) -> None:
@@ -80,34 +74,41 @@ class Agent(TickAgent):
 
     def step(self, observation: dict[str, Any]) -> tuple[list, dict[str, bool], bool, dict[str, Any]]:
         sim_time = float(observation.get("sim_time", observation.get("time", 0.0)))
+        start_time = float(self.params["start_time"])
+        end_time = float(self.params["end_time"])
         status = {
-            "running": self.params.start_time <= sim_time <= self.params.end_time and not self._dispatched,
-            "finished": self._dispatched or sim_time > self.params.end_time,
+            "running": start_time <= sim_time <= end_time and not self._dispatched,
+            "finished": self._dispatched or sim_time > end_time,
         }
         if self._dispatched:
             return [], status, True, {"reason": "mission_already_dispatched", "sim_time": sim_time}
-        if sim_time < self.params.start_time or sim_time > self.params.end_time:
-            done = sim_time > self.params.end_time
-            reason = "before_start_time" if sim_time < self.params.start_time else "after_end_time"
+        if sim_time < start_time or sim_time > end_time:
+            done = sim_time > end_time
+            reason = "before_start_time" if sim_time < start_time else "after_end_time"
             return [], status, done, {"reason": reason, "sim_time": sim_time}
 
         self._dispatched = True
         actions = [
             MissionFormatter.attack(
-                unit_ids=self.params.unit_ids,
+                unit_ids=self.params["unit_ids"],
                 target_id=target_id,
-                wp_num=self.params.wp_num,
-                clear_targets=self.params.clear_targets if index == 0 else False,
+                wp_num=self.params.get("wp_num", 2),
+                clear_targets=self.params.get("clear_targets", True) if index == 0 else False,
             )
-            for index, target_id in enumerate(self.params.target_ids)
+            for index, target_id in enumerate(self.params["target_ids"])
         ]
         status = {
             "running": False,
             "finished": True,
         }
-        return actions, status, True, {
-            "reason": "mission_dispatched",
-            "sim_time": sim_time,
-            "task_type": TASK_TYPE,
-            "source": self.runtime_context.agent_name,
-        }
+        return (
+            actions,
+            status,
+            True,
+            {
+                "reason": "mission_dispatched",
+                "sim_time": sim_time,
+                "task_type": TASK_TYPE,
+                "source": self.declaration.name,
+            },
+        )

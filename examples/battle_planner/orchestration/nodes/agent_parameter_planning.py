@@ -8,13 +8,13 @@ from battle_planner.planning.agent_parameter_planning import plan_agent_params
 def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
     log_node_start(
         "agent_parameter_planning",
-        agent_count=len(state.fake_agent_specs),
+        agent_count=len(state.tick_agent_specs),
         battle_plan_chars=len(state.battle_plan_md),
     )
     planned, trace = plan_agent_params(
         scenario_understanding_md=state.scenario_understanding_md,
         battle_plan_md=state.battle_plan_md,
-        agent_specs=state.fake_agent_specs,
+        agent_specs=state.tick_agent_specs,
     )
     state.planned_agent_params = planned
     state.add_trace(trace)

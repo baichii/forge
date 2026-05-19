@@ -10,13 +10,13 @@ if str(EXAMPLES_ROOT) not in sys.path:
 
 def test_air_to_sea_tick_agent_declaration_and_step() -> None:
     from battle_planner.tick_agents.air_to_sea_strike_tick_agent import declaration
-    from battle_planner.tick_agents.base import TickAgentFactory, TickAgentRuntimeContext
+    from battle_planner.tick_agents.base import TickAgentFactory
     from pysim.schema.enums import ActionType, MissionType
 
     from forge.utils.specs import TickAgentSpec
 
     assert isinstance(declaration, TickAgentSpec)
-    exported = declaration.export_json_schema()
+    exported = declaration.model_dump()
     assert exported["name"] == "air_to_sea_strike_agent"
     assert exported["entrypoint"] == "battle_planner.tick_agents.air_to_sea_strike_tick_agent:Agent"
     assert "start_time" in exported["params"]
@@ -32,7 +32,6 @@ def test_air_to_sea_tick_agent_declaration_and_step() -> None:
             "target_ids": ["red_ship_1"],
             "wp_num": 2,
         },
-        runtime_context=TickAgentRuntimeContext(agent_name="test_runner"),
     )
 
     actions, status, done, info = agent.step({"sim_time": 50})
@@ -50,7 +49,7 @@ def test_air_to_sea_tick_agent_declaration_and_step() -> None:
     assert status == {"running": False, "finished": True}
     assert done is True
     assert info["task_type"] == "NavalAsuWStrike_Air"
-    assert info["source"] == "test_runner"
+    assert info["source"] == "air_to_sea_strike_agent"
 
     actions, status, done, info = agent.step({"sim_time": 130})
     assert actions == []
@@ -67,10 +66,17 @@ def test_naval_to_sea_tick_agent_declaration_and_step() -> None:
     from forge.utils.specs import TickAgentSpec
 
     assert isinstance(declaration, TickAgentSpec)
-    exported = declaration.export_json_schema()
+    exported = declaration.model_dump()
     assert exported["name"] == "naval_to_sea_strike_agent"
     assert exported["entrypoint"] == "battle_planner.tick_agents.naval_to_sea_strike_tick_agent:Agent"
-    assert set(exported["params"]) >= {"start_time", "end_time", "unit_ids", "target_ids", "wp_num", "clear_targets"}
+    assert set(exported["params"]) >= {
+        "start_time",
+        "end_time",
+        "unit_ids",
+        "target_ids",
+        "wp_num",
+        "clear_targets",
+    }
     assert exported["status"] == ["running", "finished"]
 
     agent = TickAgentFactory.create(

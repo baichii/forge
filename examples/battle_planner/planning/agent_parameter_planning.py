@@ -4,9 +4,11 @@ import json
 import re
 from typing import Any
 
-from battle_planner.data.demo_models import FakeTickAgentSpec, PlannedAgentParams
+from battle_planner.data.demo_models import PlannedAgentParams
 from battle_planner.planning.base import AgentInputs, AgentRunResult, BasePlanningAgent
 from battle_planner.runtime.fallback import fallback_agent_params
+
+from forge.utils.specs import TickAgentSpec
 
 
 def _extract_json_array(text: str) -> list[dict[str, Any]] | None:
@@ -38,7 +40,7 @@ class AgentParameterPlanningAgent(BasePlanningAgent[list[PlannedAgentParams]]):
             {
                 "role": "user",
                 "content": (
-                    "根据想定理解、作战方案和 fake agent schema，生成每个 agent 的参数。\n\n"
+                    "根据想定理解、作战方案和 tick agent schema，生成每个 agent 的参数。\n\n"
                     f"想定理解：\n{inputs.data['scenario_understanding_md']}\n\n"
                     f"作战方案：\n{inputs.data['battle_plan_md']}\n\n"
                     f"agent schema JSON：\n{json.dumps(specs_payload, ensure_ascii=False)}"
@@ -77,7 +79,7 @@ def plan_agent_params(
     *,
     scenario_understanding_md: str,
     battle_plan_md: str,
-    agent_specs: list[FakeTickAgentSpec],
+    agent_specs: list[TickAgentSpec],
 ) -> tuple[list[PlannedAgentParams], object]:
     result: AgentRunResult[list[PlannedAgentParams]] = AgentParameterPlanningAgent().run(
         AgentInputs(
@@ -92,7 +94,7 @@ def plan_agent_params(
                     "description": "查询固定目标打击候选单位；首版作为上下文说明注入。",
                 }
             ],
-            skills=["读取 fake agent schema 并输出可执行参数 JSON"],
+            skills=["读取 tick agent schema 并输出可执行参数 JSON"],
         )
     )
     return result.output, result.trace

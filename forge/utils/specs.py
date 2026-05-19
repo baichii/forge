@@ -81,7 +81,7 @@ class TickAgentSpec(BaseModel):
     name: str = Field(description="智能体类型名称")
     description: str = Field(description="智能体描述")
     params: dict[str, ParamSpecTemplate] = Field(default_factory=dict, description="智能体参数规范")
-    entrypoint: str  = Field(description="智能体执行入口，path:Module格式")
+    entrypoint: str = Field(description="智能体执行入口，path:Module格式")
     status: list[str] = Field(default_factory=list, description="描述智能体在执行过程中可以返回的状态列表")
     version: str = "0.1"  # 0.1为初始版本，仅用于默认值填充
 
@@ -114,8 +114,7 @@ class EnvSpec(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict, description="环境连接配置")
 
 
-
-class CallbackSpec:
-    name: str = Field(default="回调名称")
-    entropy_point = Field(description="callback执行入口，path:Module格式")
-    params: dict[str, Any] = Field(description="回调函数自定义参数")
+class CallbackSpec(BaseModel):
+    name: str = Field(description="回调名称")
+    entrypoint: str = Field(description="callback执行入口，path:Module格式")
+    params: dict[str, Any] = Field(default_factory=dict, description="回调函数自定义参数")

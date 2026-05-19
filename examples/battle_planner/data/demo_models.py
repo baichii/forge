@@ -15,22 +15,6 @@ class LLMTrace(BaseModel):
     error: str | None = None
 
 
-class AgentParamSpec(BaseModel):
-    name: str
-    description: str
-    type: str
-    default: Any
-    required: bool = True
-    examples: list[Any] = Field(default_factory=list)
-
-
-class FakeTickAgentSpec(BaseModel):
-    name: str
-    description: str
-    applicable_scenarios: list[str] = Field(default_factory=list)
-    params: list[AgentParamSpec] = Field(default_factory=list)
-
-
 class PlannedAgentParams(BaseModel):
     agent_name: str
     params: dict[str, Any] = Field(default_factory=dict)
