@@ -4,23 +4,11 @@ import contextlib
 import copy
 import importlib
 import io
-import sys
-from pathlib import Path
 from typing import Any
-
-REPO_ROOT = Path(__file__).resolve().parents[4]
-PYTHONLIB_ROOT = REPO_ROOT / "pythonlib"
-
-
-def ensure_pythonlib_path() -> None:
-    pythonlib_path = str(PYTHONLIB_ROOT)
-    if pythonlib_path not in sys.path:
-        sys.path.insert(0, pythonlib_path)
 
 
 def load_zc_lite_scenario() -> dict[str, Any]:
     """Load scenario_zc_lite while suppressing its import-time pprint."""
-    ensure_pythonlib_path()
     with contextlib.redirect_stdout(io.StringIO()):
         module = importlib.import_module("scenario.scenario_zc_lite")
     return copy.deepcopy(module.scenario_conf)

@@ -1,4 +1,6 @@
-.PHONY: setup lint format format-check test check
+BATTLE_PLANNER_PYTHONPATH := .:examples:pythonlib
+
+.PHONY: setup lint format format-check test check run-battle-planner
 
 setup:
 	uv sync --all-groups
@@ -16,5 +18,8 @@ format-check:
 
 test:
 	uv run pytest forge/tests -v
+
+run-battle-planner:
+	PYTHONPATH=$(BATTLE_PLANNER_PYTHONPATH) uv run python examples/battle_planner/tests/run_zc_lite_demo.py
 
 check: lint format-check test

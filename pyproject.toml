@@ -63,3 +63,10 @@ combine-as-imports = true
 known-first-party = ["forge", "examples"]
 known-third-party = ["numpy", "pandas", "requests"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+    "examples",
+    "pythonlib",
+]

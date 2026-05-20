@@ -2,13 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from battle_planner.adapters.runtime.scenario_loader import ensure_pythonlib_path
 from battle_planner.tick_agents.base import TickAgent
+from pysim.schema.action import MissionFormatter
 
 from forge.core.specs import ParamSpec, ParamSpecTemplate, ParamType, TickAgentSpec
-
-ensure_pythonlib_path()
-from pysim.schema.action import MissionFormatter  # noqa: E402
 
 TASK_TYPE = "NavalAsuWStrike_Air"
 

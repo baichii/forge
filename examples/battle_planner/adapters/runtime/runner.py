@@ -1,20 +1,12 @@
-import sys
 import time
-from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-EXAMPLES_ROOT = Path(__file__).resolve().parents[3]
-for path in (REPO_ROOT, EXAMPLES_ROOT):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+from battle_planner.registry import register_battle_planner_modules
 
-from battle_planner.registry import register_battle_planner_modules  # noqa: E402
-
-from forge.core.lib.callback import CallBackList  # noqa: E402
-from forge.core.runtime import Runner as BaseRuner  # noqa: E402
-from forge.core.specs import CallbackSpec, EnvLink, EnvMode, EnvSpec  # noqa: E402
-from forge.registration import make_callback, make_env, make_tick_agent  # noqa: E402
+from forge.core.lib.callback import CallBackList
+from forge.core.runtime import Runner as BaseRuner
+from forge.core.specs import CallbackSpec, EnvLink, EnvMode, EnvSpec
+from forge.registration import make_callback, make_env, make_tick_agent
 
 
 class Runner(BaseRuner):

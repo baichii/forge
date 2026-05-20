@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from battle_planner.adapters.runtime.scenario_loader import ensure_pythonlib_path, load_zc_lite_scenario
+from battle_planner.adapters.runtime.scenario_loader import load_zc_lite_scenario
 
 
 def make_pysim_env(
@@ -12,7 +12,6 @@ def make_pysim_env(
     render_mode: str | None = "",
 ):
     """Create a pysim environment."""
-    ensure_pythonlib_path()
     from pysim import Sim
 
     return Sim(

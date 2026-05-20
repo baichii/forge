@@ -1,12 +1,5 @@
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-EXAMPLES_ROOT = Path(__file__).resolve().parents[2]
-if str(EXAMPLES_ROOT) not in sys.path:
-    sys.path.insert(0, str(EXAMPLES_ROOT))
-
 
 def test_air_to_sea_tick_agent_declaration_and_step() -> None:
     from battle_planner.tick_agents.air_to_sea_strike_tick_agent import declaration
