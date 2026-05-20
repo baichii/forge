@@ -1,7 +1,7 @@
 # Maritime Battle Planner Scenario
 
-This document owns the business scenario that should not leak into `forge.lib`
-or `forge.manager`.
+This document owns the business scenario that should not leak into
+`forge.core.lib` or `forge.core.manager`.
 
 ## Scenario
 

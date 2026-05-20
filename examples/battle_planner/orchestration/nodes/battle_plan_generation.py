@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from battle_planner.agents.battle_plan_generation import generate_battle_plan
 from battle_planner.orchestration.node_logging import log_node_end, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.planning.battle_plan_generation import generate_battle_plan
 
 
 def battle_plan_generation_node(state: BattlePlannerState) -> BattlePlannerState:

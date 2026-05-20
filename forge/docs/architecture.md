@@ -52,7 +52,7 @@ battle_planner/
 
 ## Design Rule
 
-Do not put business planner logic in `forge.lib` or `forge.manager`.
+Do not put business planner logic in `forge.core.lib` or `forge.core.manager`.
 
 For example, `attack` can be an action intent or capability label, but the
 rules for whether a unit can attack a target belong to `CapabilityManager` and

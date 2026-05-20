@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from battle_planner.agents.summary_generation import generate_summary
 from battle_planner.orchestration.node_logging import log_node_end, log_node_error, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.planning.summary_generation import generate_summary
 
 
 def summary_node(state: BattlePlannerState) -> BattlePlannerState:

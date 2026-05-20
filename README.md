@@ -9,11 +9,13 @@ observe -> normalize -> query/reason -> plan -> translate -> act -> update
 
 核心边界：
 
-- `forge.lib`: 实体、关系、能力、动作抽象，以及基础 agent 定义。
-- `forge.manager`: `ManagerHub`、`Manager` 基类，以及 Unit/Capability/Relation/Action 四个 manager。
+- `forge.core`: 开发者需要理解和扩展的基础骨架。
+- `forge.core.lib`: 实体、关系、能力、动作抽象，以及基础 agent 定义。
+- `forge.core.manager`: `ManagerHub`、`Manager` 基类，以及 Unit/Capability/Relation/Action 四个 manager。
+- `forge.core.runtime`: runner、环境连接/适配相关抽象。
 - `forge.adapters`: 外部环境或第三方连接适配。
 - `forge.integrations`: LangGraph、openai-agents 等可选编排集成。
-- `battle_planner`: 基于 forge manager/lib 的业务 planner，不进入 forge 基础层。
+- `battle_planner`: 基于 forge core 的业务 planner，不进入 forge 基础层。
 
 安装依赖时使用：
 

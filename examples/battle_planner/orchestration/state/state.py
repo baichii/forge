@@ -1,6 +1,6 @@
 from typing import Any
 
-from battle_planner.data.demo_models import (
+from battle_planner.data.models import (
     EvaluationReport,
     LLMTrace,
     PlannedAgentParams,
@@ -9,7 +9,7 @@ from battle_planner.data.demo_models import (
 )
 from pydantic import BaseModel, Field
 
-from forge.utils.specs import TickAgentSpec
+from forge.core.specs import TickAgentSpec
 
 
 class BattlePlannerState(BaseModel):

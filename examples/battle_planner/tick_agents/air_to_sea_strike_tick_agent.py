@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from battle_planner.adapters.scenario_loader import ensure_pythonlib_path
+from battle_planner.adapters.runtime.scenario_loader import ensure_pythonlib_path
 from battle_planner.tick_agents.base import TickAgent
 
-from forge.utils.specs import ParamSpec, ParamSpecTemplate, ParamType, TickAgentSpec
+from forge.core.specs import ParamSpec, ParamSpecTemplate, ParamType, TickAgentSpec
 
 ensure_pythonlib_path()
 from pysim.schema.action import MissionFormatter  # noqa: E402

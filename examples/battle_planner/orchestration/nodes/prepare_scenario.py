@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from battle_planner.adapters.scenario_loader import load_zc_lite_scenario, summarize_scenario
-from battle_planner.knowledge import build_zc_lite_knowledge_pack
+from battle_planner.adapters.runtime.scenario_loader import load_zc_lite_scenario, summarize_scenario
+from battle_planner.agents.context import build_zc_lite_knowledge_pack, describe_demo_tools
 from battle_planner.orchestration.node_logging import log_node_end, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.tools import describe_demo_tools
 
 
 def prepare_scenario_node(state: BattlePlannerState) -> BattlePlannerState:

@@ -20,9 +20,9 @@
 
 ### Engineering Boundaries
 
-- Keep `forge.lib` generic and small.
-- Keep `forge.manager` focused on lifecycle, state, and query orchestration.
-- Do not put scenario-specific battle planner logic into `forge.lib` or `forge.manager`.
+- Keep `forge.core.lib` generic and small.
+- Keep `forge.core.manager` focused on lifecycle, state, and query orchestration.
+- Do not put scenario-specific battle planner logic into `forge.core.lib` or `forge.core.manager`.
 - Keep environment truth inside adapters and runtimes.
 - Capability logic should provide planner-facing summaries, matching, and explanations, not a second simulator legality engine.
 

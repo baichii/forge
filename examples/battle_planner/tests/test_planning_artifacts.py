@@ -10,11 +10,11 @@ if str(EXAMPLES_ROOT) not in sys.path:
 
 
 def _load_components() -> dict[str, Any]:
-    from battle_planner.adapters.scenario_loader import load_zc_lite_scenario
-    from battle_planner.knowledge import build_zc_lite_knowledge_pack
-    from battle_planner.planning.base import AgentInputs
-    from battle_planner.planning.battle_plan_generation import BattlePlanGenerationAgent
-    from battle_planner.planning.scenario_understanding import ScenarioUnderstandingAgent
+    from battle_planner.adapters.runtime.scenario_loader import load_zc_lite_scenario
+    from battle_planner.agents.base import AgentInputs
+    from battle_planner.agents.battle_plan_generation import BattlePlanGenerationAgent
+    from battle_planner.agents.context import build_zc_lite_knowledge_pack
+    from battle_planner.agents.scenario_understanding import ScenarioUnderstandingAgent
     from battle_planner.runtime.model_provider import OfflineModelProvider
 
     return {
@@ -80,6 +80,6 @@ def test_battle_plan_generation_artifact() -> None:
     assert result.trace.fallback_used is True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # test_scenario_understanding_artifact()
     test_battle_plan_generation_artifact()

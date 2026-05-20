@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from battle_planner.data.demo_models import PlannedAgentParams
+from battle_planner.data.models import PlannedAgentParams
 
-from forge.utils.specs import TickAgentSpec
+from forge.core.specs import TickAgentSpec
 
 
 def fallback_markdown(title: str, body: str) -> str:

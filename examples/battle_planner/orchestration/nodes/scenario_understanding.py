@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from battle_planner.agents.scenario_understanding import understand_scenario
 from battle_planner.orchestration.node_logging import log_node_end, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.planning.scenario_understanding import understand_scenario
 
 
 def scenario_understanding_node(state: BattlePlannerState) -> BattlePlannerState:

@@ -29,7 +29,7 @@ def register_battle_planner_modules() -> None:
         "env/pysim",
         register_env,
         "pysim",
-        "battle_planner.adapters.env_factories:make_pysim_env",
+        "battle_planner.adapters.runtime.env_factories:make_pysim_env",
     )
     _register_once(
         "tick_agent/air_to_sea_strike_agent",

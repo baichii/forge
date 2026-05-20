@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from battle_planner.agents.agent_parameter_planning import plan_agent_params
 from battle_planner.orchestration.node_logging import log_node_end, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.planning.agent_parameter_planning import plan_agent_params
 
 
 def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:

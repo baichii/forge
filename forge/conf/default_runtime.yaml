@@ -1,7 +1,7 @@
 source:
   version: test
   path:
-    manager: forge.manager
-    lib: forge.lib
+    manager: forge.core.manager
+    lib: forge.core.lib
   custom:
-    unit_manager: forge.manager.UnitManager
+    unit_manager: forge.core.manager.UnitManager

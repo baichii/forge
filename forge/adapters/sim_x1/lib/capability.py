@@ -3,13 +3,13 @@ from __future__ import annotations
 import enum
 from typing import TYPE_CHECKING
 
-from forge.lib.capability import ICapabilityProvider, CapabilityQuery, CapabilityResult
 from forge.adapters.sim_x1.lib.entity import Entity
 from forge.adapters.sim_x1.lib.enums import UnitType, WeaponTarget
 from forge.adapters.sim_x1.utils.attack_utils import AttackUtility
+from forge.core.lib.capability import CapabilityQuery, CapabilityResult, ICapabilityProvider
 
 if TYPE_CHECKING:
-    from forge.manager import ManagerHub
+    from forge.core.manager import ManagerHub
 
 
 class Capability(enum.StrEnum):

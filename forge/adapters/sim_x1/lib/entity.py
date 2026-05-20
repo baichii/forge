@@ -1,5 +1,5 @@
-from forge.lib.entity import Entity as BaseEntity
 from forge.adapters.sim_x1.lib.weapon import Weapon, Weapons
+from forge.core.lib.entity import Entity as BaseEntity
 
 
 class Entity(BaseEntity):

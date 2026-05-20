@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from random import Random
 
-from battle_planner.data.demo_models import EvaluationReport, SimulationRunResult
+from battle_planner.data.models import EvaluationReport, SimulationRunResult
 
 
 class RandomDemoEvaluator:

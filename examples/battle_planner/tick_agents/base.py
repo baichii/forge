@@ -3,8 +3,8 @@ from __future__ import annotations
 import importlib
 from typing import Any
 
-from forge.lib.agent import TickAgent
-from forge.utils.specs import TickAgentSpec
+from forge.core.lib.agent import TickAgent
+from forge.core.specs import TickAgentSpec
 
 
 class TickAgentFactory:

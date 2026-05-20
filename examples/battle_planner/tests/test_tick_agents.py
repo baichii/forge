@@ -13,7 +13,7 @@ def test_air_to_sea_tick_agent_declaration_and_step() -> None:
     from battle_planner.tick_agents.base import TickAgentFactory
     from pysim.schema.enums import ActionType, MissionType
 
-    from forge.utils.specs import TickAgentSpec
+    from forge.core.specs import TickAgentSpec
 
     assert isinstance(declaration, TickAgentSpec)
     exported = declaration.model_dump()
@@ -63,7 +63,7 @@ def test_naval_to_sea_tick_agent_declaration_and_step() -> None:
     from battle_planner.tick_agents.naval_to_sea_strike_tick_agent import declaration
     from pysim.schema.enums import ActionType, MissionType
 
-    from forge.utils.specs import TickAgentSpec
+    from forge.core.specs import TickAgentSpec
 
     assert isinstance(declaration, TickAgentSpec)
     exported = declaration.model_dump()
