@@ -215,22 +215,3 @@ class Runner(BaseRuner):
                 "raw_actions": actions,
             }
         )
-
-
-def test_runner():
-    register_battle_planner_modules()
-    test_env_params = EnvParams(
-        name="pysim",
-        mode=EnvMode.CREATE,
-        link=EnvLink.GYM,
-    )
-
-    test_agents = []
-    test_callbacks = []
-    runner = Runner(env=test_env_params, tick_agents=test_agents, callbacks=test_callbacks)
-    runner.reset()
-    runner.run(max_step=None)
-
-
-if __name__ == "__main__":
-    test_runner()

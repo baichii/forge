@@ -21,7 +21,6 @@ class RelationQuery:
 class RelationResult:
     """"""
 
-    allowed: bool
     reason: str = ""
     evidence: dict[str, Any] = field(default_factory=dict)
 

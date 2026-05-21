@@ -7,7 +7,7 @@ from forge.core.lib.callback import CallBackList
 from forge.core.specs import CallbackParams, EnvParams, TickAgentParams
 
 
-class Runner(Protocol):
+class Runner(object):
     """test runner protocol
 
     Notes:
@@ -20,7 +20,7 @@ class Runner(Protocol):
 
     def __init__(
         self,
-        env_params: EnvParams,
+        env: EnvParams,
         tick_agents: list[TickAgent | TickAgentParams],
         callbacks: CallBackList | list[CallbackParams],
     ) -> None:

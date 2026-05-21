@@ -26,10 +26,7 @@ jobs:
       - name: Install dependencies with uv
         run: uv sync --all-groups
 
-      - name: Check formatting
-        run: make format-check
-
-      - name: Run unit tests
+      - name: Run checks
         env:
           PYTHONPATH: .:./pythonlib
-        run: make test
+        run: make check
