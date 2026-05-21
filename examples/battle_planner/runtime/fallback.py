@@ -28,6 +28,11 @@ DEFAULT_TICK_AGENT_PARAMS: dict[str, dict[str, Any]] = {
     },
 }
 
+DEFAULT_TICK_AGENT_SIDE: dict[str, str] = {
+    "air_to_sea_strike_agent": "blue",
+    "naval_to_sea_strike_agent": "blue",
+}
+
 
 def fallback_agent_params(agent_specs: list[TickAgentSpec]) -> list[TickAgentParams]:
     planned: list[TickAgentParams] = []
@@ -42,8 +47,8 @@ def fallback_agent_params(agent_specs: list[TickAgentSpec]) -> list[TickAgentPar
             TickAgentParams(
                 agent_instance_id=f"{spec.name}_{index:03d}",
                 agent_name=spec.name,
+                side=DEFAULT_TICK_AGENT_SIDE.get(spec.name, "blue"),
                 params=params,
-                rationale="LLM 不可用或输出无法解析，使用 tick agent 默认参数。",
             )
         )
     return planned

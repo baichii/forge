@@ -2,14 +2,14 @@
 
 from battle_planner.adapters.runtime.env_wrappers import PysimInfoWrapper
 from battle_planner.adapters.runtime.specs import (
-    BattlefieldEvent,
+    BattlefieldReport,
     EnvRunReport,
     RunnerReport,
     TickAgentReport,
 )
 
 __all__ = [
-    "BattlefieldEvent",
+    "BattlefieldReport",
     "EnvRunReport",
     "PysimInfoWrapper",
     "RunnerReport",

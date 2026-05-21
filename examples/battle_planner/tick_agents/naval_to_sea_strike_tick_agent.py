@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from battle_planner.tick_agents.base import TickAgent
 from pysim.schema.action import MissionFormatter
 
-from forge.core.specs import ParamSpec, ParamSpecTemplate, ParamType, TickAgentSpec
+from forge.core.lib.agent import TickAgent
+from forge.core.specs import ParamSpec, ParamSpecTemplate, ParamType, TickAgentParams, TickAgentSpec
 
 TASK_TYPE = "NavalAsuWStrike_Naval"
 
@@ -62,7 +62,7 @@ declaration = TickAgentSpec(
 class Agent(TickAgent):
     declaration = declaration
 
-    def __init__(self, params: dict[str, Any]):
+    def __init__(self, params: TickAgentParams):
         super().__init__(params=params)
         self._dispatched = False
 
@@ -94,6 +94,8 @@ class Agent(TickAgent):
             )
             for index, target_id in enumerate(self.params["target_ids"])
         ]
+        for action in actions:
+            action["side"] = self.side
         status = {
             "running": False,
             "finished": True,

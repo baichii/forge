@@ -25,7 +25,7 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
             callbacks=[
                 CallbackParams(
                     name="step_metric",
-                    entrypoint="battle_planner.evaluation.callbacks:StepMetricCallback",
+                    callback_instance_id="step_metric",
                 )
             ],
         )
@@ -49,6 +49,7 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
                     {
                         "agent_instance_id": item.agent_instance_id,
                         "agent_name": item.agent_name,
+                        "side": item.side,
                     }
                     for item in state.planned_agent_params
                 ],

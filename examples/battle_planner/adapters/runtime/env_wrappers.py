@@ -2,11 +2,39 @@ from __future__ import annotations
 
 from typing import Any
 
-from battle_planner.adapters.runtime.specs import BattlefieldEvent
+from battle_planner.adapters.runtime.scenario_loader import load_zc_lite_scenario
+from battle_planner.adapters.runtime.specs import BattlefieldReport
+
+
+def make_pysim_env(
+    *,
+    scenario_name: str = "zc_lite",
+    subscribe_cont: bool = True,
+    render_mode: str | None = "",
+) -> "PysimInfoWrapper":
+    """创建 pysim 环境，并包装为 runner 使用的统一接口。"""
+    from pysim import Sim
+
+    supported_scenarios = {"zc_lite": _load_scenario_conf(scenario_name)}
+    scenario = supported_scenarios[scenario_name]
+
+    return PysimInfoWrapper(
+        Sim(
+            scenario_conf=scenario,
+            subscribe_cont=subscribe_cont,
+            render_mode=render_mode,
+        )
+    )
+
+
+def _load_scenario_conf(scenario_name: str) -> dict[str, Any]:
+    if scenario_name in {"zc_lite", "zc3_lite"}:
+        return load_zc_lite_scenario()
+    raise ValueError(f"Unsupported battle-planner scenario: {scenario_name}")
 
 
 class PysimInfoWrapper:
-    """Normalize pysim runtime info for the battle-planner runner."""
+    """奖pysim环境经可能和gym环境接口对齐"""
 
     def __init__(self, env: Any):
         self.env = env
@@ -51,19 +79,19 @@ class PysimInfoWrapper:
         self,
         info: dict[str, Any],
         sim_time: float | None,
-    ) -> list[BattlefieldEvent]:
+    ) -> list[BattlefieldReport]:
         damage_info = info.get("damage")
         if not damage_info:
             return []
 
-        events: list[BattlefieldEvent] = []
+        events: list[BattlefieldReport] = []
         for side, side_damage in damage_info.items():
             for unit_id, unit_events in side_damage.items():
                 for unit_event in unit_events:
                     damage_reason = self._enum_name("DestroyReason", unit_event.get("damage_reason"))
                     unit_type = self._enum_name("UnitType", unit_event.get("type"))
                     events.append(
-                        BattlefieldEvent(
+                        BattlefieldReport(
                             step=self._step,
                             sim_time=sim_time,
                             event_type="unit_destroyed" if damage_reason == "Attacked" else "unit_damage",

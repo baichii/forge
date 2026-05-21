@@ -21,7 +21,7 @@ def main() -> None:
     print("")
     print("planned agent params")
     for item in final_state.planned_agent_params:
-        print(f"- {item.agent_instance_id} ({item.agent_name}): {item.params}")
+        print(f"- {item.agent_instance_id} ({item.agent_name}, side={item.side}): {item.params}")
 
     if final_state.simulation_result:
         print("")

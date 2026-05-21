@@ -3,7 +3,7 @@ import time
 from typing import Any
 
 from battle_planner.adapters.runtime.specs import (
-    BattlefieldEvent,
+    BattlefieldReport,
     EnvRunReport,
     RunnerReport,
     TickAgentReport,
@@ -85,9 +85,10 @@ class Runner(BaseRuner):
         if isinstance(info, dict):
             self._battlefield_events.extend(info.get("battlefield_events", []))
         actions = []
-        for agent_instance_id, agent_record in self._tick_agents.items():
-            tick_agent = agent_record["agent"]
+        for agent_instance_id, tick_agent in self._tick_agents.items():
             action, status, done, agent_info = tick_agent.step(observation)
+            for action_ in action:
+                action_["side"] = tick_agent.side
             actions.extend(action)
             self._record_tick_agent_step(
                 agent_instance_id=agent_instance_id,
@@ -109,28 +110,32 @@ class Runner(BaseRuner):
         for tick_agent in tick_agents:
             agent_name = tick_agent.agent_name
             agent_instance_id = tick_agent.agent_instance_id or self._id_generator(agent_name)
-            params = tick_agent.params
-            self._tick_agents[agent_instance_id] = {
-                "agent": make_tick_agent(agent_name, params=params),
-                "agent_name": agent_name,
-                "params": params,
-            }
+            tick_agent_params = tick_agent.model_copy(update={"agent_instance_id": agent_instance_id})
+            self._tick_agents[agent_instance_id] = make_tick_agent(agent_name, params=tick_agent_params)
 
     def _init_callbacks(self, callbacks: list[CallbackParams]) -> None:
         callbacks_ = []
         for callback in callbacks:
-            callbacks_.append(make_callback(callback.name, **callback.params))
+            callback_instance_id = callback.callback_instance_id or self._id_generator(callback.name)
+            callback_params = callback.model_copy(update={"callback_instance_id": callback_instance_id})
+            callbacks_.append(
+                make_callback(
+                    callback.name,
+                    params=callback_params,
+                )
+            )
         self._callbacks: CallBackList = CallBackList(callbacks_)
         self._callbacks.set_runner(self)
 
     def _init_report_state(self) -> None:
-        self._battlefield_events: list[BattlefieldEvent] = []
+        self._battlefield_events: list[BattlefieldReport] = []
         self._agent_reports: dict[str, TickAgentReport] = {
             agent_instance_id: TickAgentReport(
                 agent_instance_id=agent_instance_id,
-                agent_name=agent_record["agent_name"],
+                agent_name=tick_agent.name,
+                side=tick_agent.side,
             )
-            for agent_instance_id, agent_record in self._tick_agents.items()
+            for agent_instance_id, tick_agent in self._tick_agents.items()
         }
 
     def set_status(self, status: RunnerStatus):

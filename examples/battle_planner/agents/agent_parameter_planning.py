@@ -33,8 +33,10 @@ class AgentParameterPlanningAgent(BasePlanningAgent[list[TickAgentParams]]):
                 "role": "system",
                 "content": (
                     "你是智能体参数规划助手。请只输出 JSON 数组，数组元素包含 "
-                    "agent_instance_id、agent_name、params、rationale。"
+                    "agent_instance_id、agent_name、side、params。"
                     "agent_name 是 tick agent 类型名称，agent_instance_id 是本次计划中的唯一实例名称。"
+                    "side 是本次运行中该智能体实例所属阵营，例如 blue 或 red。"
+                    "params 只包含 tick agent 的任务参数，不要把 side 放进 params。"
                     "首版假设对手不会主动变化。不要展示思考过程。"
                 ),
             },

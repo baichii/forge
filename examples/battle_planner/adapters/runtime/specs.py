@@ -22,6 +22,7 @@ class TickAgentReport(BaseModel):
 
     agent_instance_id: str
     agent_name: str
+    side: str
     status_history: list[dict[str, Any]] = Field(default_factory=list)
     events: list[dict[str, Any]] = Field(default_factory=list)
     first_active_step: int | None = None
@@ -31,7 +32,7 @@ class TickAgentReport(BaseModel):
     action_count: int = 0
 
 
-class BattlefieldEvent(BaseModel):
+class BattlefieldReport(BaseModel):
     """记录环境 输出的战场事件。"""
 
     step: int
@@ -47,5 +48,5 @@ class RunnerReport(BaseModel):
 
     env: EnvRunReport
     agents: list[TickAgentReport] = Field(default_factory=list)
-    battlefield_events: list[BattlefieldEvent] = Field(default_factory=list)
+    battlefield_events: list[BattlefieldReport] = Field(default_factory=list)
     callbacks: dict[str, Any] = Field(default_factory=dict)
