@@ -75,6 +75,12 @@ class ParamSpec:
         required=True,
         description="目标单位 id 列表。",
     )
+    side = ParamSpecTemplate(
+        name="side",
+        type=ParamType.STRING,
+        required=False,
+        description="执行方名称。",
+    )
 
 
 class TickAgentSpec(BaseModel):
@@ -88,6 +94,7 @@ class TickAgentSpec(BaseModel):
 
 class TickAgentParams(BaseModel):
     agent_name: str = Field(description="智能体类型名称")
+    side: str = Field(default="智能体实例所属阵营")
     agent_instance_id: str | None = Field(default=None, description="本次运行中的智能体实例 id")
     params: dict[str, Any] = Field(default_factory=dict, description="智能体运行参数")
 
@@ -118,9 +125,6 @@ class EnvParams(BaseModel):
     mode: str = Field(default=EnvMode.CREATE, description="环境获取方式")
     link: str = Field(default=EnvLink.GYM, description="环境连接风格")
     params: dict[str, Any] = Field(default_factory=dict, description="环境连接配置")
-
-
-clas
 
 
 class CallbackParams(BaseModel):

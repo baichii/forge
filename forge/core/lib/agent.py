@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from forge.core.specs import TickAgentSpec
+from forge.core.specs import TickAgentParams, TickAgentSpec
 
 
 class TickAgent(ABC):
@@ -11,8 +11,9 @@ class TickAgent(ABC):
 
     declaration: TickAgentSpec | None = None
 
-    def __init__(self, params: Any | None = None):
-        self.params = params
+    def __init__(self, params: TickAgentParams):
+        self._params = params
+        self.params = params.params
 
     @abstractmethod
     def reset(self) -> None:
@@ -28,6 +29,20 @@ class TickAgent(ABC):
             done: bool 智能体是否运行结束
             info: dict | None 额外信息
         """
+
+    @property
+    def name(self):
+        """智能体类型名称"""
+        return self._params.agent_name
+
+    @property
+    def id(self):
+        """智能体实例化执行唯一id"""
+        return self._params.agent_instance_id
+
+    @property
+    def side(self):
+        return self._params.side
 
 
 class TaskAgent(ABC):
