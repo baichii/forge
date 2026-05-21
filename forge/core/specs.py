@@ -94,7 +94,7 @@ class TickAgentSpec(BaseModel):
 
 class TickAgentParams(BaseModel):
     agent_name: str = Field(description="智能体类型名称")
-    side: str = Field(default="智能体实例所属阵营")
+    side: str = Field(description="智能体实例所属阵营")
     agent_instance_id: str | None = Field(default=None, description="本次运行中的智能体实例 id")
     params: dict[str, Any] = Field(default_factory=dict, description="智能体运行参数")
 
@@ -131,5 +131,5 @@ class CallbackParams(BaseModel):
     """callback 运行参数."""
 
     name: str = Field(description="回调名称")
-    entrypoint: str = Field(description="callback执行入口，path:Module格式")
+    callback_instance_id: str | None = Field(default=None, description="本次运行中的 callback 实例 id")
     params: dict[str, Any] = Field(default_factory=dict, description="回调函数自定义参数")

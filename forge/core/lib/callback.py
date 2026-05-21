@@ -1,13 +1,25 @@
 from typing import Protocol
 
+from forge.core.specs import CallbackParams
 
-class CallBack(Protocol):
+
+class CallBack:
     """通过回调的形式来实现指标评估"""
 
-    name = "base_callback"
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, params: CallbackParams):
         self._runner = None
+        self._params = params
+        self.params = params.params
+
+    @property
+    def name(self):
+        """callback 类型名称"""
+        return self._params.name
+
+    @property
+    def id(self):
+        """callback 实例化执行唯一 id"""
+        return self._params.callback_instance_id
 
     def set_runner(self, runner):
         self._runner = runner
@@ -52,5 +64,5 @@ class CallBackList:
     def result(self) -> dict:
         result = {}
         for callback in self.callbacks:
-            result[callback.name] = callback.result()
+            result[callback.id] = callback.result()
         return result
