@@ -38,11 +38,11 @@ class Runner(BaseRuner):
 
     def __init__(
         self,
-        env_params: EnvParams,
+        env: EnvParams,
         tick_agents: list[TickAgentParams],
         callbacks: list[CallbackParams],
     ):
-        self._init_env(env_params)
+        self._init_env(env)
         self._id_generator = make_id_generator()
         self._init_tick_agents(tick_agents)
         self._init_callbacks(callbacks)
@@ -63,6 +63,7 @@ class Runner(BaseRuner):
         self.set_status(RunnerStatus.RUNNING)
 
     def run(self, max_step: int | None = None) -> Any:
+        self._callbacks.on_begin()
         self._max_step = max_step
         while True:
             # step callbacks

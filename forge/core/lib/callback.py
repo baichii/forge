@@ -22,6 +22,8 @@ class CallBack:
         return self._params.callback_instance_id
 
     def set_runner(self, runner):
+        # Note: runner在这里临时充当manager hub的能力，但态势封装会带来高昂的学习成本
+        # todo: 确定最终方案
         self._runner = runner
 
     def on_begin(self): ...

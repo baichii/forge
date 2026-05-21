@@ -1,3 +1,9 @@
+"""
+命名规则
+    spec: 提供给业务/llm查看的信息
+    params: 模块运行参数
+"""
+
 from typing import Any
 
 from pydantic import BaseModel, Field

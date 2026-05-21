@@ -1,8 +1,18 @@
 from __future__ import annotations
 
 import enum
-from typing import Optional, Callable, Any
+import time
+import traceback
 from functools import wraps
+from contextlib import contextmanager
+from typing import Optional, Callable, Any
+
+
+@contextmanager
+def timer(name):
+    t_s = time.time()
+    yield
+    print(f"[{name}] done in {time.time() - t_s:.4f} s")
 
 
 def is_class_dict(class_dict: dict) -> bool:

@@ -49,6 +49,12 @@ def register_battle_planner_modules() -> None:
         "step_metric",
         "battle_planner.evaluation.callbacks:StepMetricCallback",
     )
+    _register_once(
+        "callback/target_statistic",
+        register_callback,
+        "target_statistic",
+        "battle_planner.evaluation.callbacks:TargetStatistic",
+    )
 
 
 __all__ = ["register_battle_planner_modules"]
