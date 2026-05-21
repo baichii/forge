@@ -227,7 +227,7 @@ def test_runner():
 
     test_agents = []
     test_callbacks = []
-    runner = Runner(test_env_params, test_agents, test_callbacks)
+    runner = Runner(env=test_env_params, tick_agents=test_agents, callbacks=test_callbacks)
     runner.reset()
     runner.run(max_step=None)
 

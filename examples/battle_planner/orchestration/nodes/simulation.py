@@ -20,7 +20,7 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
         max_steps = config.simulation.max_decision_steps
         register_battle_planner_modules()
         runner = Runner(
-            EnvParams(name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM),
+            env=EnvParams(name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM),
             tick_agents=state.planned_agent_params,
             callbacks=[
                 CallbackParams(

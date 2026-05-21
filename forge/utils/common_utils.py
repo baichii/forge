@@ -3,9 +3,9 @@ from __future__ import annotations
 import enum
 import time
 import traceback
-from functools import wraps
 from contextlib import contextmanager
-from typing import Optional, Callable, Any
+from functools import wraps
+from typing import Any, Callable, Optional
 
 
 @contextmanager
@@ -47,6 +47,7 @@ def construct(class_dict: dict, *, unpack_params: bool = True, params_key: str =
 
 def make_id_generator(side_name: Optional[str] = None) -> Callable[[Any], str]:
     """id generator"""
+
     def generate_id(type_: Any) -> str:
         if isinstance(type_, enum.Enum):
             type_ = type_.name

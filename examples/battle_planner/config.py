@@ -86,7 +86,9 @@ class WorkflowConfig(BaseModel):
     max_stage_retry: int = Field(default=2, description="Maximum retries for each workflow stage.")
     fail_fast: bool = Field(default=False, description="Stop workflow immediately after stage failure.")
     save_artifacts: bool = Field(default=True, description="Save workflow artifacts.")
-    artifact_dir: str = Field(default="examples/battle_planner/artifacts", description="Artifact output dir.")
+    artifact_dir: str = Field(
+        default="examples/battle_planner/artifacts", description="Artifact output dir."
+    )
 
     @classmethod
     def from_env(cls) -> "WorkflowConfig":
@@ -101,8 +103,12 @@ class WorkflowConfig(BaseModel):
 class SimulationConfig(BaseModel):
     runs_per_plan: int = Field(default=3, description="Simulation runs for each generated plan.")
     max_parallel: int = Field(default=1, description="Maximum parallel simulation runs.")
-    max_decision_steps: int = Field(default=3, description="Maximum decision steps for each simulation run.")
-    max_failures: int = Field(default=1, description="Maximum failed runs before a plan is considered failed.")
+    max_decision_steps: int = Field(
+        default=3, description="Maximum decision steps for each simulation run."
+    )
+    max_failures: int = Field(
+        default=1, description="Maximum failed runs before a plan is considered failed."
+    )
     random_seed: int | None = Field(default=None, description="Optional random seed for reproducible runs.")
 
     @classmethod
