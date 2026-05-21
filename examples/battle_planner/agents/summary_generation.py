@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
-from battle_planner.data.models import EvaluationReport, PlannedAgentParams, SimulationRunResult
+from battle_planner.data.models import EvaluationReport, SimulationRunResult
 from battle_planner.runtime.fallback import fallback_markdown
+
+from forge.core.specs import TickAgentParams
 
 
 class SummaryAgent(BasePlanningAgent[str]):
@@ -56,7 +58,7 @@ def generate_summary(
     *,
     scenario_understanding_md: str,
     battle_plan_md: str,
-    planned_agent_params: list[PlannedAgentParams],
+    planned_agent_params: list[TickAgentParams],
     simulation_result: SimulationRunResult,
     evaluation_report: EvaluationReport,
 ) -> tuple[str, object]:

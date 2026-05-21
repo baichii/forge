@@ -109,3 +109,12 @@ class Agent(TickAgent):
                 "source": self.declaration.name,
             },
         )
+
+    @property
+    def id(self):
+        return self.params["id"]
+
+    @property
+    def name(self):
+        return self.params["name"]
+

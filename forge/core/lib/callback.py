@@ -4,8 +4,9 @@ from typing import Protocol
 class CallBack(Protocol):
     """通过回调的形式来实现指标评估"""
 
-    def __init__(self, name, *args, **kwargs):
-        self.name = name
+    name = "base_callback"
+
+    def __init__(self, *args, **kwargs):
         self._runner = None
 
     def set_runner(self, runner):

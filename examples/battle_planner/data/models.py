@@ -15,12 +15,6 @@ class LLMTrace(BaseModel):
     error: str | None = None
 
 
-class PlannedAgentParams(BaseModel):
-    agent_name: str
-    params: dict[str, Any] = Field(default_factory=dict)
-    rationale: str = ""
-
-
 class SimulationRunResult(BaseModel):
     scenario_name: str
     steps: int

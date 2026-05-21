@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from forge.core.lib.agent import TickAgent
 from forge.core.lib.callback import CallBackList
-from forge.core.specs import CallbackSpec, EnvSpec, TickAgentSpec
+from forge.core.specs import CallbackParams, EnvParams, TickAgentParams
 
 
 class Runner(Protocol):
@@ -20,11 +20,11 @@ class Runner(Protocol):
 
     def __init__(
         self,
-        env_spec: EnvSpec,
-        tick_agents: list[TickAgent | TickAgentSpec],
-        callbacks: CallBackList | list[CallbackSpec],
+        env_params: EnvParams,
+        tick_agents: list[TickAgent | TickAgentParams],
+        callbacks: CallBackList | list[CallbackParams],
     ) -> None:
-        """Initialize the runner with a specification."""
+        """Initialize the runner with runtime parameters."""
 
     def run(self, max_step) -> Any:
         """Run an agent against an environment or environment connection."""

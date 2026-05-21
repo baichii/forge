@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from battle_planner.adapters.runtime.env_wrappers import PysimInfoWrapper
 from battle_planner.adapters.runtime.scenario_loader import load_zc_lite_scenario
 
 
@@ -14,8 +15,10 @@ def make_pysim_env(
     """Create a pysim environment."""
     from pysim import Sim
 
-    return Sim(
-        scenario_conf or load_zc_lite_scenario(),
-        subscribe_cont=subscribe_cont,
-        render_mode=render_mode,
+    return PysimInfoWrapper(
+        Sim(
+            scenario_conf or load_zc_lite_scenario(),
+            subscribe_cont=subscribe_cont,
+            render_mode=render_mode,
+        )
     )

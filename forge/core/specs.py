@@ -86,6 +86,12 @@ class TickAgentSpec(BaseModel):
     version: str = "0.1"  # 0.1为初始版本，仅用于默认值填充
 
 
+class TickAgentParams(BaseModel):
+    agent_name: str = Field(description="智能体类型名称")
+    agent_instance_id: str | None = Field(default=None, description="本次运行中的智能体实例 id")
+    params: dict[str, Any] = Field(default_factory=dict, description="智能体运行参数")
+
+
 class EnvMode:
     """环境获取方式."""
 
@@ -101,8 +107,8 @@ class EnvLink:
     CUSTOM = "custom"
 
 
-class EnvSpec(BaseModel):
-    """环境获取与连接规范.
+class EnvParams(BaseModel):
+    """环境运行参数.
 
     mode 表示环境怎么来，create 由 runner 创建或启动，connect 连接已有环境。
     link 表示 runner 用什么风格和环境交互。
@@ -114,7 +120,12 @@ class EnvSpec(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict, description="环境连接配置")
 
 
-class CallbackSpec(BaseModel):
+clas
+
+
+class CallbackParams(BaseModel):
+    """callback 运行参数."""
+
     name: str = Field(description="回调名称")
     entrypoint: str = Field(description="callback执行入口，path:Module格式")
     params: dict[str, Any] = Field(default_factory=dict, description="回调函数自定义参数")

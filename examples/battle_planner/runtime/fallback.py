@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from battle_planner.data.models import PlannedAgentParams
-
-from forge.core.specs import TickAgentSpec
+from forge.core.specs import TickAgentParams, TickAgentSpec
 
 
 def fallback_markdown(title: str, body: str) -> str:
@@ -31,9 +29,9 @@ DEFAULT_TICK_AGENT_PARAMS: dict[str, dict[str, Any]] = {
 }
 
 
-def fallback_agent_params(agent_specs: list[TickAgentSpec]) -> list[PlannedAgentParams]:
-    planned: list[PlannedAgentParams] = []
-    for spec in agent_specs:
+def fallback_agent_params(agent_specs: list[TickAgentSpec]) -> list[TickAgentParams]:
+    planned: list[TickAgentParams] = []
+    for index, spec in enumerate(agent_specs, start=1):
         params: dict[str, Any] = {
             param.name: param.default_value
             for param in spec.params.values()
@@ -41,7 +39,8 @@ def fallback_agent_params(agent_specs: list[TickAgentSpec]) -> list[PlannedAgent
         }
         params.update(DEFAULT_TICK_AGENT_PARAMS.get(spec.name, {}))
         planned.append(
-            PlannedAgentParams(
+            TickAgentParams(
+                agent_instance_id=f"{spec.name}_{index:03d}",
                 agent_name=spec.name,
                 params=params,
                 rationale="LLM 不可用或输出无法解析，使用 tick agent 默认参数。",

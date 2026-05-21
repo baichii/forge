@@ -5,10 +5,9 @@ import re
 from typing import Any
 
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
-from battle_planner.data.models import PlannedAgentParams
 from battle_planner.runtime.fallback import fallback_agent_params
 
-from forge.core.specs import TickAgentSpec
+from forge.core.specs import TickAgentParams, TickAgentSpec
 
 
 def _extract_json_array(text: str) -> list[dict[str, Any]] | None:
@@ -24,7 +23,7 @@ def _extract_json_array(text: str) -> list[dict[str, Any]] | None:
     return data
 
 
-class AgentParameterPlanningAgent(BasePlanningAgent[list[PlannedAgentParams]]):
+class AgentParameterPlanningAgent(BasePlanningAgent[list[TickAgentParams]]):
     name = "agent_parameter_planning"
 
     def build_messages(self, inputs: AgentInputs) -> list[dict[str, str]]:
@@ -34,7 +33,9 @@ class AgentParameterPlanningAgent(BasePlanningAgent[list[PlannedAgentParams]]):
                 "role": "system",
                 "content": (
                     "你是智能体参数规划助手。请只输出 JSON 数组，数组元素包含 "
-                    "agent_name、params、rationale。首版假设对手不会主动变化。不要展示思考过程。"
+                    "agent_instance_id、agent_name、params、rationale。"
+                    "agent_name 是 tick agent 类型名称，agent_instance_id 是本次计划中的唯一实例名称。"
+                    "首版假设对手不会主动变化。不要展示思考过程。"
                 ),
             },
             {
@@ -54,14 +55,14 @@ class AgentParameterPlanningAgent(BasePlanningAgent[list[PlannedAgentParams]]):
         raw_output: str,
         model_error: str | None,
         inputs: AgentInputs,
-    ) -> tuple[list[PlannedAgentParams], bool, str | None]:
-        parsed: list[PlannedAgentParams] | None = None
+    ) -> tuple[list[TickAgentParams], bool, str | None]:
+        parsed: list[TickAgentParams] | None = None
         error = model_error
         if raw_output and model_error is None:
             raw_items = _extract_json_array(raw_output)
             if raw_items is not None:
                 try:
-                    parsed = [PlannedAgentParams.model_validate(item) for item in raw_items]
+                    parsed = [TickAgentParams.model_validate(item) for item in raw_items]
                 except Exception as exc:
                     error = str(exc)
             else:
@@ -71,7 +72,7 @@ class AgentParameterPlanningAgent(BasePlanningAgent[list[PlannedAgentParams]]):
             return fallback_agent_params(inputs.data["agent_specs"]), True, error
         return parsed, False, None
 
-    def trace_output(self, output: list[PlannedAgentParams]) -> Any:
+    def trace_output(self, output: list[TickAgentParams]) -> Any:
         return [item.model_dump() for item in output]
 
 
@@ -80,8 +81,8 @@ def plan_agent_params(
     scenario_understanding_md: str,
     battle_plan_md: str,
     agent_specs: list[TickAgentSpec],
-) -> tuple[list[PlannedAgentParams], object]:
-    result: AgentRunResult[list[PlannedAgentParams]] = AgentParameterPlanningAgent().run(
+) -> tuple[list[TickAgentParams], object]:
+    result: AgentRunResult[list[TickAgentParams]] = AgentParameterPlanningAgent().run(
         AgentInputs(
             data={
                 "scenario_understanding_md": scenario_understanding_md,

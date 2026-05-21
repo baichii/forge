@@ -3,13 +3,12 @@ from typing import Any
 from battle_planner.data.models import (
     EvaluationReport,
     LLMTrace,
-    PlannedAgentParams,
     PlannerKnowledgePack,
     SimulationRunResult,
 )
 from pydantic import BaseModel, Field
 
-from forge.core.specs import TickAgentSpec
+from forge.core.specs import TickAgentParams, TickAgentSpec
 
 
 class BattlePlannerState(BaseModel):
@@ -23,7 +22,7 @@ class BattlePlannerState(BaseModel):
     battle_plan_md: str = ""
     tick_agent_specs: list[TickAgentSpec] = Field(default_factory=list)
     available_tools: list[dict[str, Any]] = Field(default_factory=list)
-    planned_agent_params: list[PlannedAgentParams] = Field(default_factory=list)
+    planned_agent_params: list[TickAgentParams] = Field(default_factory=list)
     simulation_result: SimulationRunResult | None = None
     evaluation_report: EvaluationReport | None = None
     summary_md: str = ""

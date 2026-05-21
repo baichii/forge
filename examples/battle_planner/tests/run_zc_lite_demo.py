@@ -21,7 +21,7 @@ def main() -> None:
     print("")
     print("planned agent params")
     for item in final_state.planned_agent_params:
-        print(f"- {item.agent_name}: {item.params}")
+        print(f"- {item.agent_instance_id} ({item.agent_name}): {item.params}")
 
     if final_state.simulation_result:
         print("")
@@ -31,6 +31,13 @@ def main() -> None:
         elapsed_seconds = final_state.simulation_result.raw_summary.get("elapsed_seconds")
         if elapsed_seconds is not None:
             print(f"- elapsed_seconds: {float(elapsed_seconds):.4f}")
+        runner_report = final_state.simulation_result.raw_summary.get("runner_report", {})
+        if runner_report:
+            task_event_count = sum(
+                len(agent.get("events", [])) for agent in runner_report.get("agents", [])
+            )
+            print(f"- battlefield_events: {len(runner_report.get('battlefield_events', []))}")
+            print(f"- task_events: {task_event_count}")
         for log in final_state.simulation_result.logs:
             print(f"  {log}")
 

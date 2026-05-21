@@ -22,7 +22,13 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
     log_node_end(
         "agent_parameter_planning",
         fallback=trace.fallback_used,
-        planned_agents=[item.agent_name for item in planned],
+        planned_agents=[
+            {
+                "agent_instance_id": item.agent_instance_id,
+                "agent_name": item.agent_name,
+            }
+            for item in planned
+        ],
         error=trace.error,
     )
     return state

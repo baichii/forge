@@ -9,7 +9,7 @@ from battle_planner.orchestration.node_logging import log_node_end, log_node_err
 from battle_planner.orchestration.state.state import BattlePlannerState
 from battle_planner.registry import register_battle_planner_modules
 
-from forge.core.specs import CallbackSpec, EnvLink, EnvMode, EnvSpec
+from forge.core.specs import CallbackParams, EnvLink, EnvMode, EnvParams
 
 
 def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
@@ -20,10 +20,10 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
         max_steps = config.simulation.max_decision_steps
         register_battle_planner_modules()
         runner = Runner(
-            EnvSpec(name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM),
+            EnvParams(name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM),
             tick_agents=state.planned_agent_params,
             callbacks=[
-                CallbackSpec(
+                CallbackParams(
                     name="step_metric",
                     entrypoint="battle_planner.evaluation.callbacks:StepMetricCallback",
                 )
@@ -31,13 +31,12 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
         )
         runner.reset()
         started_at = perf_counter()
-        runner.run(max_step=max_steps)
+        report = runner.run(max_step=max_steps)
         elapsed_seconds = perf_counter() - started_at
-        callback_results = runner._callbacks.result()
         state.simulation_result = SimulationRunResult(
             scenario_name=state.scenario_name,
-            steps=callback_results.get("step_metric", {}).get("step_end_count", 0),
-            done=False,
+            steps=report.env.step_count,
+            done=report.env.stop_reason == "env_terminal",
             logs=[
                 f"reset scenario={state.scenario_name}",
                 f"run registered pysim runner max_steps={max_steps} tick_agents={len(state.planned_agent_params)}",
@@ -46,9 +45,15 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
             raw_summary={
                 "env": "pysim",
                 "max_steps": max_steps,
-                "tick_agents": [item.agent_name for item in state.planned_agent_params],
+                "tick_agents": [
+                    {
+                        "agent_instance_id": item.agent_instance_id,
+                        "agent_name": item.agent_name,
+                    }
+                    for item in state.planned_agent_params
+                ],
                 "elapsed_seconds": elapsed_seconds,
-                "callback_results": callback_results,
+                "runner_report": report.model_dump(),
             },
         )
         state.cur_stage = "simulation"
