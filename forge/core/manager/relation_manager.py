@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from forge.core.lib.relation import RelationResult, RelationQuery
+from forge.core.lib.relation import RelationQuery, RelationResult
 from forge.core.manager.manager import Manager
 
 
