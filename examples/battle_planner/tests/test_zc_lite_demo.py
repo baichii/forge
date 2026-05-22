@@ -1,4 +1,7 @@
-"""Run the zc_lite battle-planner end-to-end demo."""
+"""静态workflow验证.
+Notes:
+    逐步接入正式组建
+"""
 
 from time import perf_counter
 
