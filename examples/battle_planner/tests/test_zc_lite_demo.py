@@ -48,6 +48,8 @@ def main() -> None:
         print("")
         print("evaluation")
         print(f"- score: {final_state.evaluation_report.score}")
+        for key, value in final_state.evaluation_report.mission_metrics.items():
+            print(f"- {key}: {value}")
         print(f"- advice: {final_state.evaluation_report.advice}")
 
     print("")

@@ -23,7 +23,7 @@ def test_plan_generation() -> None:
     # 1. 业务侧导入 scheme：稻草人测试只保留一个 StrategySpec。
     target_ids = ["red_CV16 “辽宁”号001型航空母舰_1"]
     air_unit_ids = ["blue_F/A-18F型“超级大黄蜂”战斗机_14"]
-    naval_unit_ids = ["blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_2"]
+    naval_unit_ids = ["blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1"]
     strategy_id = "strategy-carrier-strawman"
     scheme = SchemeSpec(
         scheme_id="10001",

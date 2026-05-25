@@ -191,7 +191,7 @@ def _build_capability_catalog() -> list[CapabilitySummary]:
         CapabilitySummary(
             capability="舰对海打击",
             agent_name="naval_to_sea_strike_agent",
-            subject="blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_2",
+            subject="blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1",
             target="red_CV16 “辽宁”号001型航空母舰_1",
             action_type="NavalAsuWStrike_Naval",
             required_fields=["activation_time", "type", "unit_ids", "target_ids", "wp_nums"],
@@ -224,7 +224,7 @@ def _build_mission_schema_catalog() -> list[MissionSchemaSummary]:
             example={
                 "activation_time": 180,
                 "type": "NavalAsuWStrike_Naval",
-                "unit_ids": ["blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_2"],
+                "unit_ids": ["blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1"],
                 "target_ids": ["red_CV16 “辽宁”号001型航空母舰_1"],
                 "wp_nums": [2],
             },

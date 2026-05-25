@@ -15,8 +15,7 @@ def make_pysim_env(
     """创建 pysim 环境，并包装为 runner 使用的统一接口。"""
     from pysim import Sim
 
-    supported_scenarios = {"zc_lite": _load_scenario_conf(scenario_name)}
-    scenario = supported_scenarios[scenario_name]
+    scenario = _load_scenario_conf(scenario_name)
 
     return PysimInfoWrapper(
         Sim(

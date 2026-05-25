@@ -106,9 +106,15 @@ def _fallback_summary_body(
         for item in summary_evaluation.agent_execution
     ]
     warning_lines = [f"- {item}" for item in summary_evaluation.warnings] or ["- 无"]
+    requested_weapon_count = evaluation_report.mission_metrics.get("requested_weapon_count", 0)
+    next_advice = evaluation_report.advice or summary_evaluation.advice
     return "\n".join(
         [
-            f"真实环境执行 {simulation_result.steps} 个决策步，独立评估占位分数为 {evaluation_report.score}。",
+            (
+                f"真实环境执行 {simulation_result.steps} 个决策步，"
+                f"真实评估分数为 {evaluation_report.score}，"
+                f"请求火力数为 {requested_weapon_count}。"
+            ),
             objective_line,
             "",
             "## 目标状态",
@@ -121,6 +127,6 @@ def _fallback_summary_body(
             *warning_lines,
             "",
             "## 下一轮建议",
-            summary_evaluation.advice,
+            next_advice,
         ]
     )
