@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from battle_planner.config import ModelProfile, config
+from battle_planner.orchestration.history import build_history_item
 from battle_planner.orchestration.state.state import BattlePlannerState
 from battle_planner.orchestration.workflow import BattlePlannerDemoWorkflow
 
@@ -11,8 +14,12 @@ def run_workflow_loop(*, max_iterations: int | None = None) -> list[BattlePlanne
     iterations = max_iterations if max_iterations is not None else config.workflow.max_iterations
     workflow = BattlePlannerDemoWorkflow()
     states: list[BattlePlannerState] = []
+    history: list[dict[str, Any]] = []
     for iteration_index in range(iterations):
-        state = workflow.run(BattlePlannerState(iteration_index=iteration_index))
+        state = workflow.run(BattlePlannerState(iteration_index=iteration_index, history=list(history)))
+        if state.cur_stage == "complete":
+            history.append(build_history_item(state))
+            state.history = list(history)
         states.append(state)
         if state.error:
             break
@@ -64,6 +71,8 @@ def test_workflow_loop_smoke(monkeypatch) -> None:
     assert all(state.evaluation_report is not None for state in states)
     assert all(state.summary_md for state in states)
     assert states[0].agent_param_preset_id != states[1].agent_param_preset_id
+    assert len(states[-1].history) == 2
+    assert "历史迭代反馈" in _trace_content(states[1], "battle_plan_generation")
 
 
 def _force_offline_display_mode(monkeypatch) -> None:
@@ -89,6 +98,7 @@ def _print_iteration(state: BattlePlannerState) -> None:
     print(f"- target_health_delta: {metrics.get('target_health_delta')}")
     print(f"- target_damage_ratio: {metrics.get('target_damage_ratio')}")
     print(f"- requested_weapon_count: {metrics.get('requested_weapon_count')}")
+    print(f"- history_items: {len(state.history)}")
     print("- summary_md:")
     for line in _summary_excerpt(state.summary_md):
         print(f"  {line}")
@@ -107,6 +117,13 @@ def _score(state: BattlePlannerState) -> float | str:
     if state.evaluation_report is None:
         return ""
     return state.evaluation_report.score
+
+
+def _trace_content(state: BattlePlannerState, node_name: str) -> str:
+    for trace in state.llm_traces:
+        if trace.node_name == node_name and trace.input_messages:
+            return str(trace.input_messages[-1].get("content") or "")
+    return ""
 
 
 def _summary_excerpt(summary_md: str, *, max_lines: int = 12) -> list[str]:

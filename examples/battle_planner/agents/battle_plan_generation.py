@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from typing import Any
+
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
 from battle_planner.agents.context import render_knowledge_pack_md
+from battle_planner.agents.history_context import render_history_for_planning
 from battle_planner.data.models import PlannerKnowledgePack
 from battle_planner.runtime.fallback import fallback_markdown
 
@@ -11,6 +14,7 @@ class BattlePlanGenerationAgent(BasePlanningAgent[str]):
 
     def build_messages(self, inputs: AgentInputs) -> list[dict[str, str]]:
         scenario_understanding_md = inputs.data["scenario_understanding_md"]
+        history_context = render_history_for_planning(inputs.data.get("history") or [])
         knowledge_context = ""
         if inputs.data.get("knowledge_pack") is not None:
             knowledge_context = (
@@ -31,6 +35,7 @@ class BattlePlanGenerationAgent(BasePlanningAgent[str]):
                     "方案需要包含目标、阶段、使用的智能体能力、任务参数建议、武器消耗控制、关键假设。\n\n"
                     f"{scenario_understanding_md}"
                     f"{knowledge_context}"
+                    f"{history_context}"
                 ),
             },
         ]
@@ -60,12 +65,14 @@ def generate_battle_plan(
     scenario_understanding_md: str,
     *,
     knowledge_pack: PlannerKnowledgePack | None = None,
+    history: list[dict[str, Any]] | None = None,
 ) -> tuple[str, object]:
     result: AgentRunResult[str] = BattlePlanGenerationAgent().run(
         AgentInputs(
             data={
                 "scenario_understanding_md": scenario_understanding_md,
                 "knowledge_pack": knowledge_pack,
+                "history": history or [],
             },
             skills=["根据想定理解生成粗粒度作战方案"],
         )

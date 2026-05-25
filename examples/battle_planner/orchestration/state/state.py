@@ -26,6 +26,7 @@ class BattlePlannerState(BaseModel):
     planned_agent_params: list[TickAgentParams] = Field(default_factory=list)
     callback_params: list[CallbackParams] = Field(default_factory=list)
     iteration_index: int = 0
+    history: list[dict[str, Any]] = Field(default_factory=list)
     agent_param_source: str = ""
     agent_param_preset_id: str | None = None
     simulation_result: SimulationRunResult | None = None
