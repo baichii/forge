@@ -52,3 +52,6 @@ pythonlib/
 
 # local test
 *.env
+
+# battle planner runtime artifacts
+examples/battle_planner/artifacts/
