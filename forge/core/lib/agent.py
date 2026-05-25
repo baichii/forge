@@ -49,5 +49,5 @@ class TaskAgent(ABC):
     """Async task-oriented agent contract, suitable for LLM workflows."""
 
     @abstractmethod
-    async def run(self, task: Any, context: Any | None = None) -> Any:
+    def run(self, *args, **kwargs) -> Any:
         raise NotImplementedError
