@@ -44,12 +44,6 @@ def register_battle_planner_modules() -> None:
         "battle_planner.tick_agents.naval_to_sea_strike_tick_agent:Agent",
     )
     _register_once(
-        "callback/step_metric",
-        register_callback,
-        "step_metric",
-        "battle_planner.evaluation.callbacks:StepMetricCallback",
-    )
-    _register_once(
         "callback/target_statistic",
         register_callback,
         "target_statistic",

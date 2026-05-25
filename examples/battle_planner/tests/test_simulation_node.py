@@ -1,9 +1,82 @@
 from __future__ import annotations
 
-from battle_planner.orchestration.nodes.simulation import _is_env_finished
+from battle_planner.config import config
+from battle_planner.orchestration.state.state import BattlePlannerState
+
+from forge.core.specs import CallbackParams
 
 
-def test_env_truncated_counts_as_finished() -> None:
-    assert _is_env_finished("env_terminal") is True
-    assert _is_env_finished("env_truncated") is True
-    assert _is_env_finished("max_step") is False
+def test_simulation_node_uses_default_callback_params(monkeypatch) -> None:
+    import battle_planner.orchestration.nodes.simulation as simulation_module
+
+    captured = _patch_fake_runner(monkeypatch, simulation_module, stop_reason="env_terminal")
+
+    result = simulation_module.simulation_node(BattlePlannerState(scenario_name="zc3_lite"))
+
+    callbacks = captured["callbacks"]
+    assert result.simulation_result.done is True
+    assert callbacks[0].params["target_ids"] == config.simulation.target_statistic.target_ids
+
+
+def test_simulation_node_uses_state_callback_params(monkeypatch) -> None:
+    import battle_planner.orchestration.nodes.simulation as simulation_module
+
+    captured = _patch_fake_runner(monkeypatch, simulation_module, stop_reason="max_step")
+    custom_callback = CallbackParams(
+        name="target_statistic",
+        callback_instance_id="custom_target_statistic",
+        params={
+            "side": "red",
+            "target_ids": ["red_target_1"],
+        },
+    )
+
+    result = simulation_module.simulation_node(
+        BattlePlannerState(
+            scenario_name="zc3_lite",
+            callback_params=[custom_callback],
+        )
+    )
+
+    assert result.simulation_result.done is False
+    assert captured["callbacks"] == [custom_callback]
+
+
+def _patch_fake_runner(monkeypatch, simulation_module, *, stop_reason: str) -> dict:
+    captured: dict = {}
+    env_stop_reason = stop_reason
+
+    class FakeEnvReport:
+        step_count = 3
+        stop_reason = env_stop_reason
+
+    class FakeRunnerReport:
+        env = FakeEnvReport()
+
+        def model_dump(self):
+            return {
+                "env": {
+                    "step_count": self.env.step_count,
+                    "stop_reason": self.env.stop_reason,
+                },
+                "agents": [],
+                "battlefield_events": [],
+                "callbacks": {},
+            }
+
+    class FakeRunner:
+        def __init__(self, *, env, tick_agents, callbacks):
+            captured["env"] = env
+            captured["tick_agents"] = tick_agents
+            captured["callbacks"] = callbacks
+
+        def reset(self):
+            captured["reset"] = True
+
+        def run(self, max_step):
+            captured["max_step"] = max_step
+            return FakeRunnerReport()
+
+    monkeypatch.setattr(simulation_module, "register_battle_planner_modules", lambda: None)
+    monkeypatch.setattr(simulation_module, "Runner", FakeRunner)
+    return captured

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
-from battle_planner.data.models import EvaluationReport, SimulationRunResult
+from battle_planner.data.models import EvaluationReport, SimulationRunResult, SummaryEvaluation
 from battle_planner.runtime.fallback import fallback_markdown
 
 from forge.core.specs import TickAgentParams
@@ -24,7 +24,8 @@ class SummaryAgent(BasePlanningAgent[str]):
                     f"作战方案：\n{inputs.data['battle_plan_md']}\n\n"
                     f"智能体参数：\n{[item.model_dump() for item in inputs.data['planned_agent_params']]}\n\n"
                     f"仿真结果：\n{inputs.data['simulation_result'].model_dump()}\n\n"
-                    f"评估报告：\n{inputs.data['evaluation_report'].model_dump()}"
+                    f"评估报告：\n{inputs.data['evaluation_report'].model_dump()}\n\n"
+                    f"报告理解反馈：\n{inputs.data['summary_evaluation'].model_dump()}"
                 ),
             },
         ]
@@ -40,13 +41,14 @@ class SummaryAgent(BasePlanningAgent[str]):
             return raw_output, False, None
         simulation_result = inputs.data["simulation_result"]
         evaluation_report = inputs.data["evaluation_report"]
+        summary_evaluation = inputs.data["summary_evaluation"]
         return (
             fallback_markdown(
                 "Demo 总结",
-                (
-                    f"真实环境执行 {simulation_result.steps} 个决策步，"
-                    f"独立评估占位分数为 {evaluation_report.score}。"
-                    "本轮重点验证流程结构，不评价方案效果。"
+                _fallback_summary_body(
+                    simulation_result=simulation_result,
+                    evaluation_report=evaluation_report,
+                    summary_evaluation=summary_evaluation,
                 ),
             ),
             True,
@@ -61,6 +63,7 @@ def generate_summary(
     planned_agent_params: list[TickAgentParams],
     simulation_result: SimulationRunResult,
     evaluation_report: EvaluationReport,
+    summary_evaluation: SummaryEvaluation,
 ) -> tuple[str, object]:
     result: AgentRunResult[str] = SummaryAgent().run(
         AgentInputs(
@@ -70,11 +73,54 @@ def generate_summary(
                 "planned_agent_params": planned_agent_params,
                 "simulation_result": simulation_result,
                 "evaluation_report": evaluation_report,
+                "summary_evaluation": summary_evaluation,
             },
             memory={
-                "previous_iteration": "首版 demo 暂无历史迭代，仅记录当前执行结果。",
+                "summary_evaluation": summary_evaluation.model_dump(mode="json"),
             },
             skills=["读取仿真和评估结果并生成 Markdown 复盘"],
         )
     )
     return result.output, result.trace
+
+
+def _fallback_summary_body(
+    *,
+    simulation_result: SimulationRunResult,
+    evaluation_report: EvaluationReport,
+    summary_evaluation: SummaryEvaluation,
+) -> str:
+    objective_line = "作战目标已达成。" if summary_evaluation.objective_achieved else "作战目标尚未达成。"
+    target_lines = [
+        (
+            f"- {item.target_id}: alive={item.alive}, "
+            f"health_delta={item.health_delta}, health_percent_delta={item.health_percent_delta}"
+        )
+        for item in summary_evaluation.target_status
+    ]
+    agent_lines = [
+        (
+            f"- {item.agent_instance_id}({item.agent_name}): "
+            f"action_count={item.action_count}, executed={item.executed}, issue={item.issue or '无'}"
+        )
+        for item in summary_evaluation.agent_execution
+    ]
+    warning_lines = [f"- {item}" for item in summary_evaluation.warnings] or ["- 无"]
+    return "\n".join(
+        [
+            f"真实环境执行 {simulation_result.steps} 个决策步，独立评估占位分数为 {evaluation_report.score}。",
+            objective_line,
+            "",
+            "## 目标状态",
+            *(target_lines or ["- 未获取到目标统计结果。"]),
+            "",
+            "## Agent 执行",
+            *(agent_lines or ["- 未获取到 agent 执行统计。"]),
+            "",
+            "## 风险提示",
+            *warning_lines,
+            "",
+            "## 下一轮建议",
+            summary_evaluation.advice,
+        ]
+    )

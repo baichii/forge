@@ -152,13 +152,6 @@ def test_plan_generation() -> None:
                 "render_mode": "none",
             },
         },
-        runtime_hooks=[
-            {
-                "name": "step_metric",
-                "callback_instance_id": "step_metric",
-                "params": {},
-            }
-        ],
         strategy_params=[
             StrategyParam(
                 strategy_id=strategy.strategy_id,

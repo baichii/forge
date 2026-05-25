@@ -90,7 +90,7 @@ class TestRunner:
     def test_runner_hard(self):
         register_battle_planner_modules()
         env_params = EnvParams(
-            name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM, params={"render_mode": "human"}
+            name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM, params={"render_mode": "none"}
         )
         tick_agents = [
             _make_air_strike_params(

@@ -5,10 +5,11 @@ from battle_planner.data.models import (
     LLMTrace,
     PlannerKnowledgePack,
     SimulationRunResult,
+    SummaryEvaluation,
 )
 from pydantic import BaseModel, Field
 
-from forge.core.specs import TickAgentParams, TickAgentSpec
+from forge.core.specs import CallbackParams, TickAgentParams, TickAgentSpec
 
 
 class BattlePlannerState(BaseModel):
@@ -23,8 +24,13 @@ class BattlePlannerState(BaseModel):
     tick_agent_specs: list[TickAgentSpec] = Field(default_factory=list)
     available_tools: list[dict[str, Any]] = Field(default_factory=list)
     planned_agent_params: list[TickAgentParams] = Field(default_factory=list)
+    callback_params: list[CallbackParams] = Field(default_factory=list)
+    iteration_index: int = 0
+    agent_param_source: str = ""
+    agent_param_preset_id: str | None = None
     simulation_result: SimulationRunResult | None = None
     evaluation_report: EvaluationReport | None = None
+    summary_evaluation: SummaryEvaluation | None = None
     summary_md: str = ""
     llm_traces: list[LLMTrace] = Field(default_factory=list)
     error: str | None = None

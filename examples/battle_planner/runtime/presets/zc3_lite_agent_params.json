@@ -1,0 +1,213 @@
+{
+  "scenario_name": "zc3_lite",
+  "target_ids": [
+    "red_CV16 “辽宁”号001型航空母舰_1"
+  ],
+  "presets": [
+    {
+      "preset_id": "firepower_01_probe",
+      "description": "探测性火力：空对海和舰对海各分配 1 枚武器。",
+      "expected_stage": "probe",
+      "agents": [
+        {
+          "agent_name": "air_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_air_firepower_01",
+          "params": {
+            "start_time": 0,
+            "end_time": 300,
+            "unit_ids": [
+              "blue_F/A-18F型“超级大黄蜂”战斗机_14"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 1,
+            "clear_targets": true
+          }
+        },
+        {
+          "agent_name": "naval_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_naval_firepower_01",
+          "params": {
+            "start_time": 60,
+            "end_time": 360,
+            "unit_ids": [
+              "blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_2"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 1,
+            "clear_targets": true
+          }
+        }
+      ]
+    },
+    {
+      "preset_id": "firepower_02_light",
+      "description": "轻量增强火力：空对海和舰对海各分配 2 枚武器。",
+      "expected_stage": "light_firepower",
+      "agents": [
+        {
+          "agent_name": "air_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_air_firepower_02",
+          "params": {
+            "start_time": 0,
+            "end_time": 300,
+            "unit_ids": [
+              "blue_F/A-18F型“超级大黄蜂”战斗机_14"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 2,
+            "clear_targets": true
+          }
+        },
+        {
+          "agent_name": "naval_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_naval_firepower_02",
+          "params": {
+            "start_time": 60,
+            "end_time": 360,
+            "unit_ids": [
+              "blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_2"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 2,
+            "clear_targets": true
+          }
+        }
+      ]
+    },
+    {
+      "preset_id": "firepower_03_strong",
+      "description": "强火力：空对海和舰对海各分配 4 枚武器，预期达到摧毁航母目标。",
+      "expected_stage": "carrier_destroy_expected",
+      "agents": [
+        {
+          "agent_name": "air_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_air_firepower_03",
+          "params": {
+            "start_time": 0,
+            "end_time": 300,
+            "unit_ids": [
+              "blue_F/A-18F型“超级大黄蜂”战斗机_14"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 4,
+            "clear_targets": true
+          }
+        },
+        {
+          "agent_name": "naval_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_naval_firepower_03",
+          "params": {
+            "start_time": 60,
+            "end_time": 360,
+            "unit_ids": [
+              "blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_2"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 4,
+            "clear_targets": true
+          }
+        }
+      ]
+    },
+    {
+      "preset_id": "firepower_04_reduce",
+      "description": "回落火力：在强火力基础上减少武器数量，空对海和舰对海各分配 3 枚武器。",
+      "expected_stage": "reduce_after_destroy",
+      "agents": [
+        {
+          "agent_name": "air_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_air_firepower_04",
+          "params": {
+            "start_time": 0,
+            "end_time": 300,
+            "unit_ids": [
+              "blue_F/A-18F型“超级大黄蜂”战斗机_14"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 3,
+            "clear_targets": true
+          }
+        },
+        {
+          "agent_name": "naval_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_naval_firepower_04",
+          "params": {
+            "start_time": 60,
+            "end_time": 360,
+            "unit_ids": [
+              "blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_2"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 3,
+            "clear_targets": true
+          }
+        }
+      ]
+    },
+    {
+      "preset_id": "firepower_05_threshold",
+      "description": "临界火力候选：空对海 2 枚、舰对海 3 枚，用于观察摧毁航母的边界条件。",
+      "expected_stage": "threshold_candidate",
+      "agents": [
+        {
+          "agent_name": "air_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_air_firepower_05",
+          "params": {
+            "start_time": 0,
+            "end_time": 300,
+            "unit_ids": [
+              "blue_F/A-18F型“超级大黄蜂”战斗机_14"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 2,
+            "clear_targets": true
+          }
+        },
+        {
+          "agent_name": "naval_to_sea_strike_agent",
+          "side": "blue",
+          "agent_instance_id": "display_naval_firepower_05",
+          "params": {
+            "start_time": 60,
+            "end_time": 360,
+            "unit_ids": [
+              "blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_2"
+            ],
+            "target_ids": [
+              "red_CV16 “辽宁”号001型航空母舰_1"
+            ],
+            "wp_num": 3,
+            "clear_targets": true
+          }
+        }
+      ]
+    }
+  ]
+}

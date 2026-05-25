@@ -22,12 +22,7 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
         runner = Runner(
             env=EnvParams(name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM),
             tick_agents=state.planned_agent_params,
-            callbacks=[
-                CallbackParams(
-                    name="step_metric",
-                    callback_instance_id="step_metric",
-                )
-            ],
+            callbacks=state.callback_params or build_default_callback_params(),
         )
         runner.reset()
         started_at = perf_counter()
@@ -76,3 +71,17 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
 
 def _is_env_finished(stop_reason: str) -> bool:
     return stop_reason in {"env_terminal", "env_truncated"}
+
+
+def build_default_callback_params() -> list[CallbackParams]:
+    target_statistic = config.simulation.target_statistic
+    return [
+        CallbackParams(
+            name="target_statistic",
+            callback_instance_id=target_statistic.callback_instance_id,
+            params={
+                "side": target_statistic.side,
+                "target_ids": target_statistic.target_ids,
+            },
+        )
+    ]

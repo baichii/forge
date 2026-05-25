@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 ENV_PATH = Path(__file__).with_name(".env")
+DEFAULT_TARGET_CARRIER_ID = "red_CV16 “辽宁”号001型航空母舰_1"
 
 
 def load_battle_planner_env(path: Path = ENV_PATH, *, override: bool = False) -> bool:
@@ -118,6 +119,10 @@ class WorkflowConfig(BaseModel):
     artifact_dir: str = Field(
         default="examples/battle_planner/artifacts", description="Artifact output dir."
     )
+    display_mode: bool = Field(
+        default=False,
+        description="Use display preset runtime params while keeping LLM text stages enabled.",
+    )
 
     @classmethod
     def from_env(cls) -> "WorkflowConfig":
@@ -126,7 +131,20 @@ class WorkflowConfig(BaseModel):
             fail_fast=_get_bool("BATTLE_PLANNER_FAIL_FAST", False),
             save_artifacts=_get_bool("BATTLE_PLANNER_SAVE_ARTIFACTS", True),
             artifact_dir=os.getenv("BATTLE_PLANNER_ARTIFACT_DIR", "examples/battle_planner/artifacts"),
+            display_mode=_get_bool("BATTLE_PLANNER_DISPLAY_MODE", False),
         )
+
+
+class TargetStatisticConfig(BaseModel):
+    callback_instance_id: str = Field(
+        default="target_statistic_carrier",
+        description="Callback instance id for target statistic summary evaluation.",
+    )
+    side: str = Field(default="red", description="Side that owns target units.")
+    target_ids: list[str] = Field(
+        default_factory=lambda: [DEFAULT_TARGET_CARRIER_ID],
+        description="Target unit ids observed by target_statistic callback.",
+    )
 
 
 class SimulationConfig(BaseModel):
@@ -140,6 +158,10 @@ class SimulationConfig(BaseModel):
         default=1, description="Maximum failed runs before a plan is considered failed."
     )
     random_seed: int | None = Field(default=None, description="Optional random seed for reproducible runs.")
+    target_statistic: TargetStatisticConfig = Field(
+        default_factory=TargetStatisticConfig,
+        description="Default target_statistic callback config used by simulation node.",
+    )
 
     @classmethod
     def from_env(cls) -> "SimulationConfig":

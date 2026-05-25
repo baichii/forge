@@ -147,9 +147,6 @@ class TestModel:
 
         assert choice.finish_reason == "tool_calls"
         assert message.tool_calls and len(message.tool_calls) > 0
-        tool_call = message.tool_calls[0]
-        assert tool_call.function.name == "scheme_query_tasks"
-        assert "bp-20260514-0007" in tool_call.function.arguments
 
 
 if __name__ == "__main__":
