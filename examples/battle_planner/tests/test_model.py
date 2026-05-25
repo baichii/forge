@@ -1,10 +1,20 @@
 import os
+from pathlib import Path
 
 import pytest
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
+
+def _env(*names: str, default: str = "") -> str:
+    for name in names:
+        value = os.environ.get(name)
+        if value:
+            return value
+    return default
+
 
 RUN_MODEL_TESTS = os.getenv("BATTLE_PLANNER_RUN_MODEL_TESTS", "").strip().lower() in {
     "1",
@@ -21,22 +31,26 @@ pytestmark = pytest.mark.skipif(
 
 class TestModel:
     def test_connection(self):
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), base_url=os.environ.get("OPENAI_API_URL"))
+        client = OpenAI(
+            api_key=_env("MODEL_OPENAI_GPT54_MINI_API_KEY"),
+            base_url=_env("MODEL_OPENAI_GPT54_MINI_API_URL"),
+        )
 
         response = client.chat.completions.create(
-            model=os.environ.get("OPENAI_MODEL"), messages=[{"role": "user", "content": "hello"}]
+            model=_env("MODEL_OPENAI_GPT54_MINI_MODEL_NAME"),
+            messages=[{"role": "user", "content": "hello"}],
         )
 
         assert len(response.choices[0].message.content) > 0, "Model response should not be empty"
 
     def test_local_connection(self):
         client = OpenAI(
-            api_key=os.environ.get("LOCAL_OPENAI_API_KEY", ""),
-            base_url=os.environ.get("LOCAL_OPENAI_API_URL", ""),
+            api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
+            base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
         )
 
         response = client.chat.completions.create(
-            model=os.environ.get("LOCAL_OPENAI_MODEL", ""),
+            model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
             messages=[{"role": "user", "content": "hello"}],
             max_tokens=1024,
         )
@@ -48,12 +62,12 @@ class TestModel:
 
     def test_local_stream_connection(self):
         client = OpenAI(
-            api_key=os.environ.get("LOCAL_OPENAI_API_KEY", ""),
-            base_url=os.environ.get("LOCAL_OPENAI_API_URL", ""),
+            api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
+            base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
         )
 
         stream = client.chat.completions.create(
-            model=os.environ.get("LOCAL_OPENAI_MODEL", ""),
+            model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
             messages=[{"role": "user", "content": "hello"}],
             max_tokens=1024,
             stream=True,
@@ -76,12 +90,12 @@ class TestModel:
 
     def test_local_tool_call_connection(self):
         client = OpenAI(
-            api_key=os.environ.get("LOCAL_OPENAI_API_KEY", ""),
-            base_url=os.environ.get("LOCAL_OPENAI_API_URL", ""),
+            api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
+            base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
         )
 
         response = client.chat.completions.create(
-            model=os.environ.get("LOCAL_OPENAI_MODEL", ""),
+            model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
             messages=[
                 {
                     "role": "system",

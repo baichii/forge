@@ -35,7 +35,7 @@ class BattlePlanGenerationAgent(BasePlanningAgent[str]):
             },
         ]
 
-    def parse_or_fallback(
+    def _parse_result(
         self,
         *,
         raw_output: str,

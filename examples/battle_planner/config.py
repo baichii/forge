@@ -46,40 +46,69 @@ def _get_optional_int(name: str, default: int | None = None) -> int | None:
     return int(value)
 
 
-class ApiConfig(BaseModel):
-    openai_api_url: str
-    openai_api_key: str
-    openai_model: str
-    local_openai_api_url: str
-    local_openai_api_key: str
-    local_openai_model: str
+def _profile_env_prefix(profile_name: str) -> str:
+    return f"MODEL_{profile_name.upper().replace('-', '_')}"
+
+
+class ModelProfile(BaseModel):
+    name: str = Field(description="Model profile name selected by MODEL.")
+    provider: str = Field(description="Provider type, for example openai, local, or offline.")
+    api_url: str = Field(default="", description="OpenAI-compatible API base URL.")
+    api_key: str = Field(default="", description="OpenAI-compatible API key.")
+    model_name: str = Field(default="", description="Concrete model name used for API calls.")
+    reasoning_effort: str = Field(default="", description="Optional reasoning effort for thinking models.")
+    thinking_type: str = Field(default="", description="Optional extra_body thinking.type value.")
 
     @classmethod
-    def from_env(cls) -> "ApiConfig":
+    def from_env(cls, profile_name: str) -> "ModelProfile":
+        prefix = _profile_env_prefix(profile_name)
         return cls(
-            openai_api_url=os.getenv("OPENAI_API_URL") or os.getenv("OPENAI_BASE_URL", ""),
-            openai_api_key=os.getenv("OPENAI_API_KEY", ""),
-            openai_model=os.getenv("OPENAI_MODEL") or os.getenv("OPENAI_DEFAULT_MODEL", "gpt-5.4-mini"),
-            local_openai_api_url=os.getenv("LOCAL_OPENAI_API_URL", ""),
-            local_openai_api_key=os.getenv("LOCAL_OPENAI_API_KEY", "dummy"),
-            local_openai_model=os.getenv("LOCAL_OPENAI_MODEL", ""),
+            name=profile_name,
+            provider=os.getenv(f"{prefix}_PROVIDER", ""),
+            api_url=os.getenv(f"{prefix}_API_URL", ""),
+            api_key=os.getenv(f"{prefix}_API_KEY", "dummy"),
+            model_name=os.getenv(f"{prefix}_MODEL_NAME", ""),
+            reasoning_effort=os.getenv(f"{prefix}_REASONING_EFFORT", ""),
+            thinking_type=os.getenv(f"{prefix}_THINKING_TYPE", ""),
         )
 
 
 class ModelConfig(BaseModel):
-    provider: str = Field(default="auto", description="Model provider: auto, local, openai, or offline.")
+    selected: str = Field(default="deepseek_v4_pro", description="Active model profile selected by MODEL.")
+    profiles: dict[str, ModelProfile] = Field(
+        default_factory=dict, description="Configured model profiles."
+    )
     max_tokens: int = Field(default=2048, description="LLM max output tokens.")
     timeout_seconds: float = Field(default=30.0, description="LLM request timeout seconds.")
     max_retry: int = Field(default=2, description="Maximum LLM call retries.")
 
     @classmethod
     def from_env(cls) -> "ModelConfig":
+        selected = os.getenv("MODEL", "deepseek_v4_pro").strip()
+        profile_names = [
+            item.strip()
+            for item in os.getenv(
+                "MODEL_PROFILES",
+                "local_qwen36,openai_gpt54_mini,deepseek_v4_pro,offline",
+            ).split(",")
+            if item.strip()
+        ]
+        profiles = {name: ModelProfile.from_env(name) for name in profile_names}
+        if selected and selected not in profiles:
+            profiles[selected] = ModelProfile.from_env(selected)
         return cls(
-            provider=os.getenv("BATTLE_PLANNER_MODEL_PROVIDER", "auto"),
+            selected=selected,
+            profiles=profiles,
             max_tokens=_get_int("BATTLE_PLANNER_LLM_MAX_TOKENS", 2048),
             timeout_seconds=_get_float("BATTLE_PLANNER_LLM_TIMEOUT_SECONDS", 30.0),
             max_retry=_get_int("BATTLE_PLANNER_LLM_MAX_RETRY", 2),
         )
+
+    @property
+    def active_profile(self) -> ModelProfile:
+        if self.selected not in self.profiles:
+            raise ValueError(f"MODEL profile `{self.selected}` is not configured")
+        return self.profiles[self.selected]
 
 
 class WorkflowConfig(BaseModel):
@@ -103,8 +132,9 @@ class WorkflowConfig(BaseModel):
 class SimulationConfig(BaseModel):
     runs_per_plan: int = Field(default=3, description="Simulation runs for each generated plan.")
     max_parallel: int = Field(default=1, description="Maximum parallel simulation runs.")
-    max_decision_steps: int = Field(
-        default=3, description="Maximum decision steps for each simulation run."
+    max_decision_steps: int | None = Field(
+        default=None,
+        description="Optional workflow-side max decision steps. None lets env decide termination.",
     )
     max_failures: int = Field(
         default=1, description="Maximum failed runs before a plan is considered failed."
@@ -116,7 +146,7 @@ class SimulationConfig(BaseModel):
         return cls(
             runs_per_plan=_get_int("BATTLE_PLANNER_SIM_RUNS_PER_PLAN", 3),
             max_parallel=_get_int("BATTLE_PLANNER_SIM_MAX_PARALLEL", 1),
-            max_decision_steps=_get_int("BATTLE_PLANNER_SIM_MAX_DECISION_STEPS", 3),
+            max_decision_steps=_get_optional_int("BATTLE_PLANNER_SIM_MAX_DECISION_STEPS"),
             max_failures=_get_int("BATTLE_PLANNER_SIM_MAX_FAILURES", 1),
             random_seed=_get_optional_int("BATTLE_PLANNER_SIM_RANDOM_SEED"),
         )
@@ -142,7 +172,6 @@ class ReportConfig(BaseModel):
 
 @dataclass
 class BattlePlannerConfig:
-    api: ApiConfig = field(default_factory=ApiConfig.from_env)
     model: ModelConfig = field(default_factory=ModelConfig.from_env)
     workflow: WorkflowConfig = field(default_factory=WorkflowConfig.from_env)
     simulation: SimulationConfig = field(default_factory=SimulationConfig.from_env)

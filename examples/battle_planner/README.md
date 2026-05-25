@@ -43,7 +43,7 @@ prepare_scenario
 
 `prepare_scenario` 会把 `scenario_zc_lite` 转成 `PlannerKnowledgePack`，其中包含想定摘要、作战目标、可用智能体能力、mission schema、约束、未知项和证据来源。后续 `scenario_understanding` 与 `battle_plan_generation` 都基于这个知识包工作。
 
-每个 LLM 环节都会记录 trace，包括输入消息、原始输出、解析结果、fallback 状态和错误信息。模型不可用或输出不适合展示时，demo 会使用模板或默认参数继续跑完。
+每个 LLM 环节都会记录 trace，包括输入消息、原始输出、解析结果、fallback 状态和错误信息。Markdown 生成环节在模型不可用时会使用模板兜底；智能体参数生成失败时不再自动补默认 agent，`planned_agent_params` 会保持为空，方便定位问题。
 
 ## Agent Runtime
 
@@ -65,12 +65,14 @@ agent 输入统一支持：
 - `InputContextMiddleware`：把 tool、memory、skill 注入模型上下文
 - `TraceMetadataMiddleware`：记录 middleware hook 和输出摘要
 
-模型调用通过 `runtime/model_provider.py` 抽象。`.env` 中的 `BATTLE_PLANNER_MODEL_PROVIDER` 支持：
+模型调用通过 `runtime/model_provider.py` 抽象。`.env` 中通过 `MODEL` 显式选择模型 profile，不再自动选择。默认使用 `MODEL=deepseek_v4_pro`：
 
-- `auto`：优先 local，其次 openai，最后 offline
-- `local`：使用 `LOCAL_OPENAI_*`
-- `openai`：使用 `OPENAI_*`
-- `offline`：不请求模型，直接走 fallback
+- `MODEL=deepseek_v4_pro`：使用 `MODEL_DEEPSEEK_V4_PRO_*`，并启用 `reasoning_effort=high` 和 `thinking.type=enabled`
+- `MODEL=openai_gpt54_mini`：使用 `MODEL_OPENAI_GPT54_MINI_*`
+- `MODEL=local_qwen36`：使用 `MODEL_LOCAL_QWEN36_*`
+- `MODEL=offline`：不请求模型，直接走 fallback
+
+agent 调用可传入 `model` 参数；如果传入值和当前 profile 的 `MODEL_NAME` 不一致，会直接返回配置错误，避免测试时误用模型。
 
 运行配置集中在 `config.py`。配置优先级为：
 

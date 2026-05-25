@@ -15,12 +15,15 @@ from battle_planner.runtime.middleware import (
 from battle_planner.runtime.model_provider import ModelProvider, ModelRequest, build_model_provider
 from battle_planner.runtime.trace import build_trace
 
+from forge.core.lib.agent import TaskAgent
+
 TOutput = TypeVar("TOutput")
 
 
 @dataclass
 class AgentInputs:
     data: dict[str, Any]
+    model: str | None = None
     tools: list[dict[str, Any]] = field(default_factory=list)
     memory: dict[str, Any] = field(default_factory=dict)
     skills: list[str] = field(default_factory=list)
@@ -32,7 +35,7 @@ class AgentRunResult(Generic[TOutput]):
     trace: LLMTrace
 
 
-class BasePlanningAgent(ABC, Generic[TOutput]):
+class BasePlanningAgent(TaskAgent, ABC, Generic[TOutput]):
     name: str = "base_planning_agent"
     max_tokens: int = config.model.max_tokens
 
@@ -64,12 +67,12 @@ class BasePlanningAgent(ABC, Generic[TOutput]):
             middleware.before_model(context)
 
         model_result = self.model_provider.complete(
-            ModelRequest(messages=context.messages, max_tokens=self.max_tokens)
+            ModelRequest(messages=context.messages, max_tokens=self.max_tokens, model=inputs.model)
         )
         for middleware in self.middleware:
             middleware.after_model(context, model_result.content, model_result.error)
 
-        output, fallback_used, error = self.parse_or_fallback(
+        output, fallback_used, error = self._parse_result(
             raw_output=model_result.content,
             model_error=model_result.error,
             inputs=inputs,
@@ -92,7 +95,7 @@ class BasePlanningAgent(ABC, Generic[TOutput]):
         raise NotImplementedError
 
     @abstractmethod
-    def parse_or_fallback(
+    def _parse_result(
         self,
         *,
         raw_output: str,

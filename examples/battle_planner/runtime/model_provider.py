@@ -11,6 +11,7 @@ from openai import OpenAI
 class ModelRequest:
     messages: list[dict[str, str]]
     max_tokens: int = 2048
+    model: str | None = None
 
 
 @dataclass
@@ -42,12 +43,16 @@ class OpenAICompatibleModelProvider(ModelProvider):
         api_key: str,
         model: str,
         timeout: float = 8.0,
+        reasoning_effort: str = "",
+        thinking_type: str = "",
     ):
         self.name = name
         self.base_url = base_url
         self.api_key = api_key or "dummy"
         self.model = model
         self.timeout = timeout
+        self.reasoning_effort = reasoning_effort
+        self.thinking_type = thinking_type
 
     def complete(self, request: ModelRequest) -> ModelResponse:
         if not self.model or not self.base_url:
@@ -57,24 +62,31 @@ class OpenAICompatibleModelProvider(ModelProvider):
                 provider=self.name,
                 error=f"{self.name} model or base_url is not configured",
             )
+        if request.model is not None and request.model != self.model:
+            return ModelResponse(
+                content="",
+                model=self.model,
+                provider=self.name,
+                error=(
+                    f"requested model `{request.model}` does not match configured "
+                    f"model `{self.model}` for profile `{self.name}`"
+                ),
+            )
 
         try:
             client = OpenAI(api_key=self.api_key, base_url=self.base_url, timeout=self.timeout)
-            response = client.chat.completions.create(
-                model=self.model,
-                messages=request.messages,
-                max_tokens=request.max_tokens,
-            )
+            request_kwargs = {
+                "model": self.model,
+                "messages": request.messages,
+                "max_tokens": request.max_tokens,
+            }
+            if self.reasoning_effort:
+                request_kwargs["reasoning_effort"] = self.reasoning_effort
+            if self.thinking_type:
+                request_kwargs["extra_body"] = {"thinking": {"type": self.thinking_type}}
+            response = client.chat.completions.create(**request_kwargs)
             message = response.choices[0].message
-            content = message.content or getattr(message, "reasoning", "") or ""
-            lowered = content.lower()
-            if "thinking process" in lowered or "step-by-step" in lowered:
-                return ModelResponse(
-                    content=content,
-                    model=self.model,
-                    provider=self.name,
-                    error="model exposed reasoning text",
-                )
+            content = message.content or ""
             return ModelResponse(content=content, model=self.model, provider=self.name)
         except Exception as exc:
             return ModelResponse(
@@ -87,49 +99,39 @@ class OpenAICompatibleModelProvider(ModelProvider):
 
 class OfflineModelProvider(ModelProvider):
     name = "offline"
+    model = "offline"
 
     def complete(self, request: ModelRequest) -> ModelResponse:
-        return ModelResponse(content="", provider=self.name, error="offline model provider")
+        if request.model is not None and request.model != self.model:
+            return ModelResponse(
+                content="",
+                model=self.model,
+                provider=self.name,
+                error=(
+                    f"requested model `{request.model}` does not match configured "
+                    f"model `{self.model}` for profile `{self.name}`"
+                ),
+            )
+        return ModelResponse(
+            content="", model=self.model, provider=self.name, error="offline model provider"
+        )
 
 
 def build_model_provider() -> ModelProvider:
-    api = config.api
     model_config = config.model
-    provider = model_config.provider
+    profile = model_config.active_profile
+    provider = profile.provider
 
     if provider == "offline":
         return OfflineModelProvider()
-    if provider == "openai":
+    if provider in {"openai", "local", "deepseek"}:
         return OpenAICompatibleModelProvider(
-            name="openai",
-            base_url=api.openai_api_url,
-            api_key=api.openai_api_key,
-            model=api.openai_model,
+            name=profile.name,
+            base_url=profile.api_url,
+            api_key=profile.api_key,
+            model=profile.model_name,
             timeout=model_config.timeout_seconds,
+            reasoning_effort=profile.reasoning_effort,
+            thinking_type=profile.thinking_type,
         )
-    if provider == "local":
-        return OpenAICompatibleModelProvider(
-            name="local",
-            base_url=api.local_openai_api_url,
-            api_key=api.local_openai_api_key,
-            model=api.local_openai_model,
-            timeout=model_config.timeout_seconds,
-        )
-
-    if api.local_openai_api_url and api.local_openai_model:
-        return OpenAICompatibleModelProvider(
-            name="local",
-            base_url=api.local_openai_api_url,
-            api_key=api.local_openai_api_key,
-            model=api.local_openai_model,
-            timeout=model_config.timeout_seconds,
-        )
-    if api.openai_api_url and api.openai_model:
-        return OpenAICompatibleModelProvider(
-            name="openai",
-            base_url=api.openai_api_url,
-            api_key=api.openai_api_key,
-            model=api.openai_model,
-            timeout=model_config.timeout_seconds,
-        )
-    return OfflineModelProvider()
+    raise ValueError(f"Unsupported MODEL provider `{provider}` for profile `{profile.name}`")

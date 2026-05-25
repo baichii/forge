@@ -33,18 +33,21 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
         started_at = perf_counter()
         report = runner.run(max_step=max_steps)
         elapsed_seconds = perf_counter() - started_at
+        stop_reason = report.env.stop_reason
         state.simulation_result = SimulationRunResult(
             scenario_name=state.scenario_name,
             steps=report.env.step_count,
-            done=report.env.stop_reason == "env_terminal",
+            done=_is_env_finished(stop_reason),
             logs=[
                 f"reset scenario={state.scenario_name}",
                 f"run registered pysim runner max_steps={max_steps} tick_agents={len(state.planned_agent_params)}",
+                f"stop_reason={stop_reason}",
                 f"simulation_elapsed_seconds={elapsed_seconds:.4f}",
             ],
             raw_summary={
                 "env": "pysim",
                 "max_steps": max_steps,
+                "stop_reason": stop_reason,
                 "tick_agents": [
                     {
                         "agent_instance_id": item.agent_instance_id,
@@ -62,9 +65,14 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
             "simulation",
             steps=state.simulation_result.steps,
             done=state.simulation_result.done,
+            stop_reason=stop_reason,
             env=state.simulation_result.raw_summary.get("env"),
         )
     except Exception as exc:
         state.mark_error(f"simulation failed: {exc}")
         log_node_error("simulation", state.error or str(exc))
     return state
+
+
+def _is_env_finished(stop_reason: str) -> bool:
+    return stop_reason in {"env_terminal", "env_truncated"}
