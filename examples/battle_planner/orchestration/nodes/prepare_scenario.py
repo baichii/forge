@@ -7,7 +7,7 @@ from battle_planner.orchestration.state.state import BattlePlannerState
 
 
 def prepare_scenario_node(state: BattlePlannerState) -> BattlePlannerState:
-    log_node_start("prepare_scenario")
+    log_node_start("prepare_scenario", iteration_index=state.iteration_index)
     scenario_conf = load_zc_lite_scenario()
     state.scenario_conf = scenario_conf
     state.scenario_name = scenario_conf["name"]
@@ -17,6 +17,7 @@ def prepare_scenario_node(state: BattlePlannerState) -> BattlePlannerState:
     state.cur_stage = "prepare_scenario"
     log_node_end(
         "prepare_scenario",
+        iteration_index=state.iteration_index,
         scenario=state.scenario_name,
         sides=list(state.scenario_conf_summary.get("sides", {}).keys()),
         capabilities=len(state.planner_knowledge_pack.capability_catalog),

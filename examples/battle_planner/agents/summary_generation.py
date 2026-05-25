@@ -94,6 +94,7 @@ def _fallback_summary_body(
     target_lines = [
         (
             f"- {item.target_id}: alive={item.alive}, "
+            f"initial_health={item.initial_health}, current_health={item.current_health}, "
             f"health_delta={item.health_delta}, health_percent_delta={item.health_percent_delta}"
         )
         for item in summary_evaluation.target_status

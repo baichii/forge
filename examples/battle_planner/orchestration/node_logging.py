@@ -14,15 +14,23 @@ def log_node_end(node_name: str, **fields: Any) -> None:
     print(_format_line(node_name, "end", fields), flush=True)
 
 
-def log_node_error(node_name: str, error: str) -> None:
-    print(_format_line(node_name, "error", {"error": error}), flush=True)
+def log_node_error(node_name: str, error: str, *, iteration_index: int | None = None) -> None:
+    fields: dict[str, Any] = {"error": error}
+    if iteration_index is not None:
+        fields["iteration_index"] = iteration_index
+    print(_format_line(node_name, "error", fields), flush=True)
 
 
 def _format_line(node_name: str, event: str, fields: dict[str, Any]) -> str:
+    fields = dict(fields)
+    iteration_index = fields.pop("iteration_index", None)
+    prefix = "[battle_planner]"
+    if isinstance(iteration_index, int) and not isinstance(iteration_index, bool):
+        prefix = f"{prefix}[{iteration_index + 1}]"
     suffix = ""
     if fields:
         suffix = " " + " ".join(f"{key}={_format_value(key, value)}" for key, value in fields.items())
-    return f"[battle_planner][{node_name}][{event}]{suffix}"
+    return f"{prefix}[{node_name}][{event}]{suffix}"
 
 
 def _format_value(key: str, value: Any) -> str:

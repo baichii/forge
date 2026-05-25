@@ -7,7 +7,7 @@ from battle_planner.tick_agents.schema import load_tick_agent_specs
 
 
 def agent_schema_loading_node(state: BattlePlannerState) -> BattlePlannerState:
-    log_node_start("agent_schema_loading")
+    log_node_start("agent_schema_loading", iteration_index=state.iteration_index)
     state.tick_agent_specs = load_tick_agent_specs()
     state.add_trace(
         identity_trace(
@@ -19,6 +19,7 @@ def agent_schema_loading_node(state: BattlePlannerState) -> BattlePlannerState:
     state.cur_stage = "agent_schema_loading"
     log_node_end(
         "agent_schema_loading",
+        iteration_index=state.iteration_index,
         agents=[spec.name for spec in state.tick_agent_specs],
     )
     return state

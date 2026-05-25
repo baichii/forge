@@ -18,6 +18,7 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
     model_provider = build_model_provider()
     log_node_start(
         "agent_parameter_planning",
+        iteration_index=state.iteration_index,
         agent_count=len(state.tick_agent_specs),
         battle_plan_chars=len(state.battle_plan_md),
         display_mode=False,
@@ -38,6 +39,7 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
     state.cur_stage = "agent_parameter_planning"
     log_node_end(
         "agent_parameter_planning",
+        iteration_index=state.iteration_index,
         display_mode=False,
         fallback=trace.fallback_used,
         planned_agents=_planned_agent_log_items(planned),
@@ -80,6 +82,7 @@ def _display_agent_parameter_planning_node(state: BattlePlannerState) -> BattleP
     state.cur_stage = "agent_parameter_planning"
     log_node_end(
         "agent_parameter_planning",
+        iteration_index=state.iteration_index,
         display_mode=True,
         preset_id=preset["preset_id"],
         fallback=False,

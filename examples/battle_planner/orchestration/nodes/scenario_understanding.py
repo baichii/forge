@@ -6,7 +6,11 @@ from battle_planner.orchestration.state.state import BattlePlannerState
 
 
 def scenario_understanding_node(state: BattlePlannerState) -> BattlePlannerState:
-    log_node_start("scenario_understanding", scenario=state.scenario_name)
+    log_node_start(
+        "scenario_understanding",
+        iteration_index=state.iteration_index,
+        scenario=state.scenario_name,
+    )
     output, trace = understand_scenario(
         state.scenario_conf_summary,
         knowledge_pack=state.planner_knowledge_pack,
@@ -16,6 +20,7 @@ def scenario_understanding_node(state: BattlePlannerState) -> BattlePlannerState
     state.cur_stage = "scenario_understanding"
     log_node_end(
         "scenario_understanding",
+        iteration_index=state.iteration_index,
         fallback=trace.fallback_used,
         output_chars=len(output),
         error=trace.error,

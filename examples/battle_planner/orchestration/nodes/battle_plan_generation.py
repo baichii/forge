@@ -8,6 +8,7 @@ from battle_planner.orchestration.state.state import BattlePlannerState
 def battle_plan_generation_node(state: BattlePlannerState) -> BattlePlannerState:
     log_node_start(
         "battle_plan_generation",
+        iteration_index=state.iteration_index,
         scenario_md_chars=len(state.scenario_understanding_md),
     )
     output, trace = generate_battle_plan(
@@ -19,6 +20,7 @@ def battle_plan_generation_node(state: BattlePlannerState) -> BattlePlannerState
     state.cur_stage = "battle_plan_generation"
     log_node_end(
         "battle_plan_generation",
+        iteration_index=state.iteration_index,
         fallback=trace.fallback_used,
         output_chars=len(output),
         error=trace.error,

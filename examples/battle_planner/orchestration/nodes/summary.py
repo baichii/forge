@@ -16,12 +16,13 @@ from battle_planner.orchestration.state.state import BattlePlannerState
 def summary_node(state: BattlePlannerState) -> BattlePlannerState:
     log_node_start(
         "summary",
+        iteration_index=state.iteration_index,
         simulation_ready=state.simulation_result is not None,
         evaluation_ready=state.evaluation_report is not None,
     )
     if state.simulation_result is None or state.evaluation_report is None:
         state.mark_error("summary requires simulation_result and evaluation_report")
-        log_node_error("summary", state.error or "missing inputs")
+        log_node_error("summary", state.error or "missing inputs", iteration_index=state.iteration_index)
         return state
     summary_evaluation = build_summary_evaluation(state)
     output, trace = generate_summary(
@@ -38,6 +39,7 @@ def summary_node(state: BattlePlannerState) -> BattlePlannerState:
     state.cur_stage = "complete"
     log_node_end(
         "summary",
+        iteration_index=state.iteration_index,
         fallback=trace.fallback_used,
         output_chars=len(output),
         objective_achieved=summary_evaluation.objective_achieved,

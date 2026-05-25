@@ -14,7 +14,10 @@ from forge.core.specs import CallbackParams, EnvLink, EnvMode, EnvParams
 
 def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
     log_node_start(
-        "simulation", scenario=state.scenario_name, planned_agents=len(state.planned_agent_params)
+        "simulation",
+        iteration_index=state.iteration_index,
+        scenario=state.scenario_name,
+        planned_agents=len(state.planned_agent_params),
     )
     try:
         max_steps = config.simulation.max_decision_steps
@@ -63,6 +66,7 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
         state.cur_stage = "simulation"
         log_node_end(
             "simulation",
+            iteration_index=state.iteration_index,
             steps=state.simulation_result.steps,
             done=state.simulation_result.done,
             stop_reason=stop_reason,
@@ -70,7 +74,7 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
         )
     except Exception as exc:
         state.mark_error(f"simulation failed: {exc}")
-        log_node_error("simulation", state.error or str(exc))
+        log_node_error("simulation", state.error or str(exc), iteration_index=state.iteration_index)
     return state
 
 

@@ -32,6 +32,7 @@ def test_config_groups_parse_env_values(monkeypatch) -> None:
     monkeypatch.setenv("BATTLE_PLANNER_LLM_TIMEOUT_SECONDS", "12.5")
     monkeypatch.setenv("BATTLE_PLANNER_LLM_MAX_RETRY", "3")
     monkeypatch.setenv("BATTLE_PLANNER_MAX_STAGE_RETRY", "4")
+    monkeypatch.setenv("BATTLE_PLANNER_WORKFLOW_MAX_ITERATIONS", "2")
     monkeypatch.setenv("BATTLE_PLANNER_FAIL_FAST", "true")
     monkeypatch.setenv("BATTLE_PLANNER_SAVE_ARTIFACTS", "false")
     monkeypatch.setenv("BATTLE_PLANNER_DISPLAY_MODE", "true")
@@ -49,6 +50,7 @@ def test_config_groups_parse_env_values(monkeypatch) -> None:
     report = ReportConfig.from_env()
 
     assert model.selected == "local_test"
+    assert workflow.max_iterations == 2
     assert workflow.display_mode is True
     assert simulation.max_decision_steps == 7
     assert report.level == "standard"
@@ -131,11 +133,13 @@ def test_simulation_config_defaults_to_env_terminal_control(monkeypatch) -> None
     assert simulation.max_decision_steps is None
 
 
-def test_workflow_config_defaults_display_mode_off(monkeypatch) -> None:
+def test_workflow_config_defaults(monkeypatch) -> None:
     from battle_planner.config import WorkflowConfig
 
     monkeypatch.delenv("BATTLE_PLANNER_DISPLAY_MODE", raising=False)
+    monkeypatch.delenv("BATTLE_PLANNER_WORKFLOW_MAX_ITERATIONS", raising=False)
 
     workflow = WorkflowConfig.from_env()
 
+    assert workflow.max_iterations == 5
     assert workflow.display_mode is False

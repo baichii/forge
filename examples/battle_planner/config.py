@@ -114,6 +114,7 @@ class ModelConfig(BaseModel):
 
 class WorkflowConfig(BaseModel):
     max_stage_retry: int = Field(default=2, description="Maximum retries for each workflow stage.")
+    max_iterations: int = Field(default=5, description="Maximum iterations for workflow loop tests.")
     fail_fast: bool = Field(default=False, description="Stop workflow immediately after stage failure.")
     save_artifacts: bool = Field(default=True, description="Save workflow artifacts.")
     artifact_dir: str = Field(
@@ -128,6 +129,7 @@ class WorkflowConfig(BaseModel):
     def from_env(cls) -> "WorkflowConfig":
         return cls(
             max_stage_retry=_get_int("BATTLE_PLANNER_MAX_STAGE_RETRY", 2),
+            max_iterations=_get_int("BATTLE_PLANNER_WORKFLOW_MAX_ITERATIONS", 5),
             fail_fast=_get_bool("BATTLE_PLANNER_FAIL_FAST", False),
             save_artifacts=_get_bool("BATTLE_PLANNER_SAVE_ARTIFACTS", True),
             artifact_dir=os.getenv("BATTLE_PLANNER_ARTIFACT_DIR", "examples/battle_planner/artifacts"),
