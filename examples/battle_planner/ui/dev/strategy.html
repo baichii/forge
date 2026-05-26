@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>方案配置 · battle-planner</title>
+  <style>
+    :root {
+      --bg: #f5f4ed;
+      --surface: #faf9f5;
+      --surface-warm: #e8e6dc;
+      --fg: #141413;
+      --fg-2: #3d3d3a;
+      --muted: #5e5d59;
+      --meta: #87867f;
+      --border: #f0eee6;
+      --border-soft: #e8e6dc;
+      --accent: #c96442;
+      --accent-on: #faf9f5;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --success: #17a34a;
+      --warn: #eab308;
+      --danger: #b53333;
+      --font-display: "Anthropic Serif", Georgia, "Times New Roman", serif;
+      --font-body: "Anthropic Sans", "Arial", system-ui, -apple-system, sans-serif;
+      --font-mono: "Anthropic Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+      --text-xs: 10px;
+      --text-sm: 14px;
+      --text-base: 16px;
+      --text-lg: 20px;
+      --text-xl: 25px;
+      --text-2xl: 32px;
+      --text-3xl: 52px;
+      --text-4xl: 64px;
+      --leading-body: 1.6;
+      --leading-tight: 1.1;
+      --tracking-display: 0em;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+      --section-y-desktop: 96px;
+      --section-y-tablet: 64px;
+      --section-y-phone: 48px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 9999px;
+      --elev-flat: none;
+      --elev-ring: 0 0 0 1px var(--border);
+      --elev-raised: rgba(0, 0, 0, 0.05) 0px 4px 24px;
+      --focus-ring: 0 0 0 3px rgba(56, 152, 236, 0.3);
+      --motion-fast: 150ms;
+      --motion-base: 200ms;
+      --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+      --container-max: 1200px;
+      --container-gutter-desktop: 24px;
+      --container-gutter-tablet: 16px;
+      --container-gutter-phone: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: var(--leading-body); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, textarea, select { font: inherit; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 500; line-height: var(--leading-tight); text-wrap: balance; }
+    p { text-wrap: pretty; }
+    .container { width: min(var(--container-max), calc(100% - var(--container-gutter-desktop) * 2)); margin-inline: auto; }
+    .topnav { position: sticky; top: 0; z-index: 5; background: color-mix(in oklab, var(--bg), transparent 6%); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    .topnav-inner { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+    .logo { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 500; }
+    .navlinks { display: flex; align-items: center; gap: var(--space-5); color: var(--muted); font-size: var(--text-sm); }
+    .navlinks a:hover, .navlinks .active { color: var(--fg); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 var(--space-5); border-radius: var(--radius-md); border: 1px solid var(--border-soft); background: var(--surface-warm); color: var(--fg-2); font-weight: 500; cursor: pointer; }
+    .btn:hover { background: color-mix(in oklab, var(--surface-warm), var(--surface) 28%); }
+    .btn-primary { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .page { padding-block: var(--space-8) var(--section-y-tablet); }
+    .page-head { display: flex; align-items: end; justify-content: space-between; gap: var(--space-8); margin-bottom: var(--space-8); }
+    .eyebrow { color: var(--accent); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--space-3); }
+    .page-head h1 { font-size: clamp(var(--text-2xl), 6vw, var(--text-3xl)); }
+    .page-head p { margin-top: var(--space-3); color: var(--muted); max-width: 58ch; }
+    .layout { display: grid; grid-template-columns: minmax(280px, 0.34fr) minmax(0, 0.66fr); gap: var(--space-6); align-items: stretch; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--elev-raised); }
+    .side { padding: var(--space-5); position: sticky; top: 88px; align-self: stretch; display: flex; flex-direction: column; }
+    .side h2, .editor h2 { font-size: var(--text-xl); }
+    .list { margin-top: var(--space-4); display: grid; gap: var(--space-3); align-content: start; }
+    .item { width: 100%; text-align: left; padding: var(--space-4); border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius-md); cursor: pointer; }
+    .item:hover, .item.active { border-color: var(--border-soft); background: var(--surface-warm); }
+    .item strong { display: block; color: var(--fg); }
+    .item span { display: block; color: var(--muted); font-size: var(--text-sm); margin-top: var(--space-1); }
+    .strategy-picker { margin-top: var(--space-5); }
+    .editor { padding: var(--space-6); }
+    .summary { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: var(--space-5); padding-bottom: var(--space-6); border-bottom: 1px solid var(--border); }
+    .summary p { margin-top: var(--space-3); color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .chip { display: inline-flex; align-items: center; min-height: 34px; padding: 0 var(--space-3); border-radius: var(--radius-pill); border: 1px solid var(--border-soft); color: var(--muted); font-size: var(--text-sm); background: var(--surface); }
+    .status { color: var(--success); font-family: var(--font-mono); font-size: var(--text-sm); }
+    .form-grid { margin-top: var(--space-6); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+    .field { display: grid; gap: var(--space-2); }
+    label { color: var(--muted); font-size: var(--text-sm); }
+    select, textarea, input { width: 100%; border: 1px solid var(--border-soft); border-radius: var(--radius-md); background: var(--surface); color: var(--fg); padding: var(--space-3) var(--space-4); min-height: 44px; }
+    textarea { resize: vertical; min-height: 112px; line-height: var(--leading-body); }
+    select:focus-visible, textarea:focus-visible, input:focus-visible, button:focus-visible, a:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+    .wide { grid-column: 1 / -1; }
+    .branch-row { margin-top: var(--space-6); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+    .branch { padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); cursor: pointer; }
+    .branch.active { background: var(--surface-warm); border-color: var(--border-soft); }
+    .branch h3 { font-size: var(--text-lg); font-family: var(--font-body); font-weight: 500; }
+    .branch p { margin-top: var(--space-2); color: var(--muted); font-size: var(--text-sm); }
+    .editor-foot { margin-top: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); border-top: 1px solid var(--border); padding-top: var(--space-5); }
+    .meta { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--meta); font-variant-numeric: tabular-nums; }
+    .pagefoot { padding-block: var(--space-8); border-top: 1px solid var(--border); color: var(--meta); font-size: var(--text-sm); }
+    @media (max-width: 980px) {
+      .layout, .summary, .form-grid, .branch-row { grid-template-columns: 1fr; }
+      .side { position: static; align-self: auto; }
+    }
+    @media (max-width: 640px) {
+      .container { width: min(100% - var(--container-gutter-phone) * 2, var(--container-max)); }
+      .navlinks { display: none; }
+      .page-head { display: grid; }
+      .editor-foot { align-items: stretch; flex-direction: column; }
+      .btn { width: 100%; }
+    }
+  </style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner" data-od-id="path-0-0">
+      <a class="logo" href="index.html" data-od-id="path-0-0-0">battle-planner</a>
+      <nav class="navlinks" aria-label="主导航" data-od-id="path-0-0-1">
+        <a class="active" href="strategy-config.html" data-od-id="path-0-0-1-0">方案配置</a>
+        <a href="replay.html" data-od-id="path-0-0-1-1">策略回放</a>
+        <a href="live-monitor.html" data-od-id="path-0-0-1-2">推演展示</a>
+      </nav>
+    </div>
+  </header>
+  <main class="page" data-od-id="path-1">
+    <section class="container page-head" data-od-id="config-header">
+      <div>
+        <p class="eyebrow">Scheme Configuration</p>
+        <h1 data-od-id="path-1-0-0-1">只配置业务偏好，不暴露执行底层。</h1>
+        <p>左侧选择上游平台已规划好的推演方案、分支与策略；右侧把业务约束保存为可用于 LLM 生成执行计划的输入。</p>
+      </div>
+      
+    </section>
+
+    <section class="container layout" data-od-id="config-workspace">
+      <aside class="panel side" aria-label="方案列表" data-od-id="path-1-1-0">
+        <h2 data-od-id="path-1-1-0-0">方案与策略</h2>
+        <div class="field strategy-picker" data-od-id="path-1-1-0-1">
+          <label for="strategySelect">选择策略</label>
+          <select id="strategySelect" data-od-id="path-1-1-0-1-1">
+            <option value="alpha" selected="">蓝方联合打击</option>
+            <option value="bravo">岛链掩护突防</option>
+            <option value="charlie">近岸目标夺控</option>
+          </select>
+        </div>
+        <div class="list" data-od-id="path-1-1-0-2">
+          <button class="item active" data-strategy="alpha" data-od-id="path-1-1-0-2-0">
+            <strong>东部海域压制 / 分支 A</strong>
+            <span>策略：蓝方联合打击</span>
+          </button>
+          <button class="item" data-strategy="bravo" data-od-id="path-1-1-0-2-1">
+            <strong>岛链掩护突防 / 分支 B</strong>
+            <span>策略：多批次牵制，保留返航余量</span>
+          </button>
+          <button class="item" data-strategy="charlie" data-od-id="path-1-1-0-2-2">
+            <strong>近岸目标夺控 / 分支 C</strong>
+            <span>策略：先侦察确认，再分段打击</span>
+          </button>
+        </div>
+      </aside>
+
+      <section class="panel editor" data-od-id="strategy-editor" aria-live="polite">
+        <div class="summary" data-od-id="path-1-1-1-0">
+          <div>
+            <span class="meta" id="strategyPath" data-od-id="path-1-1-1-0-0-0">推演方案 / 分支 A / 蓝方联合打击</span>
+            <h2 id="strategyTitle" data-od-id="path-1-1-1-0-0-1">蓝方联合打击</h2>
+            <p id="strategyDesc" data-od-id="path-1-1-1-0-0-2">优先确保关键目标毁伤，同时降低我方平台长时间暴露；LLM 只生成执行参数建议，不修改上游方案结构。</p>
+          </div>
+          <div>
+            <div class="chips">
+              <span class="chip">毁伤优先</span>
+              <span class="chip">消耗受控</span>
+              <span class="chip">低暴露</span>
+            </div>
+            <p class="status" id="saveState" data-od-id="path-1-1-1-0-1-1">偏好草稿已就绪</p>
+          </div>
+        </div>
+
+        <div class="form-grid" data-od-id="path-1-1-1-1">
+          <div class="field">
+            <label for="objective">首要目标</label>
+            <select id="objective" data-od-id="path-1-1-1-1-0-1">
+              <option>关键目标毁伤最大化</option>
+              <option>我方平台生存优先</option>
+              <option>武器消耗最小化</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="risk">风险偏好</label>
+            <select id="risk" data-od-id="path-1-1-1-1-1-1">
+              <option>稳健：避免连续高风险窗口</option>
+              <option>均衡：接受短时高收益窗口</option>
+              <option>激进：优先压缩完成时间</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="budget">武器消耗约束</label>
+            <input id="budget" value="远程弹药保留 30%，中程弹药允许机动调整" data-od-id="path-1-1-1-1-2-1">
+          </div>
+          <div class="field">
+            <label for="timebox">时间窗偏好</label>
+            <input id="timebox" value="优先在 T+18 到 T+42 分钟完成主任务" data-od-id="path-1-1-1-1-3-1">
+          </div>
+          <div class="field wide">
+            <label for="notes">业务备注</label>
+            <textarea id="notes" data-od-id="path-1-1-1-1-4-1">若仿真 report 显示敌方防空压制不足，下一轮优先调整调用次数与批次间隔，而不是增加全部武器数量。</textarea>
+          </div>
+        </div>
+
+        <div class="branch-row" aria-label="策略分支偏好" data-od-id="path-1-1-1-2">
+          <button class="branch active" type="button" data-od-id="path-1-1-1-2-0">
+            <h3 data-od-id="path-1-1-1-2-0-0">分支偏好 A</h3>
+            <p>先压制高威胁目标，再执行主打击任务。</p>
+          </button>
+          <button class="branch" type="button" data-od-id="path-1-1-1-2-1">
+            <h3 data-od-id="path-1-1-1-2-1-0">分支偏好 B</h3>
+            <p>保持两批次间隔，降低同时暴露风险。</p>
+          </button>
+          <button class="branch" type="button" data-od-id="path-1-1-1-2-2">
+            <h3 data-od-id="path-1-1-1-2-2-0">分支偏好 C</h3>
+            <p>保留返航余量，不追求单轮最大输出。</p>
+          </button>
+        </div>
+
+        <div class="editor-foot" data-od-id="path-1-1-1-3">
+          <span class="meta">保存后生成“已配置策略”，供回放页样例 session 使用。</span>
+          <button class="btn btn-primary" id="saveBtn" type="button" data-od-id="path-1-1-1-3-1">保存业务偏好</button>
+        </div>
+      </section>
+    </section>
+  </main>
+  <footer class="pagefoot" data-od-id="footer">
+    <div class="container" data-od-id="path-2-0">battle-planner · 方案配置页</div>
+  </footer>
+  <script>
+    const strategies = {
+      alpha: {
+        path: "推演方案 / 分支 A / 蓝方联合打击",
+        title: "蓝方联合打击",
+        desc: "优先确保关键目标毁伤，同时降低我方平台长时间暴露；LLM 只生成执行参数建议，不修改上游方案结构。"
+      },
+      bravo: {
+        path: "推演方案 / 分支 B / 多批次牵制",
+        title: "岛链掩护突防策略",
+        desc: "以多批次牵制争取通道窗口，偏好保留返航余量，避免为了单轮 score 牺牲可解释性。"
+      },
+      charlie: {
+        path: "推演方案 / 分支 C / 侦察确认",
+        title: "近岸目标夺控策略",
+        desc: "先验证目标状态，再逐段推进打击任务；当 report 信心不足时优先补充侦察调用。"
+      }
+    };
+
+    const strategySelect = document.getElementById("strategySelect");
+
+    function setStrategy(strategyKey, statusText) {
+      document.querySelectorAll(".item").forEach((item) => {
+        item.classList.toggle("active", item.dataset.strategy === strategyKey);
+      });
+      strategySelect.value = strategyKey;
+      const current = strategies[strategyKey];
+      document.getElementById("strategyPath").textContent = current.path;
+      document.getElementById("strategyTitle").textContent = current.title;
+      document.getElementById("strategyDesc").textContent = current.desc;
+      document.getElementById("saveState").textContent = statusText;
+    }
+
+    document.querySelectorAll(".item").forEach((button) => {
+      button.addEventListener("click", () => {
+        setStrategy(button.dataset.strategy, "已切换策略，等待保存");
+      });
+    });
+
+    strategySelect.addEventListener("change", () => {
+      setStrategy(strategySelect.value, "已选择策略，等待保存");
+    });
+
+    document.querySelectorAll(".branch").forEach((button) => {
+      button.addEventListener("click", () => {
+        button.classList.toggle("active");
+        document.getElementById("saveState").textContent = "分支偏好已更新";
+      });
+    });
+
+    document.getElementById("saveBtn").addEventListener("click", () => {
+      document.getElementById("saveState").textContent = "已保存为已配置策略";
+    });
+  </script>
+
+
+
+<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>
