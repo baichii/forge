@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="zh-CN"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>策略优化工作台</title>
+  <style>
+    :root {
+      /* ─── Surface (3 levels) ─────────────────────────────────────────
+       * Parchment (bg) → Ivory (surface) → Warm Sand (surface-warm).
+       * Never use pure white as a page background — the warm cream IS
+       * the Claude personality. */
+      --bg: #f5f4ed;
+      --surface: #faf9f5;
+      --surface-warm: #e8e6dc;   /* Warm Sand — button bg, prominent interactive surfaces */
+
+      /* ─── Foreground ramp (4 levels) ────────────────────────────────
+       * Every gray carries a yellow-brown undertone. No cool blue-grays. */
+      --fg: #141413;             /* Anthropic Near Black — warmest "black" in any major tech brand */
+      --fg-2: #3d3d3a;           /* Dark Warm — dark text links, emphasized secondary text */
+      --muted: #5e5d59;          /* Olive Gray — secondary body text */
+      --meta: #87867f;           /* Stone Gray — tertiary text, footnotes, metadata */
+
+      /* ─── Border (2 levels) ──────────────────────────────────────────
+       * Cream-tinted borders — the gentlest possible containment. */
+      --border: #f0eee6;         /* Border Cream — standard light-theme border */
+      --border-soft: #e8e6dc;    /* Border Warm — section dividers, emphasized containment */
+
+      /* ─── Accent ──────────────────────────────────────────────────────
+       * Terracotta Brand — the only chromatic element on most screens.
+       * Used for primary CTA buttons and highest-signal brand moments only. */
+      --accent: #c96442;
+      --accent-on: #faf9f5;      /* Ivory — fg when terracotta is the bg */
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+
+      /* ─── Semantic ────────────────────────────────────────────────────
+       * Error Crimson is a warm, deep red — serious without alarming.
+       * Focus Blue (#3898ec) is the sole cool color in the system,
+       * reserved for accessibility (input focus rings). */
+      --success: #17a34a;
+      --warn: #eab308;
+      --danger: #b53333;         /* Error Crimson — warm red, not standard danger red */
+
+      /* ─── Typography ──────────────────────────────────────────────────
+       * Anthropic Serif (Georgia fallback) for all headlines — the single
+       * weight (500) gives every heading the gravitas of a published title.
+       * Anthropic Sans for all UI/body — quiet functional efficiency. */
+      --font-display: "Anthropic Serif", Georgia, "Times New Roman", serif;
+      --font-body: "Anthropic Sans", "Arial", system-ui, -apple-system, sans-serif;
+      --font-mono: "Anthropic Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+
+      /* Type scale — DESIGN.md §3 Typography Rules.
+       * 64px hero → 52px section → 36px sub → 32px card → 25px small */
+      --text-xs: 10px;           /* Overline — uppercase labels at smallest scale */
+      --text-sm: 14px;           /* Caption — metadata, descriptions */
+      --text-base: 16px;         /* Body Standard */
+      --text-lg: 20px;           /* Body Large — intro paragraphs */
+      --text-xl: 25px;           /* Sub-heading Small */
+      --text-2xl: 32px;          /* Sub-heading — card titles, feature names */
+      --text-3xl: 52px;          /* Section Heading */
+      --text-4xl: 64px;          /* Display / Hero — maximum impact, book-title presence */
+
+      --leading-body: 1.6;       /* Relaxed — closer to a book than a dashboard */
+      --leading-tight: 1.1;      /* Tight headings — serif letterforms breathe naturally */
+      --tracking-display: 0em;   /* Serif faces carry authority; no compression needed */
+
+      /* ─── Spacing ─────────────────────────────────────────────────────
+       * 8px base unit per DESIGN.md §5. Card internal padding ~24–32px. */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+
+      --section-y-desktop: 96px; /* Editorial pacing — generous like a magazine spread */
+      --section-y-tablet: 64px;
+      --section-y-phone: 48px;
+
+      /* ─── Radius ──────────────────────────────────────────────────────
+       * Claude's softness: comfortably rounded (8px) for standard,
+       * generously rounded (12px) for primary, very rounded (16px) for
+       * featured containers. No sharp corners — softness is core identity. */
+      --radius-sm: 8px;          /* Comfortably rounded — standard buttons, cards */
+      --radius-md: 12px;         /* Generously rounded — primary buttons, inputs, nav */
+      --radius-lg: 16px;         /* Very rounded — featured containers, video players */
+      --radius-pill: 9999px;     /* Chip-like elements (use sparingly) */
+
+      /* ─── Elevation ───────────────────────────────────────────────────
+       * Ring shadows (0px 0px 0px 1px) instead of drop shadows.
+       * The signature is a border-like halo — shadow pretending to be
+       * a border. Drop shadows only at 0.05 opacity when truly needed. */
+      --elev-flat: none;
+      --elev-ring: 0 0 0 1px var(--border);          /* Border-like halo */
+      --elev-raised: rgba(0, 0, 0, 0.05) 0px 4px 24px; /* Whisper soft — barely visible lift */
+
+      /* ─── Focus ring ──────────────────────────────────────────────────
+       * Focus Blue (#3898ec) is the ONLY cool color in the Claude system.
+       * Reserved exclusively for accessibility / keyboard focus. */
+      --focus-ring: 0 0 0 3px rgba(56, 152, 236, 0.3);
+
+      /* ─── Motion ──────────────────────────────────────────────────────
+       * Short, purposeful transitions. The editorial warmth doesn't need
+       * animation energy — interactions should feel calm. */
+      --motion-fast: 150ms;
+      --motion-base: 200ms;
+      --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+      /* ─── Layout ──────────────────────────────────────────────────────
+       * 1200px container, editorial layout. Hero is centered, feature
+       * sections use 2–3 column card grids. */
+      --container-max: 1200px;
+      --container-gutter-desktop: 24px;
+      --container-gutter-tablet: 16px;
+      --container-gutter-phone: 12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: var(--leading-body); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 500; line-height: var(--leading-tight); letter-spacing: var(--tracking-display); text-wrap: balance; }
+    p { text-wrap: pretty; }
+    .container { width: min(var(--container-max), calc(100% - var(--container-gutter-desktop) * 2)); margin-inline: auto; }
+    .topnav { position: sticky; top: 0; z-index: 5; background: color-mix(in oklab, var(--bg), transparent 6%); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    .topnav-inner { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+    .logo { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 500; }
+    .navlinks { display: flex; align-items: center; gap: var(--space-5); color: var(--muted); font-size: var(--text-sm); }
+    .navlinks a:hover { color: var(--fg); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 var(--space-5); border-radius: var(--radius-md); border: 1px solid var(--border-soft); background: var(--surface-warm); color: var(--fg-2); font-weight: 500; transition: background var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-standard); }
+    .btn:hover { background: color-mix(in oklab, var(--surface-warm), var(--surface) 28%); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .hero { padding-block: clamp(var(--section-y-phone), 8vw, var(--section-y-desktop)); }
+    .eyebrow { color: var(--accent); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--space-4); }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr); gap: var(--space-12); align-items: center; }
+    .hero h1 { font-size: clamp(40px, 7vw, var(--text-4xl)); max-width: 12ch; }
+    .lead { margin-top: var(--space-5); max-width: 56ch; color: var(--muted); font-size: var(--text-lg); }
+    .hero-actions { margin-top: var(--space-8); display: flex; flex-wrap: wrap; gap: var(--space-3); }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--elev-raised); }
+    .screen-preview { padding: var(--space-6); }
+    .preview-bar { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border); }
+    .meta { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--meta); font-variant-numeric: tabular-nums; }
+    .preview-grid { margin-top: var(--space-5); display: grid; grid-template-columns: 0.75fr 1.25fr; gap: var(--space-4); }
+    .preview-list { display: grid; gap: var(--space-2); }
+    .preview-item { min-height: 42px; border-radius: var(--radius-sm); background: var(--surface-warm); padding: var(--space-2) var(--space-3); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .preview-map { min-height: 220px; border: 1px solid var(--border-soft); border-radius: var(--radius-md); position: relative; overflow: hidden; background: radial-gradient(circle at 20% 20%, color-mix(in oklab, var(--accent), transparent 84%), transparent 28%), linear-gradient(135deg, var(--surface), var(--surface-warm)); }
+    .route { position: absolute; inset: 20%; border: 1px dashed color-mix(in oklab, var(--fg), transparent 62%); border-radius: var(--radius-lg); transform: rotate(-8deg); }
+    .unit { position: absolute; width: 12px; height: 12px; border-radius: var(--radius-pill); background: var(--fg); box-shadow: 0 0 0 5px color-mix(in oklab, var(--fg), transparent 88%); }
+    .unit.a { left: 22%; top: 62%; }
+    .unit.b { left: 58%; top: 38%; background: var(--danger); box-shadow: 0 0 0 5px color-mix(in oklab, var(--danger), transparent 86%); }
+    .screens { padding-block: var(--section-y-tablet); border-top: 1px solid var(--border); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: var(--space-6); margin-bottom: var(--space-8); }
+    .section-head h2 { font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl)); max-width: 13ch; }
+    .section-head p { max-width: 48ch; color: var(--muted); }
+    .card-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); }
+    .screen-card { min-height: 260px; padding: var(--space-6); display: flex; flex-direction: column; justify-content: space-between; transition: transform var(--motion-base) var(--ease-standard), box-shadow var(--motion-base) var(--ease-standard); }
+    .screen-card:hover { transform: translateY(-2px); box-shadow: var(--elev-raised); }
+    .screen-card h3 { font-size: var(--text-xl); }
+    .screen-card p { margin-top: var(--space-3); color: var(--muted); font-size: var(--text-sm); }
+    .card-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-6); color: var(--fg-2); }
+    .status { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--muted); }
+    .dot { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--success); }
+    .pagefoot { padding-block: var(--space-8); border-top: 1px solid var(--border); color: var(--meta); font-size: var(--text-sm); }
+    @media (max-width: 1024px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .container { width: min(100% - var(--container-gutter-phone) * 2, var(--container-max)); }
+      .navlinks { display: none; }
+      .hero h1 { font-size: 40px; }
+      .lead { font-size: var(--text-base); }
+      .preview-grid, .card-grid, .section-head { grid-template-columns: 1fr; display: grid; }
+      .hero-actions .btn { width: 100%; }
+    }
+  </style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner" data-od-id="path-0-0">
+      <a class="logo" href="index.html" data-od-id="path-0-0-0">策略优化工作台</a>
+      <nav class="navlinks" aria-label="主导航" data-od-id="path-0-0-1">
+        <a href="workspace.html" data-od-id="path-0-0-1-0">工作台</a>
+        <a href="strategy-config.html" data-od-id="path-0-0-1-1">方案配置</a>
+        <a href="replay.html" data-od-id="path-0-0-1-2">迭代回放</a>
+        <a href="live-monitor.html" data-od-id="path-0-0-1-3">实时监控</a>
+      </nav>
+    </div>
+  </header>
+
+  <main data-od-id="path-1">
+    <section class="hero" data-od-id="hero">
+      <div class="container hero-grid" data-od-id="path-1-0-0">
+        <div>
+          <p class="eyebrow">Strategy · Agent · Simulation</p>
+          <h1 data-od-id="path-1-0-0-0-1">把策略优化过程讲清楚。</h1>
+          <p class="lead">面向业务、售前和解决方案团队，展示从上游推演策略，到 tick-agent 执行，再到仿真 report 驱动 LLM 调整建议的闭环。</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="workspace.html" data-od-id="path-1-0-0-0-3-0">进入工作台</a>
+            <a class="btn" href="replay.html" data-od-id="path-1-0-0-0-3-1">查看回放</a>
+          </div>
+        </div>
+        <div class="panel screen-preview" aria-label="策略优化过程预览">
+          <div class="preview-bar">
+            <div>
+              <strong>样例会话 · 东部海域压制</strong>
+              <div class="meta">session_0526_A / 08 rounds</div>
+            </div>
+            <span class="status"><span class="dot"></span>可回放</span>
+          </div>
+          <div class="preview-grid">
+            <div class="preview-list">
+              <div class="preview-item"><span>初始策略</span><span class="meta">score 62</span></div>
+              <div class="preview-item"><span>调整时间窗</span><span class="meta">score 68</span></div>
+              <div class="preview-item"><span>压缩武器消耗</span><span class="meta">score 73</span></div>
+              <div class="preview-item"><span>推荐方案</span><span class="meta">score 78</span></div>
+            </div>
+            <div class="preview-map">
+              <div class="route"></div>
+              <span class="unit a" aria-label="我方任务单元"></span>
+              <span class="unit b" aria-label="敌方目标"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screens" data-od-id="screens">
+      <div class="container" data-od-id="path-1-1-0">
+        <div class="section-head">
+          <h2 data-od-id="path-1-1-0-0-0">四个可评审工作屏幕。</h2>
+          <p>每个页面都围绕业务解释性构建：配置看偏好与约束，回放看证据链，监控看当前轮次和态势变化。</p>
+        </div>
+        <div class="card-grid">
+          <a class="panel screen-card" href="workspace.html" data-od-id="path-1-1-0-1-0">
+            <div>
+              <span class="meta">01</span>
+              <h3 data-od-id="path-1-1-0-1-0-0-1">工作台首页</h3>
+              <p>一句话说明产品目标，保留进入配置与回放的核心路径。</p>
+            </div>
+            <div class="card-foot"><span>打开</span><span aria-hidden="true">→</span></div>
+          </a>
+          <a class="panel screen-card" href="strategy-config.html" data-od-id="path-1-1-0-1-1">
+            <div>
+              <span class="meta">02</span>
+              <h3 data-od-id="path-1-1-0-1-1-0-1">方案配置页</h3>
+              <p>选择方案、分支和策略卡片，右侧编辑业务偏好与约束。</p>
+            </div>
+            <div class="card-foot"><span>打开</span><span aria-hidden="true">→</span></div>
+          </a>
+          <a class="panel screen-card" href="replay.html" data-od-id="path-1-1-0-1-2">
+            <div>
+              <span class="meta">03</span>
+              <h3 data-od-id="path-1-1-0-1-2-0-1">迭代回放页</h3>
+              <p>加载历史 session，展示指标变化、轮次摘要与 LLM 诊断。</p>
+            </div>
+            <div class="card-foot"><span>打开</span><span aria-hidden="true">→</span></div>
+          </a>
+          <a class="panel screen-card" href="live-monitor.html" data-od-id="path-1-1-0-1-3">
+            <div>
+              <span class="meta">04</span>
+              <h3 data-od-id="path-1-1-0-1-3-0-1">实时运行监控页</h3>
+              <p>用时间轴、事件流和态势图呈现正在运行的策略执行。</p>
+            </div>
+            <div class="card-foot"><span>打开</span><span aria-hidden="true">→</span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pagefoot" data-od-id="footer">
+    <div class="container" data-od-id="path-2-0">策略优化工作台 · 已配置策略、历史回放与运行监控</div>
+  </footer>
+
+
+<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>
