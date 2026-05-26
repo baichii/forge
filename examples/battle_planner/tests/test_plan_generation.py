@@ -2,13 +2,10 @@ from __future__ import annotations
 
 import json
 
+from battle_planner.data.fixtures import load_scheme_config
 from battle_planner.data.models import (
     DeductionSpec,
-    HumanInputSpec,
-    PlatformTacticSpec,
-    SchemeSpec,
     StrategyParam,
-    StrategySpec,
 )
 from battle_planner.orchestration.nodes.agent_parameter_planning import (
     agent_parameter_planning_node,
@@ -20,53 +17,11 @@ from forge.core.specs import EnvLink, EnvMode
 
 
 def test_plan_generation() -> None:
-    # 1. 业务侧导入 scheme：稻草人测试只保留一个 StrategySpec。
+    # 1. 业务侧导入 scheme：首轮验证只保留一个策略分支。
     target_ids = ["red_CV16 “辽宁”号001型航空母舰_1"]
     air_unit_ids = ["blue_F/A-18F型“超级大黄蜂”战斗机_14"]
     naval_unit_ids = ["blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1"]
-    strategy_id = "strategy-carrier-strawman"
-    scheme = SchemeSpec(
-        scheme_id="10001",
-        name="海上航母对抗稻草人测试方案",
-        scenario_name="zc3_lite",
-        side="blue",
-        opponent_side="red",
-        objective="在武器消耗受控的前提下压制并摧毁红方航母编队核心舰。",
-        constraints=[
-            "稻草人测试只验证一个策略：空中突击、海对海打击，击沉对方航母。",
-            "优先使用现有空对海和舰对海 tick-agent schema，不扩展新 agent 类型。",
-            "默认红方不主动变化，先生成可进入 simulation node 的运行参数。",
-        ],
-        human=HumanInputSpec(
-            summary="人工希望先验证 scheme -> strategy -> deduction 的数据链路。",
-            items=[
-                "当前只保留一个 StrategySpec，不考虑备选方案对比。",
-                "callback 只评价该策略是否完成摧毁航母目标。",
-            ],
-        ),
-        strategies=[
-            StrategySpec(
-                strategy_id=strategy_id,
-                name="空中突击与海对海打击",
-                description="蓝方先组织空中突击压制红方航母，再使用海对海打击补充毁伤，目标是击沉对方航母。",
-                platform=PlatformTacticSpec(
-                    summary="上游平台建议采用空中突击和海对海打击协同压制红方航母。",
-                    items=[
-                        "空中编队在 120 秒后进入攻击窗口。",
-                        "舰艇编队在空袭后补充打击同一航母目标。",
-                        "目标是击沉红方航母。",
-                    ],
-                ),
-                human=HumanInputSpec(
-                    summary="人工确认本轮只做单策略稻草人测试。",
-                    items=[
-                        "不要同时优化对手策略。",
-                        "武器数量先保守，后续根据仿真反馈调整。",
-                    ],
-                ),
-            ),
-        ],
-    )
+    scheme = load_scheme_config("zc3_lite_carrier_validation")
 
     # 2. 固定选择唯一策略，并把 scheme 信息整理成当前 agent node 可消费的输入。
     strategy = scheme.strategies[0]
@@ -156,7 +111,7 @@ def test_plan_generation() -> None:
             StrategyParam(
                 strategy_id=strategy.strategy_id,
                 status="ready_for_simulation",
-                summary="单策略稻草人测试运行参数。",
+                summary="单策略验证运行参数。",
                 agent_configs=planned_agent_params,
                 callback_configs=[
                     {

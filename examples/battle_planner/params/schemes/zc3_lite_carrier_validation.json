@@ -1,0 +1,55 @@
+{
+  "scheme_id": "10001",
+  "name": "海上航母对抗验证方案",
+  "scenario_name": "zc3_lite",
+  "side": "blue",
+  "opponent_side": "red",
+  "objective": "在武器消耗受控的前提下压制并摧毁红方航母编队核心舰。",
+  "constraints": [
+    "首轮验证聚焦一个主策略：空中突击、海对海打击，压制并摧毁对方航母。",
+    "优先使用现有空对海和舰对海智能体能力，不扩展新能力类型。",
+    "默认红方不主动变化，先生成可进入仿真的执行计划。"
+  ],
+  "human": {
+    "summary": "人工希望先验证方案、策略与推演配置的数据链路。",
+    "items": [
+      "当前只保留一个策略分支，不考虑备选方案对比。",
+      "只评价该策略是否完成摧毁航母目标。"
+    ]
+  },
+  "strategies": [
+    {
+      "strategy_id": "strategy-carrier-strike-validation",
+      "name": "空中突击与海对海打击",
+      "description": "蓝方先组织空中突击压制红方航母，再使用海对海打击补充毁伤，目标是击沉对方航母。",
+      "platform": {
+        "summary": "上游平台建议采用空中突击和海对海打击协同压制红方航母。",
+        "items": [
+          "空中编队在 120 秒后进入攻击窗口。",
+          "舰艇编队在空袭后补充打击同一航母目标。",
+          "目标是击沉红方航母。"
+        ]
+      },
+      "human": {
+        "summary": "人工确认本轮只做单策略验证。",
+        "items": [
+          "不要同时优化对手策略。",
+          "武器数量先保守，后续根据仿真反馈调整。"
+        ]
+      },
+      "meta": {
+        "branch_label": "分支 A",
+        "display_tags": ["毁伤优先", "消耗受控", "低暴露"],
+        "agent_description_ids": [
+          "air_to_sea_strike_agent",
+          "naval_to_sea_strike_agent"
+        ]
+      }
+    }
+  ],
+  "meta": {
+    "fixture_id": "zc3_lite_carrier_validation",
+    "fixture_type": "demo_scheme",
+    "source": "examples/battle_planner/tests/test_plan_generation.py"
+  }
+}

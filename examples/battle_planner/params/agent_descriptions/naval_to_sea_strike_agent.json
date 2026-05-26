@@ -1,0 +1,7 @@
+{
+  "name": "naval_to_sea_strike_agent",
+  "version": "0.1.0",
+  "entrypoint": "battle_planner.tick_agents.naval_to_sea_strike_tick_agent:Agent",
+  "description": "# 舰对海打击智能体\n\n在指定时间窗口内组织水面舰艇使用舰载导弹打击海上目标。\n\n## 适用场景\n- 固定海上目标打击。\n- 红方不主动防御或防御影响暂不建模。\n- 可作为空对海打击后的补充打击手段。\n\n## 行为逻辑\n智能体在 `start_time <= sim_time <= end_time` 且尚未下发过任务时，输出一次 `NavalAsuWStrike_Naval` 类型任务。\n\n## 输出说明\n输出由 `pysim.schema.action.MissionFormatter.attack` 构建的标准 mission action。\n",
+  "status": ["running", "finished"]
+}
