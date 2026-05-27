@@ -136,10 +136,14 @@ class BattlePlannerSession:
         store: NoopSessionStore | FileSessionStore | None = None,
         max_iterations: int | None = None,
     ):
-        self.session_id = session_id or f"bp-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{uuid4().hex[:8]}"
+        self.session_id = (
+            session_id or f"bp-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{uuid4().hex[:8]}"
+        )
         self.workflow = workflow or BattlePlannerDemoWorkflow()
         self.store = store if store is not None else _default_store()
-        self.max_iterations = max_iterations if max_iterations is not None else config.workflow.max_iterations
+        self.max_iterations = (
+            max_iterations if max_iterations is not None else config.workflow.max_iterations
+        )
 
     def run(self) -> BattlePlannerSessionResult:
         states: list[BattlePlannerState] = []
@@ -197,9 +201,7 @@ class BattlePlannerSession:
         )
 
     def run_iteration(self, *, iteration_index: int, history: list[dict[str, Any]]) -> BattlePlannerState:
-        return self.workflow.run(
-            BattlePlannerState(iteration_index=iteration_index, history=list(history))
-        )
+        return self.workflow.run(BattlePlannerState(iteration_index=iteration_index, history=list(history)))
 
 
 def build_iteration_view(state: BattlePlannerState) -> IterationView:

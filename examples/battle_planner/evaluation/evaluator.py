@@ -13,7 +13,9 @@ class TargetOutcomeEvaluator:
         target_results = _collect_target_statistic_results(runner_report)
         agent_reports = _as_list(runner_report.get("agents"))
 
-        target_stats = [_target_metric(target_id, _as_dict(payload)) for target_id, payload in target_results.items()]
+        target_stats = [
+            _target_metric(target_id, _as_dict(payload)) for target_id, payload in target_results.items()
+        ]
         target_count = len(target_stats)
         destroyed_count = sum(1 for item in target_stats if item["destroyed"])
         objective_achieved = target_count > 0 and destroyed_count == target_count
@@ -22,7 +24,9 @@ class TargetOutcomeEvaluator:
         current_health = _sum_numbers(item["current_health"] for item in target_stats)
         health_delta = _sum_numbers(item["health_delta"] for item in target_stats)
         damage = max(0.0, -health_delta)
-        damage_ratio = _damage_ratio(damage=damage, initial_health=initial_health, target_count=target_count)
+        damage_ratio = _damage_ratio(
+            damage=damage, initial_health=initial_health, target_count=target_count
+        )
 
         requested_weapon_count, weapon_events = _collect_requested_weapon_count(agent_reports)
         action_count = sum(int(_as_dict(agent).get("action_count") or 0) for agent in agent_reports)
