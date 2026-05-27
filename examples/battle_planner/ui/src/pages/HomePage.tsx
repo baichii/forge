@@ -37,7 +37,7 @@ const entryCards = [
     icon: <DashboardOutlined />,
     index: '03',
     title: '推演展示',
-    description: '预留实时推演展示入口，待界面方案确定后承接仿真连接、态势视图和事件流。',
+    description: '选择已配置策略和仿真连接，查看推演状态、态势视图、事件流和执行要点。',
   },
 ]
 

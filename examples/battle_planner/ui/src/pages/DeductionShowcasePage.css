@@ -1,0 +1,640 @@
+.deduction-page {
+  display: grid;
+  width: min(1220px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 32px 0 56px;
+  gap: 26px;
+}
+
+.deduction-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.deduction-eyebrow.ant-tag {
+  margin-bottom: 14px;
+  border-color: rgba(201, 100, 66, 0.2);
+  background: rgba(201, 100, 66, 0.1);
+  color: var(--bp-accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.deduction-head h1.ant-typography {
+  max-width: 11em;
+  margin: 0;
+  color: var(--bp-text);
+  font-size: 58px;
+  line-height: 1.06;
+  letter-spacing: 0;
+}
+
+.deduction-head p.ant-typography {
+  max-width: 680px;
+  margin: 18px 0 0;
+  color: var(--bp-muted);
+  font-size: 17px;
+  line-height: 1.72;
+}
+
+.deduction-head__tag {
+  display: inline-flex;
+  min-height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 4px 12px;
+  border: 1px solid var(--bp-border);
+  border-radius: 999px;
+  background: rgba(250, 249, 245, 0.72);
+  color: var(--bp-muted);
+  font-size: 13px;
+}
+
+.deduction-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.31fr) minmax(0, 0.69fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.deduction-side.ant-card,
+.deduction-main-panel.ant-card {
+  border: 1px solid var(--bp-border);
+  border-radius: 10px;
+  background: var(--bp-surface);
+  box-shadow: 0 18px 48px rgba(61, 61, 58, 0.06);
+}
+
+.deduction-side.ant-card {
+  position: sticky;
+  top: 88px;
+}
+
+.deduction-side .ant-card-body,
+.deduction-main-panel .ant-card-body {
+  padding: 22px;
+}
+
+.deduction-side__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.deduction-side__head div {
+  display: grid;
+  gap: 5px;
+}
+
+.deduction-side__head .ant-typography:last-child {
+  color: var(--bp-muted);
+  font-size: 13px;
+}
+
+.deduction-side__head svg {
+  color: var(--bp-accent);
+  font-size: 22px;
+}
+
+.deduction-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.deduction-field .ant-typography {
+  color: var(--bp-text-soft);
+  font-weight: 650;
+}
+
+.deduction-field .ant-select {
+  width: 100%;
+}
+
+.deduction-strategy-card {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: rgba(232, 230, 220, 0.24);
+}
+
+.deduction-strategy-card strong {
+  color: var(--bp-text);
+  line-height: 1.35;
+}
+
+.deduction-strategy-card span {
+  color: var(--bp-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.deduction-replay-control {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: var(--bp-surface);
+}
+
+.deduction-replay-control__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.deduction-replay-control__head .ant-typography {
+  color: var(--bp-text-soft);
+}
+
+.deduction-replay-control .ant-btn {
+  border-color: rgba(201, 100, 66, 0.24);
+  color: var(--bp-text-soft);
+}
+
+.deduction-replay-control .ant-btn:hover {
+  border-color: rgba(201, 100, 66, 0.45);
+  color: var(--bp-accent);
+}
+
+.deduction-speed-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.deduction-speed-button {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: rgba(232, 230, 220, 0.24);
+  color: var(--bp-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.deduction-speed-button--active,
+.deduction-speed-button:hover {
+  border-color: rgba(201, 100, 66, 0.32);
+  background: rgba(201, 100, 66, 0.1);
+  color: var(--bp-accent);
+}
+
+.deduction-replay-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.deduction-replay-progress .ant-typography,
+.deduction-replay-progress strong {
+  color: var(--bp-meta);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.deduction-effect-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: rgba(250, 249, 245, 0.74);
+}
+
+.deduction-effect-overview h2.ant-typography {
+  margin: 0;
+  color: var(--bp-text);
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.deduction-effect-overview p.ant-typography {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--bp-muted);
+  line-height: 1.7;
+}
+
+.deduction-progress-card {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: var(--bp-surface);
+}
+
+.deduction-progress-card .ant-typography,
+.deduction-progress-card span {
+  color: var(--bp-meta);
+  font-size: 12px;
+}
+
+.deduction-progress-card strong {
+  color: var(--bp-text);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.deduction-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 16px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: rgba(232, 230, 220, 0.22);
+}
+
+.deduction-metric {
+  display: grid;
+  min-height: 82px;
+  gap: 6px;
+  padding: 13px 14px;
+  border-right: 1px solid var(--bp-border);
+}
+
+.deduction-metric:last-child {
+  border-right: 0;
+}
+
+.deduction-metric .ant-typography {
+  color: var(--bp-meta);
+  font-size: 12px;
+}
+
+.deduction-metric strong {
+  color: var(--bp-text-soft);
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.deduction-metric span {
+  color: var(--bp-meta);
+  font-size: 12px;
+}
+
+.deduction-metric--success span {
+  color: var(--bp-success);
+}
+
+.deduction-metric--warning span {
+  color: #b7791f;
+}
+
+.deduction-situation {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: rgba(250, 249, 245, 0.74);
+}
+
+.deduction-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.deduction-section-title span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--bp-text-soft);
+  font-weight: 650;
+}
+
+.deduction-section-title .ant-typography {
+  color: var(--bp-meta);
+  font-size: 13px;
+}
+
+.deduction-map-board {
+  position: relative;
+  min-height: 330px;
+  margin-top: 14px;
+  overflow: hidden;
+  border: 1px solid var(--bp-border-strong);
+  border-radius: 8px;
+  background-color: #f8f7f1;
+  background-image:
+    linear-gradient(rgba(94, 93, 89, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 93, 89, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.deduction-map-board::after {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 72% 46%, rgba(181, 51, 51, 0.12), transparent 24%),
+    linear-gradient(135deg, rgba(201, 100, 66, 0.08), rgba(37, 99, 235, 0.05));
+  content: "";
+  pointer-events: none;
+}
+
+.deduction-route {
+  position: absolute;
+  z-index: 1;
+  height: 2px;
+  border-top: 2px dashed rgba(201, 100, 66, 0.68);
+  transform-origin: left center;
+}
+
+.deduction-route--air {
+  top: 36%;
+  left: 14%;
+  width: 56%;
+  transform: rotate(8deg);
+}
+
+.deduction-route--sea {
+  top: 65%;
+  left: 20%;
+  width: 49%;
+  transform: rotate(-11deg);
+}
+
+.deduction-marker,
+.deduction-window {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid var(--bp-border);
+  border-radius: 999px;
+  background: rgba(250, 249, 245, 0.9);
+  color: var(--bp-text-soft);
+  font-size: 12px;
+  box-shadow: 0 10px 24px rgba(61, 61, 58, 0.08);
+}
+
+.deduction-marker::before,
+.deduction-window::before {
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  border-radius: 999px;
+  background: var(--bp-accent);
+  content: "";
+}
+
+.deduction-marker--air {
+  top: 26%;
+  left: 10%;
+}
+
+.deduction-marker--ship {
+  top: 68%;
+  left: 18%;
+}
+
+.deduction-marker--target {
+  top: 42%;
+  right: 14%;
+}
+
+.deduction-marker--target::before {
+  background: var(--bp-danger);
+}
+
+.deduction-window {
+  top: 18%;
+  right: 12%;
+}
+
+.deduction-window::before {
+  background: var(--bp-success);
+}
+
+.deduction-stage-detail {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 3;
+  width: min(320px, calc(100% - 36px));
+  padding: 16px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: rgba(250, 249, 245, 0.94);
+  box-shadow: 0 18px 36px rgba(61, 61, 58, 0.08);
+}
+
+.deduction-stage-detail .ant-typography {
+  display: block;
+  margin-top: 8px;
+  color: var(--bp-meta);
+  font-size: 12px;
+}
+
+.deduction-stage-detail h3.ant-typography {
+  margin: 6px 0 0;
+  color: var(--bp-text);
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.deduction-stage-detail p.ant-typography {
+  margin: 8px 0 0;
+  color: var(--bp-muted);
+  line-height: 1.6;
+}
+
+.deduction-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.deduction-events,
+.deduction-agents {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: var(--bp-surface-warm);
+}
+
+.deduction-event-list,
+.deduction-agent-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.deduction-event {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: var(--bp-surface);
+}
+
+.deduction-event strong,
+.deduction-agent strong {
+  display: block;
+  color: var(--bp-text-soft);
+  line-height: 1.4;
+}
+
+.deduction-event span,
+.deduction-agent span,
+.deduction-agent p {
+  display: block;
+  margin: 4px 0 0;
+  color: var(--bp-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.deduction-agent {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: var(--bp-surface);
+}
+
+.deduction-agent .ant-space {
+  color: var(--bp-text-soft);
+}
+
+.deduction-agent svg {
+  color: var(--bp-accent);
+}
+
+.deduction-agent p {
+  margin: 0;
+}
+
+.deduction-objective {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--bp-border);
+  border-left: 3px solid rgba(201, 100, 66, 0.42);
+  border-radius: 8px;
+  background: rgba(250, 249, 245, 0.74);
+}
+
+.deduction-objective svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--bp-accent);
+}
+
+.deduction-objective .ant-typography {
+  color: var(--bp-muted);
+  line-height: 1.65;
+}
+
+@media (max-width: 980px) {
+  .deduction-page {
+    width: min(100% - 32px, 1120px);
+  }
+
+  .deduction-head,
+  .deduction-layout,
+  .deduction-effect-overview,
+  .deduction-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .deduction-head h1.ant-typography {
+    max-width: none;
+    font-size: 38px;
+  }
+
+  .deduction-side.ant-card {
+    position: static;
+  }
+
+}
+
+@media (max-width: 720px) {
+  .deduction-page {
+    width: min(100% - 24px, 1120px);
+  }
+
+  .deduction-head h1.ant-typography {
+    font-size: 30px;
+  }
+
+  .deduction-side .ant-card-body,
+  .deduction-main-panel .ant-card-body {
+    padding: 16px;
+  }
+
+  .deduction-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deduction-metric {
+    border-right: 0;
+    border-bottom: 1px solid var(--bp-border);
+  }
+
+  .deduction-metric:last-child {
+    border-bottom: 0;
+  }
+
+  .deduction-section-title {
+    display: grid;
+    justify-content: start;
+  }
+
+  .deduction-map-board {
+    min-height: 430px;
+  }
+
+  .deduction-marker--target,
+  .deduction-window {
+    right: auto;
+    left: 44%;
+  }
+
+  .deduction-stage-detail {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100% - 24px);
+  }
+
+  .deduction-event {
+    grid-template-columns: 1fr;
+  }
+}

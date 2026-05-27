@@ -1,8 +1,8 @@
 import { ConfigProvider } from 'antd'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import WorkbenchShell from './layouts/WorkbenchShell'
+import DeductionShowcasePage from './pages/DeductionShowcasePage'
 import HomePage from './pages/HomePage'
-import ShowcasePlaceholderPage from './pages/ShowcasePlaceholderPage'
 import SimulationShowcasePage from './pages/SimulationShowcasePage'
 import StrategyConfigPage from './pages/StrategyConfigPage'
 import { antdTheme } from './styles/antdTheme'
@@ -16,7 +16,7 @@ function App() {
             <Route index element={<HomePage />} />
             <Route path="strategy" element={<StrategyConfigPage />} />
             <Route path="iteration" element={<SimulationShowcasePage />} />
-            <Route path="showcase" element={<ShowcasePlaceholderPage />} />
+            <Route path="showcase" element={<DeductionShowcasePage />} />
           </Route>
         </Routes>
       </BrowserRouter>
