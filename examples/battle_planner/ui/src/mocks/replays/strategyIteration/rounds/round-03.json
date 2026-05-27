@@ -1,0 +1,65 @@
+{
+  "roundId": "round-03",
+  "roundNumber": 3,
+  "label": "探索",
+  "title": "减少武器数量的反向样本",
+  "summary": "压缩火力后武器消耗明显下降，但毁伤、成功率和风险同时变差。",
+  "metrics": {
+    "score": 64,
+    "targetDamageRatio": 0.69,
+    "weaponCostRatio": 0.62,
+    "platformRiskRatio": 0.49,
+    "successRate": 0.38,
+    "inactiveAgentCount": 1,
+    "constraintViolationCount": 4
+  },
+  "reportSummary": "火力节省有效，但目标压制强度不足，部分 seed 中目标未进入失能区间。",
+  "llmDiagnosis": "该轮保留为反例：不能只按消耗优化，需要维持最低压制强度。",
+  "decision": {
+    "status": "negative_sample",
+    "recommendation": "不采纳",
+    "rationale": "节省火力的收益不足以覆盖毁伤和稳定性损失。"
+  },
+  "executionPlan": {
+    "planName": "低火力反向验证方案",
+    "timeWindowSummary": "第一批次 T+120 至 T+220，第二批次 T+230 至 T+330",
+    "agents": ["空对海打击智能体", "舰对海打击智能体"],
+    "targets": ["红方航母核心目标"],
+    "weaponSummary": "空中 8，舰艇 5，总请求火力 13",
+    "plannedActionCount": 2,
+    "dispatchedActionCount": 2,
+    "inactiveAgents": [],
+    "maxSimulationSteps": 70
+  },
+  "parameterDiff": [
+    {
+      "name": "总请求火力",
+      "previousValue": "20",
+      "currentValue": "13",
+      "direction": "down",
+      "reason": "验证低消耗边界。",
+      "impact": "消耗下降，但毁伤不足且风险升高。"
+    }
+  ],
+  "seedStats": {
+    "seedCount": 8,
+    "meanScore": 64,
+    "bestScore": 72,
+    "worstScore": 46,
+    "stdScore": 8.4,
+    "successRate": 0.38,
+    "volatilityLevel": "高",
+    "failureReasons": [
+      {
+        "reason": "压制强度不足",
+        "count": 4,
+        "summary": "低火力样本无法稳定达成关键毁伤。"
+      },
+      {
+        "reason": "平台暴露延长",
+        "count": 2,
+        "summary": "打击未形成足够压制，暴露窗口被拉长。"
+      }
+    ]
+  }
+}

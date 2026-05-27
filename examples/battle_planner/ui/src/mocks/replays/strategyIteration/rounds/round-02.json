@@ -1,0 +1,65 @@
+{
+  "roundId": "round-02",
+  "roundNumber": 2,
+  "label": "探索",
+  "title": "提前第二批次并保持火力规模",
+  "summary": "提前舰艇补充打击后，毁伤和风险指标小幅改善，但武器消耗没有下降。",
+  "metrics": {
+    "score": 66,
+    "targetDamageRatio": 0.71,
+    "weaponCostRatio": 0.76,
+    "platformRiskRatio": 0.44,
+    "successRate": 0.5,
+    "inactiveAgentCount": 1,
+    "constraintViolationCount": 3
+  },
+  "reportSummary": "第二批次进入窗口更早，目标毁伤略有提升，平台暴露下降；火力消耗仍高于业务偏好。",
+  "llmDiagnosis": "继续观察时间窗收益，下一轮尝试压缩冗余武器数量，避免改善完全依赖火力堆叠。",
+  "decision": {
+    "status": "observe",
+    "recommendation": "继续探索",
+    "rationale": "时间窗调整有效，但成本没有改善。"
+  },
+  "executionPlan": {
+    "planName": "提前补充打击方案",
+    "timeWindowSummary": "第一批次 T+120 至 T+220，第二批次 T+230 至 T+330",
+    "agents": ["空对海打击智能体", "舰对海打击智能体"],
+    "targets": ["红方航母核心目标"],
+    "weaponSummary": "空中 12，舰艇 8，总请求火力 20",
+    "plannedActionCount": 2,
+    "dispatchedActionCount": 2,
+    "inactiveAgents": [],
+    "maxSimulationSteps": 70
+  },
+  "parameterDiff": [
+    {
+      "name": "第二批次开始时间",
+      "previousValue": "T+260",
+      "currentValue": "T+230",
+      "direction": "earlier",
+      "reason": "减少错过目标暴露窗口的概率。",
+      "impact": "毁伤提升，风险略降。"
+    }
+  ],
+  "seedStats": {
+    "seedCount": 8,
+    "meanScore": 66,
+    "bestScore": 74,
+    "worstScore": 52,
+    "stdScore": 7.2,
+    "successRate": 0.5,
+    "volatilityLevel": "高",
+    "failureReasons": [
+      {
+        "reason": "火力消耗偏高",
+        "count": 3,
+        "summary": "成功样本依赖较高请求火力。"
+      },
+      {
+        "reason": "协同间隔仍不稳定",
+        "count": 1,
+        "summary": "个别 seed 中空海打击衔接偏松。"
+      }
+    ]
+  }
+}

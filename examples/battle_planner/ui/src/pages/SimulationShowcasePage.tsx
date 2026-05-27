@@ -1,115 +1,752 @@
 import {
+  CheckCircleFilled,
   DashboardOutlined,
-  LinkOutlined,
-  RadarChartOutlined,
+  ExperimentOutlined,
+  FileTextOutlined,
+  LineChartOutlined,
+  SlidersOutlined,
 } from '@ant-design/icons'
-import { Card, Empty, Select, Space, Tag, Typography } from 'antd'
-import { useMemo, useState } from 'react'
-import type { ConfiguredStrategy } from '../types/strategy'
-import { readConfiguredStrategies } from '../utils/configuredStrategies'
+import { Card, Select, Space, Tabs, Tag, Typography } from 'antd'
+import { LineChart } from 'echarts/charts'
+import {
+  GridComponent,
+  TooltipComponent,
+} from 'echarts/components'
+import * as echarts from 'echarts/core'
+import type {
+  ECharts,
+  EChartsCoreOption,
+} from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { strategyIterationReplay } from '../mocks/replays/strategyIteration'
+import type {
+  ReplayDataSupportItem,
+  ReplayRound,
+  StrategyIterationReplay,
+} from '../types/iterationReplay'
 import './SimulationShowcasePage.css'
 
 const { Paragraph, Text, Title } = Typography
 
-function SimulationShowcasePage() {
-  const [configuredStrategies] = useState<ConfiguredStrategy[]>(() =>
-    readConfiguredStrategies(),
-  )
-  const [selectedId, setSelectedId] = useState(configuredStrategies[0]?.id)
+echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer])
 
-  const selectedStrategy = useMemo(
+function SimulationShowcasePage() {
+  const replay = strategyIterationReplay
+  const [selectedRoundId, setSelectedRoundId] = useState(replay.recommendedRoundId)
+
+  const selectedRound = useMemo(
     () =>
-      configuredStrategies.find((strategy) => strategy.id === selectedId) ??
-      configuredStrategies[0],
-    [configuredStrategies, selectedId],
+      replay.rounds.find((round) => round.roundId === selectedRoundId) ??
+      replay.rounds.at(-1),
+    [replay.rounds, selectedRoundId],
   )
+  const previousRound = useMemo(() => {
+    if (!selectedRound) {
+      return undefined
+    }
+    const index = replay.rounds.findIndex(
+      (round) => round.roundId === selectedRound.roundId,
+    )
+    return index > 0 ? replay.rounds[index - 1] : undefined
+  }, [replay.rounds, selectedRound])
+
+  if (!selectedRound) {
+    return null
+  }
 
   return (
     <main className="showcase-page">
       <section className="showcase-head" aria-labelledby="showcase-title">
-        <Tag className="showcase-eyebrow">Simulation Showcase</Tag>
-        <Title id="showcase-title" level={1}>
-          选择已配置策略，连接仿真展示实时效果
-        </Title>
-        <Paragraph>
-          这里优先承接方案配置页保存的策略名称。后续接入仿真连接后，可在同一页展示状态、
-          事件流和关键指标。
-        </Paragraph>
+        <div>
+          <Tag className="showcase-eyebrow">Replay Session</Tag>
+          <Title id="showcase-title" level={1}>
+            把每一轮变好或变差的原因留下来。
+          </Title>
+          <Paragraph className="showcase-lead">
+            回放页展示的是探索证据链：基线、当前最佳和推荐方案分开看，不假设每一轮都单调提升。
+          </Paragraph>
+        </div>
+        <span className="showcase-head__tag">
+          样例会话 · {replay.selectedSession.sessionId}
+        </span>
       </section>
 
-      <section className="showcase-layout" aria-label="推演展示工作区">
+      <section className="showcase-layout" aria-label="策略迭代工作区">
         <Card className="showcase-panel" variant="borderless">
           <div className="showcase-panel__head">
             <div>
-              <Text strong>已配置策略</Text>
-              <Text>选择一个业务人员保存过的策略配置</Text>
+              <Text strong>策略与轮次</Text>
+              <Text>选择历史推演并切换轮次报告</Text>
             </div>
             <DashboardOutlined />
           </div>
 
-          {configuredStrategies.length > 0 ? (
+          <div className="showcase-field">
+            <Text strong>已配置策略</Text>
             <Select
-              className="showcase-select"
-              value={selectedStrategy?.id}
-              onChange={setSelectedId}
-              options={configuredStrategies.map((strategy) => ({
-                value: strategy.id,
-                label: strategy.configuredName,
-              }))}
+              value={replay.configuredStrategy.id}
+              options={[
+                {
+                  value: replay.configuredStrategy.id,
+                  label: replay.configuredStrategy.name,
+                },
+              ]}
             />
-          ) : (
-            <Empty
-              description="暂无已配置策略，请先在方案配置页保存业务偏好。"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
+          </div>
+
+          <div className="showcase-field">
+            <Text strong>历史推演 session</Text>
+            <Select
+              value={replay.selectedSession.sessionId}
+              options={[
+                {
+                  value: replay.selectedSession.sessionId,
+                  label: replay.selectedSession.displayName,
+                },
+              ]}
             />
-          )}
+          </div>
+
+          <div className="showcase-session-card">
+            <Tag color="success">{statusText(replay.selectedSession.status)}</Tag>
+            <strong>{replay.configuredStrategy.name}</strong>
+            <span>{replay.configuredStrategy.description}</span>
+            <span>
+              {replay.selectedSession.totalRounds} 轮 · 每轮并行{' '}
+              {replay.selectedSession.seedCount} 局 · {replay.selectedSession.stopReason}
+            </span>
+          </div>
+
+          <div className="showcase-round-list" aria-label="策略轮次列表">
+            {replay.rounds.map((round) => (
+              <button
+                className={
+                  round.roundId === selectedRound.roundId
+                    ? 'showcase-round-button showcase-round-button--active'
+                    : 'showcase-round-button'
+                }
+                key={round.roundId}
+                type="button"
+                onClick={() => setSelectedRoundId(round.roundId)}
+              >
+                <span>R{round.roundNumber}</span>
+                <strong>{round.label}</strong>
+                <em>{round.metrics.score}</em>
+              </button>
+            ))}
+          </div>
         </Card>
 
         <Card className="showcase-detail" variant="borderless">
-          {selectedStrategy ? (
-            <>
-              <div className="showcase-detail__title">
-                <div>
-                  <Text>当前策略配置</Text>
-                  <Title level={2}>{selectedStrategy.configuredName}</Title>
-                </div>
-                <Tag color="success">已保存</Tag>
-              </div>
-
-              <div className="showcase-metrics">
-                <div>
-                  <Text>来源方案</Text>
-                  <strong>{selectedStrategy.schemeName}</strong>
-                </div>
-                <div>
-                  <Text>策略分支</Text>
-                  <strong>{selectedStrategy.strategyName ?? '总体方案约束'}</strong>
-                </div>
-                <div>
-                  <Text>想定</Text>
-                  <strong>{selectedStrategy.scenarioName}</strong>
-                </div>
-              </div>
-
-              <div className="showcase-summary">
-                <Space>
-                  <RadarChartOutlined />
-                  <Text strong>{selectedStrategy.preferences.optimizationTarget}</Text>
-                </Space>
-                <Paragraph>{selectedStrategy.preferences.branchPreference}</Paragraph>
-              </div>
-            </>
-          ) : (
-            <div className="showcase-placeholder">
-              <LinkOutlined />
-              <Title level={2}>等待策略配置</Title>
-              <Paragraph>保存后的策略名称会出现在这里，供后续仿真连接选择。</Paragraph>
-            </div>
-          )}
+          <SessionDescription replay={replay} />
+          <TrendPanel
+            rounds={replay.rounds}
+            selectedRound={selectedRound}
+            onRoundSelect={setSelectedRoundId}
+          />
+          <RoundReport
+            replay={replay}
+            selectedRound={selectedRound}
+            previousRound={previousRound}
+          />
         </Card>
       </section>
     </main>
   )
+}
+
+function SessionDescription({ replay }: { replay: StrategyIterationReplay }) {
+  return (
+    <section className="showcase-session-brief" aria-label="session 描述">
+      <div className="showcase-session-brief__head">
+        <div>
+          <Tag className="showcase-eyebrow">Session 描述</Tag>
+          <Title level={2}>{replay.implementation.title}</Title>
+          <Paragraph>{replay.implementation.description}</Paragraph>
+        </div>
+        <span>{replay.selectedSession.displayName}</span>
+      </div>
+
+      <div className="showcase-implementation-grid">
+        {replay.implementation.items.map((item) => (
+          <article key={item.label}>
+            <Text>{item.label}</Text>
+            <strong>{item.value}</strong>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function TrendPanel({
+  rounds,
+  selectedRound,
+  onRoundSelect,
+}: {
+  rounds: ReplayRound[]
+  selectedRound: ReplayRound
+  onRoundSelect: (roundId: string) => void
+}) {
+  const chartRef = useRef<HTMLDivElement>(null)
+  const chartInstanceRef = useRef<ECharts | null>(null)
+  const selectedIndex = rounds.findIndex(
+    (round) => round.roundId === selectedRound.roundId,
+  )
+
+  useEffect(() => {
+    const chartElement = chartRef.current
+    if (!chartElement) {
+      return undefined
+    }
+
+    const chart =
+      echarts.getInstanceByDom(chartElement) ??
+      echarts.init(chartElement, undefined, { renderer: 'canvas' })
+    chartInstanceRef.current = chart
+    chart.setOption(buildTrendOption(rounds, selectedRound.roundId), {
+      notMerge: true,
+    })
+
+    const handleCanvasClick = (event: { offsetX: number; offsetY: number }) => {
+      const converted = chart.convertFromPixel(
+        { xAxisIndex: 0 },
+        [event.offsetX, event.offsetY],
+      )
+      const rawIndex = Array.isArray(converted) ? converted[0] : converted
+      if (typeof rawIndex !== 'number' || Number.isNaN(rawIndex)) {
+        return
+      }
+
+      const dataIndex = Math.max(0, Math.min(rounds.length - 1, Math.round(rawIndex)))
+      const round = rounds[dataIndex]
+      if (round) {
+        onRoundSelect(round.roundId)
+      }
+    }
+
+    chart.getZr().on('click', handleCanvasClick)
+
+    let resizeFrame = 0
+    const resizeObserver = new ResizeObserver(() => {
+      window.cancelAnimationFrame(resizeFrame)
+      resizeFrame = window.requestAnimationFrame(() => {
+        chart.resize()
+      })
+    })
+    resizeObserver.observe(chartElement)
+
+    return () => {
+      chart.getZr().off('click', handleCanvasClick)
+      window.cancelAnimationFrame(resizeFrame)
+      resizeObserver.disconnect()
+    }
+  }, [onRoundSelect, rounds, selectedRound.roundId])
+
+  useEffect(
+    () => () => {
+      chartInstanceRef.current?.dispose()
+      chartInstanceRef.current = null
+    },
+    [],
+  )
+
+  return (
+    <div className="showcase-timeline" aria-label="多轮关键指标变化">
+      <div className="showcase-section-title">
+        <span>
+          <LineChartOutlined /> 多局指标变化
+        </span>
+        <Text>Score 均值趋势 · baseline / exploration / current best / recommended</Text>
+      </div>
+      <div className="showcase-trend-strip" aria-label="当前轮聚合指标">
+        <span>
+          当前轮 <strong>R{selectedRound.roundNumber}</strong>
+        </span>
+        <span>
+          Score 均值 <strong>{selectedRound.seedStats.meanScore}</strong>
+        </span>
+        <span>
+          最好 / 最差{' '}
+          <strong>
+            {selectedRound.seedStats.bestScore} / {selectedRound.seedStats.worstScore}
+          </strong>
+        </span>
+        <span>
+          成功率 <strong>{formatPercent(selectedRound.seedStats.successRate)}</strong>
+        </span>
+        <span>
+          波动 <strong>{selectedRound.seedStats.stdScore}</strong>
+        </span>
+        <span>
+          轮次位置 <strong>{selectedIndex + 1} / {rounds.length}</strong>
+        </span>
+      </div>
+      <div className="showcase-line-chart-wrap">
+        <div
+          ref={chartRef}
+          className="showcase-line-chart"
+          role="img"
+          aria-label="15 轮 score 均值、最好值和最差值折线图"
+        />
+        <div
+          className="showcase-chart-hit-layer"
+          style={{
+            gridTemplateColumns: `repeat(${rounds.length}, minmax(0, 1fr))`,
+          }}
+        >
+          {rounds.map((round) => (
+            <button
+              aria-label={`查看第 ${round.roundNumber} 轮`}
+              key={round.roundId}
+              onClick={() => onRoundSelect(round.roundId)}
+              title={`R${round.roundNumber} · ${round.label}`}
+              type="button"
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function RoundReport({
+  replay,
+  selectedRound,
+  previousRound,
+}: {
+  replay: StrategyIterationReplay
+  selectedRound: ReplayRound
+  previousRound?: ReplayRound
+}) {
+  return (
+    <div className="showcase-round-detail">
+      <div className="showcase-round-head">
+        <div>
+          <Text>每局具体效果</Text>
+          <Title level={3}>
+            Round {String(selectedRound.roundNumber).padStart(2, '0')} /{' '}
+            {selectedRound.label}
+          </Title>
+          <Paragraph>{selectedRound.summary}</Paragraph>
+        </div>
+        <Tag color={decisionColor(selectedRound.decision.status)}>
+          {selectedRound.decision.recommendation}
+        </Tag>
+      </div>
+
+      <div className="showcase-metrics">
+        <Metric
+          label="综合 score"
+          value={selectedRound.metrics.score}
+          delta={metricDelta(
+            selectedRound.metrics.score,
+            previousRound?.metrics.score,
+            'higher',
+          )}
+        />
+        <Metric
+          label="目标毁伤"
+          value={formatPercent(selectedRound.metrics.targetDamageRatio)}
+          delta={metricDelta(
+            selectedRound.metrics.targetDamageRatio,
+            previousRound?.metrics.targetDamageRatio,
+            'higher',
+            true,
+          )}
+        />
+        <Metric
+          label="武器消耗"
+          value={formatPercent(selectedRound.metrics.weaponCostRatio)}
+          delta={metricDelta(
+            selectedRound.metrics.weaponCostRatio,
+            previousRound?.metrics.weaponCostRatio,
+            'lower',
+            true,
+          )}
+        />
+        <Metric
+          label="平台暴露"
+          value={formatPercent(selectedRound.metrics.platformRiskRatio)}
+          delta={metricDelta(
+            selectedRound.metrics.platformRiskRatio,
+            previousRound?.metrics.platformRiskRatio,
+            'lower',
+            true,
+          )}
+        />
+      </div>
+
+      <div className="showcase-detail-grid">
+        <article>
+          <Space>
+            <FileTextOutlined />
+            <Text strong>仿真 report 摘要</Text>
+          </Space>
+          <Paragraph>{selectedRound.reportSummary}</Paragraph>
+        </article>
+        <article>
+          <Space>
+            <ExperimentOutlined />
+            <Text strong>LLM 诊断与建议</Text>
+          </Space>
+          <Paragraph>{selectedRound.llmDiagnosis}</Paragraph>
+        </article>
+        <article>
+          <Text strong>相对上一轮优化</Text>
+          <div className="showcase-diff-list">
+            {selectedRound.parameterDiff.map((item) => (
+              <span key={item.name}>
+                <CheckCircleFilled /> {item.name}：{item.reason}
+              </span>
+            ))}
+          </div>
+        </article>
+        <article>
+          <Text strong>效果结论</Text>
+          <Paragraph>{selectedRound.decision.rationale}</Paragraph>
+        </article>
+      </div>
+      <Tabs
+        className="showcase-secondary-tabs"
+        items={[
+          {
+            key: 'execution',
+            label: '运行参数',
+            children: <ExecutionPanel selectedRound={selectedRound} />,
+          },
+          {
+            key: 'seeds',
+            label: '多 seed 结果',
+            children: <SeedPanel selectedRound={selectedRound} />,
+          },
+          {
+            key: 'support',
+            label: '数据边界',
+            children: <DataSupportPanel items={replay.dataSupport} />,
+          },
+        ]}
+      />
+    </div>
+  )
+}
+
+function ExecutionPanel({ selectedRound }: { selectedRound: ReplayRound }) {
+  return (
+    <div className="showcase-execution">
+      <div className="showcase-section-title">
+        <span>
+          <SlidersOutlined /> 当前轮运行参数
+        </span>
+        <Text>{selectedRound.executionPlan.planName}</Text>
+      </div>
+
+      <div className="showcase-execution-grid">
+        <Info label="执行时间窗" value={selectedRound.executionPlan.timeWindowSummary} />
+        <Info label="目标对象" value={selectedRound.executionPlan.targets.join('、')} />
+        <Info label="武器配置" value={selectedRound.executionPlan.weaponSummary} />
+        <Info
+          label="计划/触发动作"
+          value={`${selectedRound.executionPlan.plannedActionCount} / ${selectedRound.executionPlan.dispatchedActionCount}`}
+        />
+        <Info
+          label="参与智能体"
+          value={selectedRound.executionPlan.agents.join('、')}
+        />
+        <Info
+          label="最大仿真步数"
+          value={`${selectedRound.executionPlan.maxSimulationSteps}`}
+        />
+      </div>
+
+      <div className="showcase-param-table">
+        <div className="showcase-param-row showcase-param-row--head">
+          <span>参数</span>
+          <span>上一轮</span>
+          <span>当前轮</span>
+          <span>变化解释</span>
+        </div>
+        {selectedRound.parameterDiff.map((item) => (
+          <div className="showcase-param-row" key={`${item.name}-${item.currentValue}`}>
+            <span>{item.name}</span>
+            <span>{item.previousValue}</span>
+            <span>{item.currentValue}</span>
+            <span>{item.impact}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SeedPanel({ selectedRound }: { selectedRound: ReplayRound }) {
+  return (
+    <div className="showcase-seed-panel">
+      <div className="showcase-section-title">
+        <span>
+          <ExperimentOutlined /> 多 seed 稳定性
+        </span>
+        <Text>seed 聚合结果，不把 seed 当成独立轮次</Text>
+      </div>
+      <div className="showcase-seed-grid">
+        <Metric label="并行 seed" value={selectedRound.seedStats.seedCount} />
+        <Metric label="平均 score" value={selectedRound.seedStats.meanScore} />
+        <Metric label="最好 / 最差" value={`${selectedRound.seedStats.bestScore} / ${selectedRound.seedStats.worstScore}`} />
+        <Metric label="波动" value={`${selectedRound.seedStats.stdScore} · ${selectedRound.seedStats.volatilityLevel}`} />
+      </div>
+      <div className="showcase-seed-runs" aria-label="seed run 结果">
+        {selectedRound.seedRuns.map((run) => (
+          <span key={run.seed}>
+            <strong>seed {run.seed}</strong>
+            <em>{run.score}</em>
+            {run.success ? '通过' : run.failureReason}
+          </span>
+        ))}
+      </div>
+      <div className="showcase-failure-list">
+        {selectedRound.seedStats.failureReasons.map((item) => (
+          <span key={item.reason}>
+            <strong>{item.reason}</strong>
+            <em>{item.count} 次</em>
+            {item.summary}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DataSupportPanel({ items }: { items: ReplayDataSupportItem[] }) {
+  return (
+    <div className="showcase-support-panel">
+      {items.map((item) => (
+        <article key={item.label}>
+          <Tag color={supportColor(item.support)}>{supportText(item.support)}</Tag>
+          <strong>{item.label}</strong>
+          <span>{item.source}</span>
+          <p>{item.note}</p>
+        </article>
+      ))}
+    </div>
+  )
+}
+
+function Metric({
+  delta,
+  label,
+  value,
+}: {
+  delta?: { text: string; tone: string }
+  label: string
+  value: string | number
+}) {
+  return (
+    <div>
+      <Text>{label}</Text>
+      <strong>{value}</strong>
+      {delta ? (
+        <small className={`showcase-delta showcase-delta--${delta.tone}`}>
+          {delta.text}
+        </small>
+      ) : null}
+    </div>
+  )
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <Text>{label}</Text>
+      <strong>{value}</strong>
+    </div>
+  )
+}
+
+function metricDelta(
+  current: number,
+  previous: number | undefined,
+  better: 'higher' | 'lower',
+  asPercent = false,
+) {
+  if (previous === undefined) {
+    return undefined
+  }
+  const diff = current - previous
+  if (diff === 0) {
+    return { text: '持平', tone: 'flat' }
+  }
+  const improved = better === 'higher' ? diff > 0 : diff < 0
+  const sign = diff > 0 ? '+' : ''
+  const value = asPercent ? `${sign}${Math.round(diff * 100)}%` : `${sign}${diff}`
+  return {
+    text: `${value} 较上一轮`,
+    tone: improved ? 'good' : 'warn',
+  }
+}
+
+function formatPercent(value: number) {
+  return `${Math.round(value * 100)}%`
+}
+
+function buildTrendOption(
+  rounds: ReplayRound[],
+  selectedRoundId: string,
+): EChartsCoreOption {
+  const xAxisData = rounds.map((round) => `R${round.roundNumber}`)
+  const meanScores = rounds.map((round) => ({
+    value: round.seedStats.meanScore,
+    itemStyle:
+      round.roundId === selectedRoundId
+        ? {
+            borderColor: '#141413',
+            borderWidth: 3,
+            color: '#c96442',
+          }
+        : {
+            color: '#c96442',
+          },
+    symbolSize: round.roundId === selectedRoundId ? 12 : 7,
+  }))
+
+  return {
+    animationDuration: 320,
+    grid: {
+      bottom: 30,
+      containLabel: true,
+      left: 8,
+      right: 14,
+      top: 16,
+    },
+    tooltip: {
+      axisPointer: {
+        lineStyle: {
+          color: '#c96442',
+          type: 'dashed',
+        },
+      },
+      backgroundColor: 'rgba(250, 249, 245, 0.96)',
+      borderColor: '#e8e6dc',
+      confine: true,
+      textStyle: {
+        color: '#3d3d3a',
+        fontSize: 12,
+      },
+      trigger: 'axis',
+    },
+    xAxis: {
+      axisLabel: {
+        color: '#87867f',
+        fontSize: 12,
+        interval: 0,
+      },
+      axisLine: {
+        lineStyle: {
+          color: '#e8e6dc',
+        },
+      },
+      axisTick: {
+        show: false,
+      },
+      boundaryGap: false,
+      data: xAxisData,
+      type: 'category',
+    },
+    yAxis: {
+      axisLabel: {
+        color: '#87867f',
+        fontSize: 12,
+      },
+      max: ({ max }: { max: number }) => Math.min(100, Math.ceil(max + 4)),
+      min: ({ min }: { min: number }) => Math.max(0, Math.floor(min - 4)),
+      splitLine: {
+        lineStyle: {
+          color: '#f0eee6',
+        },
+      },
+      type: 'value',
+    },
+    series: [
+      {
+        areaStyle: {
+          color: 'rgba(201, 100, 66, 0.1)',
+        },
+        data: meanScores,
+        emphasis: {
+          focus: 'series',
+        },
+        lineStyle: {
+          color: '#c96442',
+          width: 3,
+        },
+        name: 'Score 均值',
+        smooth: true,
+        symbol: 'circle',
+        type: 'line',
+      },
+      {
+        data: rounds.map((round) => round.seedStats.bestScore),
+        lineStyle: {
+          color: '#16823a',
+          type: 'dashed',
+          width: 1.5,
+        },
+        name: '最好值',
+        showSymbol: false,
+        smooth: true,
+        type: 'line',
+      },
+      {
+        data: rounds.map((round) => round.seedStats.worstScore),
+        lineStyle: {
+          color: '#87867f',
+          type: 'dashed',
+          width: 1.5,
+        },
+        name: '最差值',
+        showSymbol: false,
+        smooth: true,
+        type: 'line',
+      },
+    ],
+  }
+}
+
+function statusText(status: string) {
+  if (status === 'completed') {
+    return '已完成'
+  }
+  return status
+}
+
+function decisionColor(status: string) {
+  if (status === 'recommended' || status === 'current_best') {
+    return 'success'
+  }
+  if (status === 'rollback' || status === 'negative_sample') {
+    return 'warning'
+  }
+  return 'processing'
+}
+
+function supportText(support: ReplayDataSupportItem['support']) {
+  if (support === 'direct') {
+    return '直接支持'
+  }
+  if (support === 'derived') {
+    return '转换获取'
+  }
+  return '暂不支持'
+}
+
+function supportColor(support: ReplayDataSupportItem['support']) {
+  if (support === 'direct') {
+    return 'success'
+  }
+  if (support === 'derived') {
+    return 'processing'
+  }
+  return 'warning'
 }
 
 export default SimulationShowcasePage

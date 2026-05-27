@@ -1,0 +1,60 @@
+{
+  "roundId": "round-07",
+  "roundNumber": 7,
+  "label": "回退样本",
+  "title": "提高火力冗余的边界测试",
+  "summary": "毁伤略升，但额外火力带来的收益不足，整体 score 低于当前最佳。",
+  "metrics": {
+    "score": 73,
+    "targetDamageRatio": 0.82,
+    "weaponCostRatio": 0.69,
+    "platformRiskRatio": 0.36,
+    "successRate": 0.63,
+    "inactiveAgentCount": 0,
+    "constraintViolationCount": 1
+  },
+  "reportSummary": "增加火力冗余后毁伤边际收益有限，武器消耗上升超过业务偏好。",
+  "llmDiagnosis": "收益不足以覆盖消耗代价，不推荐作为最终候选；后续从第 6 轮继续小步调整。",
+  "decision": {
+    "status": "rollback",
+    "recommendation": "回退到第 6 轮主线",
+    "rationale": "该轮证明单纯堆叠火力不是主优化方向。"
+  },
+  "executionPlan": {
+    "planName": "高冗余火力边界测试",
+    "timeWindowSummary": "第一批次 T+100 至 T+205，第二批次 T+220 至 T+315",
+    "agents": ["空对海打击智能体", "舰对海打击智能体"],
+    "targets": ["红方航母核心目标"],
+    "weaponSummary": "空中 12，舰艇 8，总请求火力 20",
+    "plannedActionCount": 2,
+    "dispatchedActionCount": 2,
+    "inactiveAgents": [],
+    "maxSimulationSteps": 80
+  },
+  "parameterDiff": [
+    {
+      "name": "总请求火力",
+      "previousValue": "17",
+      "currentValue": "20",
+      "direction": "up",
+      "reason": "测试火力冗余上界。",
+      "impact": "毁伤小幅提升，但 score 因消耗惩罚回落。"
+    }
+  ],
+  "seedStats": {
+    "seedCount": 8,
+    "meanScore": 73,
+    "bestScore": 82,
+    "worstScore": 60,
+    "stdScore": 6.2,
+    "successRate": 0.63,
+    "volatilityLevel": "中",
+    "failureReasons": [
+      {
+        "reason": "消耗惩罚过高",
+        "count": 3,
+        "summary": "多 seed 中火力增加没有换来等比例毁伤收益。"
+      }
+    ]
+  }
+}

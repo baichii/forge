@@ -15,7 +15,7 @@ function WorkbenchShell() {
           </Link>
           <nav className="workbench-nav" aria-label="工作台导览">
             <NavLink to="/strategy">方案配置</NavLink>
-            <Link to="/#strategy-iteration">策略迭代</Link>
+            <NavLink to="/iteration">策略迭代</NavLink>
             <NavLink to="/showcase">推演展示</NavLink>
           </nav>
         </div>

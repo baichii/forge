@@ -1,0 +1,68 @@
+{
+  "roundId": "round-08",
+  "roundNumber": 8,
+  "label": "当前最佳",
+  "title": "压缩第二批次间隔并保留弹药余量",
+  "summary": "在第 6 轮基础上继续压缩协同间隔，毁伤提升且消耗下降，成为新的当前最佳。",
+  "metrics": {
+    "score": 78,
+    "targetDamageRatio": 0.83,
+    "weaponCostRatio": 0.61,
+    "platformRiskRatio": 0.34,
+    "successRate": 0.72,
+    "inactiveAgentCount": 0,
+    "constraintViolationCount": 1
+  },
+  "reportSummary": "关键目标毁伤达到样例阈值，第二批次进入窗口更稳定；武器消耗较上一轮下降。",
+  "llmDiagnosis": "建议保留当前执行计划作为候选。下一次探索只调整第一批次开始时间，不再增加调用次数。",
+  "decision": {
+    "status": "current_best",
+    "recommendation": "作为当前最佳",
+    "rationale": "相较第 6 轮同时改善毁伤、消耗和风险。"
+  },
+  "executionPlan": {
+    "planName": "压缩间隔保留余量方案",
+    "timeWindowSummary": "第一批次 T+100 至 T+205，第二批次 T+210 至 T+300",
+    "agents": ["空对海打击智能体", "舰对海打击智能体"],
+    "targets": ["红方航母核心目标"],
+    "weaponSummary": "空中 10，舰艇 6，总请求火力 16",
+    "plannedActionCount": 2,
+    "dispatchedActionCount": 2,
+    "inactiveAgents": [],
+    "maxSimulationSteps": 80
+  },
+  "parameterDiff": [
+    {
+      "name": "第二批次开始时间",
+      "previousValue": "T+220",
+      "currentValue": "T+210",
+      "direction": "earlier",
+      "reason": "进一步压缩空海协同间隔。",
+      "impact": "毁伤提升且暴露没有扩大。"
+    },
+    {
+      "name": "舰艇火力",
+      "previousValue": "7",
+      "currentValue": "6",
+      "direction": "down",
+      "reason": "回收冗余火力。",
+      "impact": "消耗下降，成功率仍提升。"
+    }
+  ],
+  "seedStats": {
+    "seedCount": 8,
+    "meanScore": 78,
+    "bestScore": 86,
+    "worstScore": 68,
+    "stdScore": 5.2,
+    "successRate": 0.72,
+    "volatilityLevel": "中",
+    "failureReasons": [
+      {
+        "reason": "边缘 seed 毁伤不足",
+        "count": 1,
+        "summary": "最低分 seed 仍未稳定进入推荐阈值。"
+      }
+    ]
+  }
+}

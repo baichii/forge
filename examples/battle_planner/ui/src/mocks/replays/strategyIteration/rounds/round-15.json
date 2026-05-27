@@ -1,0 +1,68 @@
+{
+  "roundId": "round-15",
+  "roundNumber": 15,
+  "label": "推荐",
+  "title": "推荐方案：稳定达成并保留火力余量",
+  "summary": "最终推荐轮次在保持高毁伤和高成功率的同时进一步降低消耗，适合作为后续执行计划基线。",
+  "metrics": {
+    "score": 88,
+    "targetDamageRatio": 0.94,
+    "weaponCostRatio": 0.57,
+    "platformRiskRatio": 0.29,
+    "successRate": 0.9,
+    "inactiveAgentCount": 0,
+    "constraintViolationCount": 0
+  },
+  "reportSummary": "推荐方案稳定达成关键目标毁伤，武器消耗低于候选轮次，平台风险维持最低区间。",
+  "llmDiagnosis": "建议采纳该轮执行计划。后续如果继续探索，应以该轮作为主线分叉，只做更小幅度的时间窗微调。",
+  "decision": {
+    "status": "recommended",
+    "recommendation": "采纳为推荐方案",
+    "rationale": "在多 seed 下同时满足毁伤、消耗、风险和约束稳定性要求。"
+  },
+  "executionPlan": {
+    "planName": "推荐执行计划",
+    "timeWindowSummary": "第一批次 T+100 至 T+198，第二批次 T+210 至 T+292",
+    "agents": ["空对海打击智能体", "舰对海打击智能体"],
+    "targets": ["红方航母核心目标"],
+    "weaponSummary": "空中 9，舰艇 5，总请求火力 14",
+    "plannedActionCount": 2,
+    "dispatchedActionCount": 2,
+    "inactiveAgents": [],
+    "maxSimulationSteps": 90
+  },
+  "parameterDiff": [
+    {
+      "name": "舰艇火力",
+      "previousValue": "6",
+      "currentValue": "5",
+      "direction": "down",
+      "reason": "在稳定性验证通过后回收冗余火力。",
+      "impact": "消耗下降，成功率仍保持高位。"
+    },
+    {
+      "name": "时间窗尾段",
+      "previousValue": "T+295",
+      "currentValue": "T+292",
+      "direction": "earlier",
+      "reason": "压缩暴露尾段。",
+      "impact": "平台风险进一步降低。"
+    }
+  ],
+  "seedStats": {
+    "seedCount": 8,
+    "meanScore": 88,
+    "bestScore": 95,
+    "worstScore": 81,
+    "stdScore": 3.2,
+    "successRate": 0.9,
+    "volatilityLevel": "低",
+    "failureReasons": [
+      {
+        "reason": "无主要失败原因",
+        "count": 0,
+        "summary": "所有 seed 均达到可接受效果，最低分样本仍保持目标毁伤。"
+      }
+    ]
+  }
+}

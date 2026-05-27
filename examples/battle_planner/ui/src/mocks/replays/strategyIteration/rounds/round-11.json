@@ -1,0 +1,60 @@
+{
+  "roundId": "round-11",
+  "roundNumber": 11,
+  "label": "收敛",
+  "title": "增强收尾火力的收敛方案",
+  "summary": "轻微增加收尾火力后毁伤突破 90%，但消耗略有上升。",
+  "metrics": {
+    "score": 82,
+    "targetDamageRatio": 0.9,
+    "weaponCostRatio": 0.66,
+    "platformRiskRatio": 0.32,
+    "successRate": 0.78,
+    "inactiveAgentCount": 0,
+    "constraintViolationCount": 1
+  },
+  "reportSummary": "目标毁伤进入高置信区间，成功率提升；额外舰艇火力带来轻微消耗压力。",
+  "llmDiagnosis": "该轮可作为高毁伤候选。下一轮应测试是否能回收部分火力并维持成功率。",
+  "decision": {
+    "status": "candidate",
+    "recommendation": "作为高毁伤候选",
+    "rationale": "毁伤收益明确，但仍需验证火力压缩空间。"
+  },
+  "executionPlan": {
+    "planName": "增强收尾火力方案",
+    "timeWindowSummary": "第一批次 T+95 至 T+200，第二批次 T+210 至 T+300",
+    "agents": ["空对海打击智能体", "舰对海打击智能体"],
+    "targets": ["红方航母核心目标"],
+    "weaponSummary": "空中 10，舰艇 7，总请求火力 17",
+    "plannedActionCount": 2,
+    "dispatchedActionCount": 2,
+    "inactiveAgents": [],
+    "maxSimulationSteps": 85
+  },
+  "parameterDiff": [
+    {
+      "name": "舰艇火力",
+      "previousValue": "6",
+      "currentValue": "7",
+      "direction": "up",
+      "reason": "增强收尾毁伤。",
+      "impact": "毁伤突破 90%，消耗略升。"
+    }
+  ],
+  "seedStats": {
+    "seedCount": 8,
+    "meanScore": 82,
+    "bestScore": 90,
+    "worstScore": 72,
+    "stdScore": 4.6,
+    "successRate": 0.78,
+    "volatilityLevel": "中",
+    "failureReasons": [
+      {
+        "reason": "消耗偏高",
+        "count": 2,
+        "summary": "高毁伤样本开始受到消耗惩罚影响。"
+      }
+    ]
+  }
+}

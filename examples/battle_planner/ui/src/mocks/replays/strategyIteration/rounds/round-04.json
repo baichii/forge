@@ -1,0 +1,68 @@
+{
+  "roundId": "round-04",
+  "roundNumber": 4,
+  "label": "候选",
+  "title": "恢复压制强度并延迟侦察确认",
+  "summary": "恢复部分火力后毁伤回升，消耗低于基线，风险小幅下降。",
+  "metrics": {
+    "score": 71,
+    "targetDamageRatio": 0.76,
+    "weaponCostRatio": 0.66,
+    "platformRiskRatio": 0.41,
+    "successRate": 0.58,
+    "inactiveAgentCount": 1,
+    "constraintViolationCount": 2
+  },
+  "reportSummary": "关键目标毁伤恢复到可接受区间，且火力消耗低于基线；仍有 seed 出现补充打击偏晚。",
+  "llmDiagnosis": "继续优化批次间隔，目标是在不增加总火力的情况下提升稳定性。",
+  "decision": {
+    "status": "candidate",
+    "recommendation": "作为候选保留",
+    "rationale": "在毁伤和消耗之间形成更好的初始平衡。"
+  },
+  "executionPlan": {
+    "planName": "恢复压制强度方案",
+    "timeWindowSummary": "第一批次 T+110 至 T+210，第二批次 T+230 至 T+320",
+    "agents": ["空对海打击智能体", "舰对海打击智能体"],
+    "targets": ["红方航母核心目标"],
+    "weaponSummary": "空中 10，舰艇 6，总请求火力 16",
+    "plannedActionCount": 2,
+    "dispatchedActionCount": 2,
+    "inactiveAgents": [],
+    "maxSimulationSteps": 75
+  },
+  "parameterDiff": [
+    {
+      "name": "总请求火力",
+      "previousValue": "13",
+      "currentValue": "16",
+      "direction": "up",
+      "reason": "恢复最低压制强度。",
+      "impact": "毁伤回升，成功率改善。"
+    },
+    {
+      "name": "最大仿真步数",
+      "previousValue": "70",
+      "currentValue": "75",
+      "direction": "up",
+      "reason": "允许补充打击完整进入窗口。",
+      "impact": "未执行智能体数量下降。"
+    }
+  ],
+  "seedStats": {
+    "seedCount": 8,
+    "meanScore": 71,
+    "bestScore": 79,
+    "worstScore": 58,
+    "stdScore": 6.6,
+    "successRate": 0.58,
+    "volatilityLevel": "中",
+    "failureReasons": [
+      {
+        "reason": "补充打击偏晚",
+        "count": 2,
+        "summary": "部分 seed 中第二批次没有充分贡献毁伤。"
+      }
+    ]
+  }
+}

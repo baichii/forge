@@ -1,0 +1,68 @@
+{
+  "roundId": "round-13",
+  "roundNumber": 13,
+  "label": "候选",
+  "title": "恢复少量收尾火力并降低风险窗口",
+  "summary": "恢复少量火力后 score 和成功率同步提升，风险进一步下降。",
+  "metrics": {
+    "score": 84,
+    "targetDamageRatio": 0.92,
+    "weaponCostRatio": 0.6,
+    "platformRiskRatio": 0.31,
+    "successRate": 0.8,
+    "inactiveAgentCount": 0,
+    "constraintViolationCount": 1
+  },
+  "reportSummary": "目标毁伤维持高位，火力消耗低于第 11 轮，风险窗口也更短。",
+  "llmDiagnosis": "该轮具备推荐潜力。下一轮应以多 seed 稳定性为主，不再大幅改动执行计划。",
+  "decision": {
+    "status": "candidate",
+    "recommendation": "进入稳定性验证",
+    "rationale": "兼顾毁伤、消耗与风险，是收敛阶段优质候选。"
+  },
+  "executionPlan": {
+    "planName": "低风险收尾候选方案",
+    "timeWindowSummary": "第一批次 T+100 至 T+200，第二批次 T+210 至 T+295",
+    "agents": ["空对海打击智能体", "舰对海打击智能体"],
+    "targets": ["红方航母核心目标"],
+    "weaponSummary": "空中 9，舰艇 6，总请求火力 15",
+    "plannedActionCount": 2,
+    "dispatchedActionCount": 2,
+    "inactiveAgents": [],
+    "maxSimulationSteps": 85
+  },
+  "parameterDiff": [
+    {
+      "name": "舰艇火力",
+      "previousValue": "5",
+      "currentValue": "6",
+      "direction": "up",
+      "reason": "恢复收尾稳定性。",
+      "impact": "成功率提升，消耗仍低于高毁伤候选。"
+    },
+    {
+      "name": "第二批次结束时间",
+      "previousValue": "T+300",
+      "currentValue": "T+295",
+      "direction": "earlier",
+      "reason": "缩短暴露尾段。",
+      "impact": "平台风险下降。"
+    }
+  ],
+  "seedStats": {
+    "seedCount": 8,
+    "meanScore": 84,
+    "bestScore": 92,
+    "worstScore": 74,
+    "stdScore": 4.2,
+    "successRate": 0.8,
+    "volatilityLevel": "中",
+    "failureReasons": [
+      {
+        "reason": "边缘样本毁伤不足",
+        "count": 1,
+        "summary": "仅最低分 seed 未达到推荐毁伤阈值。"
+      }
+    ]
+  }
+}
