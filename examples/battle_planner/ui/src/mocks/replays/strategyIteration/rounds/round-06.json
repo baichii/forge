@@ -14,7 +14,7 @@
     "constraintViolationCount": 1
   },
   "reportSummary": "空海打击衔接更紧密，关键目标毁伤进入较高区间，未执行智能体清零。",
-  "llmDiagnosis": "该轮作为当前最佳。下一轮只做边界测试，避免过拟合样例场景。",
+  "llmDiagnosis": "该轮作为当前最佳。下一轮只做边界测试，避免过度贴合单一场景。",
   "decision": {
     "status": "current_best",
     "recommendation": "作为当前最佳",

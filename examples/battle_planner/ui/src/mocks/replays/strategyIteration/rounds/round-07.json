@@ -3,7 +3,7 @@
   "roundNumber": 7,
   "label": "回退样本",
   "title": "提高火力冗余的边界测试",
-  "summary": "毁伤略升，但额外火力带来的收益不足，整体 score 低于当前最佳。",
+  "summary": "毁伤略升，但额外火力带来的收益不足，整体评分低于当前最佳。",
   "metrics": {
     "score": 73,
     "targetDamageRatio": 0.82,
@@ -38,7 +38,7 @@
       "currentValue": "20",
       "direction": "up",
       "reason": "测试火力冗余上界。",
-      "impact": "毁伤小幅提升，但 score 因消耗惩罚回落。"
+      "impact": "毁伤小幅提升，但综合评分因消耗惩罚回落。"
     }
   ],
   "seedStats": {
@@ -53,7 +53,7 @@
       {
         "reason": "消耗惩罚过高",
         "count": 3,
-        "summary": "多 seed 中火力增加没有换来等比例毁伤收益。"
+        "summary": "多局结果显示，火力增加没有换来等比例毁伤收益。"
       }
     ]
   }

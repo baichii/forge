@@ -100,14 +100,14 @@ function DeductionShowcasePage() {
     <main className="deduction-page">
       <section className="deduction-head" aria-labelledby="deduction-title">
         <div>
-          <Tag className="deduction-eyebrow">Deduction Replay</Tag>
+          <Tag className="deduction-eyebrow">Execution Replay</Tag>
           <Title id="deduction-title" level={1}>
-            回放单轮策略
+            回放策略
             <br />
             在推演中的效果。
           </Title>
           <Paragraph>
-            选择历史推演和策略轮次，按时间戳回放态势变化、指标表现、事件日志和执行要点。
+            选择历史推演记录和策略轮次，按时间戳回放态势变化、事件日志、关键指标和执行要点。
           </Paragraph>
         </div>
         <span className="deduction-head__tag">
@@ -119,14 +119,14 @@ function DeductionShowcasePage() {
         <Card className="deduction-side" variant="borderless">
           <div className="deduction-side__head">
             <div>
-              <Text strong>推演控制</Text>
+              <Text strong>推演选择</Text>
               <Text>选择历史推演与轮次</Text>
             </div>
             <DashboardOutlined />
           </div>
 
           <div className="deduction-field">
-            <Text strong>历史推演 session</Text>
+            <Text strong>历史推演记录</Text>
             <Select
               value={selectedSession.id}
               onChange={handleSessionChange}
@@ -155,59 +155,16 @@ function DeductionShowcasePage() {
             </Tag>
             <strong>{selectedSession.strategy.name}</strong>
             <span>{selectedSession.strategy.description}</span>
-            <span>{selectedRound.version}</span>
-          </div>
-
-          <div className="deduction-replay-control" aria-label="推演回放控制">
-            <div className="deduction-replay-control__head">
-              <Text strong>回放控制</Text>
-              <Tag color={playbackDone ? 'success' : isPaused ? 'default' : 'processing'}>
-                {playbackDone ? '回放结束' : isPaused ? '已暂停' : '播放中'}
-              </Tag>
-            </div>
-            <Button
-              block
-              icon={
-                playbackDone || isPaused ? (
-                  <PlayCircleOutlined />
-                ) : (
-                  <PauseCircleOutlined />
-                )
-              }
-              onClick={() => {
-                if (playbackDone) {
-                  setVisibleEventCount(1)
-                  setIsPaused(false)
-                  return
-                }
-                setIsPaused((value) => !value)
-              }}
-            >
-              {playbackDone ? '重新回放' : isPaused ? '继续回放' : '暂停回放'}
-            </Button>
-            <div className="deduction-speed-list">
-              {playbackSpeeds.map((speed) => (
-                <button
-                  className={
-                    playbackSpeed === speed
-                      ? 'deduction-speed-button deduction-speed-button--active'
-                      : 'deduction-speed-button'
-                  }
-                  key={speed}
-                  onClick={() => setPlaybackSpeed(speed)}
-                  type="button"
-                >
-                  {speed === '4x' ? <FastForwardOutlined /> : null}
-                  <span>{speed}</span>
-                </button>
+            <div className="deduction-branch-list" aria-label="策略包含分支">
+              {selectedSession.strategy.branches.map((branch) => (
+                <article className="deduction-branch-item" key={branch.id}>
+                  <Text>策略包含分支</Text>
+                  <strong>{branch.name}</strong>
+                  <span>{branch.summary}</span>
+                </article>
               ))}
             </div>
-            <div className="deduction-replay-progress">
-              <Text>日志进度</Text>
-              <strong>
-                {visibleEventCount} / {selectedRound.events.length}
-              </strong>
-            </div>
+            <span>{selectedRound.version}</span>
           </div>
         </Card>
 
@@ -248,6 +205,57 @@ function DeductionShowcasePage() {
               </Text>
             </div>
 
+            <div className="deduction-replay-control" aria-label="推演回放控制">
+              <div className="deduction-replay-status">
+                <Text strong>回放控制</Text>
+                <Tag color={playbackDone ? 'success' : isPaused ? 'default' : 'processing'}>
+                  {playbackDone ? '回放结束' : isPaused ? '已暂停' : '播放中'}
+                </Tag>
+              </div>
+              <Button
+                icon={
+                  playbackDone || isPaused ? (
+                    <PlayCircleOutlined />
+                  ) : (
+                    <PauseCircleOutlined />
+                  )
+                }
+                onClick={() => {
+                  if (playbackDone) {
+                    setVisibleEventCount(1)
+                    setIsPaused(false)
+                    return
+                  }
+                  setIsPaused((value) => !value)
+                }}
+              >
+                {playbackDone ? '重新回放' : isPaused ? '继续回放' : '暂停回放'}
+              </Button>
+              <div className="deduction-speed-list">
+                {playbackSpeeds.map((speed) => (
+                  <button
+                    className={
+                      playbackSpeed === speed
+                        ? 'deduction-speed-button deduction-speed-button--active'
+                        : 'deduction-speed-button'
+                    }
+                    key={speed}
+                    onClick={() => setPlaybackSpeed(speed)}
+                    type="button"
+                  >
+                    {speed === '4x' ? <FastForwardOutlined /> : null}
+                    <span>{speed}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="deduction-replay-progress">
+                <Text>日志进度</Text>
+                <strong>
+                  {visibleEventCount} / {selectedRound.events.length}
+                </strong>
+              </div>
+            </div>
+
             <div className="deduction-map-board">
               <div className="deduction-route deduction-route--air" />
               <div className="deduction-route deduction-route--sea" />
@@ -278,7 +286,7 @@ function DeductionShowcasePage() {
                 <span>
                   <ClockCircleOutlined /> 事件流
                 </span>
-                <Text>最近关键事件</Text>
+                <Text>按时间戳回放</Text>
               </div>
               <div className="deduction-event-list">
                 {visibleEvents.map((event) => (

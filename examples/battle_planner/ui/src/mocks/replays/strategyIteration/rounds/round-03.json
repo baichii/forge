@@ -3,7 +3,7 @@
   "roundNumber": 3,
   "label": "探索",
   "title": "减少武器数量的反向样本",
-  "summary": "压缩火力后武器消耗明显下降，但毁伤、成功率和风险同时变差。",
+  "summary": "压缩火力后武器消耗明显下降，但毁伤、成功率和风险表现低于预期。",
   "metrics": {
     "score": 64,
     "targetDamageRatio": 0.69,

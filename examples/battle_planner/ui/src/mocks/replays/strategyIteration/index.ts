@@ -50,12 +50,12 @@ export const strategyIterationReplay = {
     name: '东部海域压制 / 分支 A',
     schemeName: '海上关键目标压制验证方案',
     branchName: '空海协同打击分支',
-    description: '毁伤优先，消耗受控，低暴露；用于验证多轮策略迭代展示。',
+    description: '毁伤优先、消耗受控、低暴露；支撑多轮策略迭代结果评估。',
     savedAt: '2026-05-26T10:30:00+08:00',
   },
   selectedSession: {
     sessionId: 'session_0526_A',
-    displayName: '15 轮策略迭代展示样例',
+    displayName: '15 轮策略迭代记录',
     status: 'completed',
     totalRounds: strategyIterationRounds.length,
     seedCount: 8,
@@ -66,7 +66,7 @@ export const strategyIterationReplay = {
   implementation: {
     title: '空海协同压制策略实现',
     description:
-      '将上游分支策略转成两批次协同打击计划，在每轮仿真中调整进入窗口、火力分配和风险控制，并用多 seed 聚合结果判断是否继续收敛。',
+      '将上游分支策略转成两批次协同打击计划，在每轮仿真中调整进入窗口、火力分配和风险控制，并用多局聚合结果判断是否继续收敛。',
     items: [
       {
         label: '策略来源',
@@ -90,7 +90,7 @@ export const strategyIterationReplay = {
       },
       {
         label: '评估方式',
-        value: '每轮 8 局并行仿真，聚合 score、毁伤、消耗、风险和稳定性',
+        value: '每轮 8 局并行仿真，聚合综合评分、毁伤、消耗、风险和稳定性',
       },
     ],
   },
@@ -98,28 +98,28 @@ export const strategyIterationReplay = {
   rounds: strategyIterationRounds,
   dataSupport: [
     {
-      label: 'session 状态、轮次、停止原因',
+      label: '推演状态、轮次、停止原因',
       support: 'direct',
-      source: 'session.json',
-      note: '真实 artifact 已经包含这些字段。',
+      source: '原始推演记录',
+      note: '推演记录中直接保存这些基础信息。',
     },
     {
-      label: 'score、目标毁伤、请求火力、未执行智能体',
+      label: '综合评分、目标毁伤、请求火力、未执行智能体',
       support: 'direct',
-      source: 'evaluation.json / session.json',
-      note: '当前展示 mock 语义对齐这些真实字段。',
+      source: '评估结果与推演记录',
+      note: '指标来自每轮推演评估结果，可直接支撑趋势分析。',
     },
     {
-      label: '趋势图、指标箭头、report 摘要、参数 diff、seed 聚合',
+      label: '趋势图、指标变化、报告摘要、参数变化、多局聚合',
       support: 'derived',
-      source: 'session iterations / summary.md / plan.md / seed runs',
-      note: '可由真实 artifact 转换或聚合得到；当前由展示 fixture 提供。',
+      source: '指标聚合结果',
+      note: '由多轮记录、报告摘要和多局结果汇总生成。',
     },
     {
       label: '平台暴露、采纳/回退/分叉、结构化变化原因',
       support: 'unsupported',
-      source: 'future artifact',
-      note: '当前真实 artifact 不直接提供，需要后续补充结构化字段。',
+      source: '暂未纳入展示',
+      note: '纳入结构化推演记录后，可进入统一展示。',
     },
   ],
 } satisfies StrategyIterationReplay

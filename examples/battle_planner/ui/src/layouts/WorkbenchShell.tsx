@@ -27,7 +27,7 @@ function WorkbenchShell() {
 
       <Footer className="workbench-footer">
         <span>
-          <BranchesOutlined /> battle_planner · 静态策略迭代工作台
+          <BranchesOutlined /> battle_planner · 智能策略推演工作台
         </span>
       </Footer>
     </Layout>

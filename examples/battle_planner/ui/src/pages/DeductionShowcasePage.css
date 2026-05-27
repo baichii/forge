@@ -56,7 +56,7 @@
   display: grid;
   grid-template-columns: minmax(280px, 0.31fr) minmax(0, 0.69fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .deduction-side.ant-card,
@@ -70,11 +70,18 @@
 .deduction-side.ant-card {
   position: sticky;
   top: 88px;
+  align-self: stretch;
 }
 
 .deduction-side .ant-card-body,
 .deduction-main-panel .ant-card-body {
   padding: 22px;
+}
+
+.deduction-side .ant-card-body {
+  display: grid;
+  align-content: start;
+  height: 100%;
 }
 
 .deduction-side__head {
@@ -136,28 +143,56 @@
   line-height: 1.55;
 }
 
+.deduction-branch-list {
+  display: grid;
+  gap: 8px;
+}
+
+.deduction-branch-item {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid rgba(201, 100, 66, 0.16);
+  border-radius: 8px;
+  background: rgba(250, 249, 245, 0.72);
+}
+
+.deduction-branch-item .ant-typography {
+  color: var(--bp-meta);
+  font-size: 12px;
+}
+
+.deduction-branch-item strong {
+  color: var(--bp-text-soft);
+  font-size: 13px;
+}
+
 .deduction-replay-control {
   display: grid;
+  grid-template-columns: auto auto minmax(220px, 0.8fr) minmax(120px, auto);
+  align-items: center;
   gap: 10px;
-  margin-top: 16px;
-  padding: 14px;
+  margin-top: 14px;
+  padding: 12px;
   border: 1px solid var(--bp-border);
   border-radius: 8px;
   background: var(--bp-surface);
 }
 
-.deduction-replay-control__head {
+.deduction-replay-status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
 }
 
-.deduction-replay-control__head .ant-typography {
+.deduction-replay-status .ant-typography {
   color: var(--bp-text-soft);
+  white-space: nowrap;
 }
 
 .deduction-replay-control .ant-btn {
+  min-width: 112px;
   border-color: rgba(201, 100, 66, 0.24);
   color: var(--bp-text-soft);
 }
@@ -171,6 +206,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 7px;
+  min-width: 0;
 }
 
 .deduction-speed-button {
@@ -582,6 +618,7 @@
 
   .deduction-side.ant-card {
     position: static;
+    height: auto;
   }
 
 }
@@ -616,6 +653,19 @@
   .deduction-section-title {
     display: grid;
     justify-content: start;
+  }
+
+  .deduction-replay-control {
+    grid-template-columns: 1fr;
+  }
+
+  .deduction-replay-status,
+  .deduction-replay-progress {
+    justify-content: space-between;
+  }
+
+  .deduction-replay-control .ant-btn {
+    width: 100%;
   }
 
   .deduction-map-board {

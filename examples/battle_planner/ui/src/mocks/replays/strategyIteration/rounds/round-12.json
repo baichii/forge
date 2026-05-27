@@ -3,7 +3,7 @@
   "roundNumber": 12,
   "label": "探索",
   "title": "压缩收尾火力的稳定性测试",
-  "summary": "回收火力后消耗下降，但多 seed 波动变大，平均 score 回落。",
+  "summary": "回收火力后消耗下降，但多局波动变大，平均评分回落。",
   "metrics": {
     "score": 79,
     "targetDamageRatio": 0.88,

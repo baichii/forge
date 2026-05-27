@@ -18,7 +18,7 @@
   "decision": {
     "status": "recommended",
     "recommendation": "采纳为推荐方案",
-    "rationale": "在多 seed 下同时满足毁伤、消耗、风险和约束稳定性要求。"
+    "rationale": "在多局推演下同时满足毁伤、消耗、风险和约束稳定性要求。"
   },
   "executionPlan": {
     "planName": "推荐执行计划",

@@ -38,7 +38,7 @@
       "currentValue": "上游原始方案",
       "direction": "baseline",
       "reason": "建立可比较的初始执行计划。",
-      "impact": "作为后续 score、毁伤和消耗的参考点。"
+      "impact": "作为后续综合评分、毁伤和消耗的参考点。"
     }
   ],
   "seedStats": {

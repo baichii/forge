@@ -3,7 +3,7 @@
   "roundNumber": 13,
   "label": "候选",
   "title": "恢复少量收尾火力并降低风险窗口",
-  "summary": "恢复少量火力后 score 和成功率同步提升，风险进一步下降。",
+  "summary": "恢复少量火力后综合评分和成功率同步提升，风险进一步下降。",
   "metrics": {
     "score": 84,
     "targetDamageRatio": 0.92,
@@ -14,7 +14,7 @@
     "constraintViolationCount": 1
   },
   "reportSummary": "目标毁伤维持高位，火力消耗低于第 11 轮，风险窗口也更短。",
-  "llmDiagnosis": "该轮具备推荐潜力。下一轮应以多 seed 稳定性为主，不再大幅改动执行计划。",
+  "llmDiagnosis": "该轮具备推荐潜力。下一轮应以多局稳定性为主，不再大幅改动执行计划。",
   "decision": {
     "status": "candidate",
     "recommendation": "进入稳定性验证",

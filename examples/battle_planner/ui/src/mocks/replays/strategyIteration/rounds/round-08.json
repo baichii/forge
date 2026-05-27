@@ -13,7 +13,7 @@
     "inactiveAgentCount": 0,
     "constraintViolationCount": 1
   },
-  "reportSummary": "关键目标毁伤达到样例阈值，第二批次进入窗口更稳定；武器消耗较上一轮下降。",
+  "reportSummary": "关键目标毁伤达到评估阈值，第二批次进入窗口更稳定；武器消耗较上一轮下降。",
   "llmDiagnosis": "建议保留当前执行计划作为候选。下一次探索只调整第一批次开始时间，不再增加调用次数。",
   "decision": {
     "status": "current_best",

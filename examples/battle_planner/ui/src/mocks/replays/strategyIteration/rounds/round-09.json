@@ -38,7 +38,7 @@
       "currentValue": "T+80",
       "direction": "earlier",
       "reason": "测试更早压制窗口。",
-      "impact": "毁伤提升，但风险约束变差。"
+      "impact": "毁伤提升，但风险约束压力上升。"
     }
   ],
   "seedStats": {

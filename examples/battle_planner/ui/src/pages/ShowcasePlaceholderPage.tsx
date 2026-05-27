@@ -8,19 +8,18 @@ function ShowcasePlaceholderPage() {
   return (
     <main className="showcase-placeholder-page">
       <section className="showcase-placeholder-head" aria-labelledby="showcase-placeholder-title">
-        <Tag className="showcase-placeholder-eyebrow">Simulation View</Tag>
+        <Tag className="showcase-placeholder-eyebrow">推演展示</Tag>
         <Title id="showcase-placeholder-title" level={1}>
           推演展示
         </Title>
         <Paragraph>
-          这里预留给后续实时仿真展示界面。当前版本先不放置临时 UI，等视觉方案确定后再接入策略、
-          仿真连接、态势视图和事件流。
+          选择历史推演记录和策略轮次，查看态势变化、事件流、关键指标和执行要点。
         </Paragraph>
       </section>
 
       <Card className="showcase-placeholder-card" variant="borderless">
         <Empty
-          description="推演展示页面待设计"
+          description="请从导航进入推演展示工作区"
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         >
           <DashboardOutlined />

@@ -59,16 +59,16 @@ function SimulationShowcasePage() {
     <main className="showcase-page">
       <section className="showcase-head" aria-labelledby="showcase-title">
         <div>
-          <Tag className="showcase-eyebrow">Replay Session</Tag>
+          <Tag className="showcase-eyebrow">Strategy Iteration</Tag>
           <Title id="showcase-title" level={1}>
-            把每一轮变好或变差的原因留下来。
+            让每轮策略优化都有据可循。
           </Title>
           <Paragraph className="showcase-lead">
-            回放页展示的是探索证据链：基线、当前最佳和推荐方案分开看，不假设每一轮都单调提升。
+            围绕历史推演记录查看多轮策略调整、关键指标趋势、执行参数变化和推荐轮次依据。
           </Paragraph>
         </div>
         <span className="showcase-head__tag">
-          样例会话 · {replay.selectedSession.sessionId}
+          历史推演 · {replay.selectedSession.totalRounds} 轮迭代记录
         </span>
       </section>
 
@@ -77,7 +77,7 @@ function SimulationShowcasePage() {
           <div className="showcase-panel__head">
             <div>
               <Text strong>策略与轮次</Text>
-              <Text>选择历史推演并切换轮次报告</Text>
+              <Text>选择历史推演记录并切换轮次报告</Text>
             </div>
             <DashboardOutlined />
           </div>
@@ -96,7 +96,7 @@ function SimulationShowcasePage() {
           </div>
 
           <div className="showcase-field">
-            <Text strong>历史推演 session</Text>
+            <Text strong>历史推演记录</Text>
             <Select
               value={replay.selectedSession.sessionId}
               options={[
@@ -158,10 +158,10 @@ function SimulationShowcasePage() {
 
 function SessionDescription({ replay }: { replay: StrategyIterationReplay }) {
   return (
-    <section className="showcase-session-brief" aria-label="session 描述">
+    <section className="showcase-session-brief" aria-label="策略实现要素">
       <div className="showcase-session-brief__head">
         <div>
-          <Tag className="showcase-eyebrow">Session 描述</Tag>
+          <Tag className="showcase-eyebrow">策略实现要素</Tag>
           <Title level={2}>{replay.implementation.title}</Title>
           <Paragraph>{replay.implementation.description}</Paragraph>
         </div>
@@ -258,14 +258,14 @@ function TrendPanel({
         <span>
           <LineChartOutlined /> 多局指标变化
         </span>
-        <Text>Score 均值趋势 · baseline / exploration / current best / recommended</Text>
+        <Text>综合评分均值趋势 · 基线 / 探索 / 当前最佳 / 推荐方案</Text>
       </div>
       <div className="showcase-trend-strip" aria-label="当前轮聚合指标">
         <span>
           当前轮 <strong>R{selectedRound.roundNumber}</strong>
         </span>
         <span>
-          Score 均值 <strong>{selectedRound.seedStats.meanScore}</strong>
+          综合评分均值 <strong>{selectedRound.seedStats.meanScore}</strong>
         </span>
         <span>
           最好 / 最差{' '}
@@ -288,7 +288,7 @@ function TrendPanel({
           ref={chartRef}
           className="showcase-line-chart"
           role="img"
-          aria-label="15 轮 score 均值、最好值和最差值折线图"
+          aria-label="15 轮综合评分均值、最好值和最差值折线图"
         />
         <div
           className="showcase-chart-hit-layer"
@@ -324,7 +324,7 @@ function RoundReport({
     <div className="showcase-round-detail">
       <div className="showcase-round-head">
         <div>
-          <Text>每局具体效果</Text>
+          <Text>当前轮效果</Text>
           <Title level={3}>
             Round {String(selectedRound.roundNumber).padStart(2, '0')} /{' '}
             {selectedRound.label}
@@ -338,7 +338,7 @@ function RoundReport({
 
       <div className="showcase-metrics">
         <Metric
-          label="综合 score"
+          label="综合评分"
           value={selectedRound.metrics.score}
           delta={metricDelta(
             selectedRound.metrics.score,
@@ -382,14 +382,14 @@ function RoundReport({
         <article>
           <Space>
             <FileTextOutlined />
-            <Text strong>仿真 report 摘要</Text>
+            <Text strong>仿真报告摘要</Text>
           </Space>
           <Paragraph>{selectedRound.reportSummary}</Paragraph>
         </article>
         <article>
           <Space>
             <ExperimentOutlined />
-            <Text strong>LLM 诊断与建议</Text>
+            <Text strong>智能分析与建议</Text>
           </Space>
           <Paragraph>{selectedRound.llmDiagnosis}</Paragraph>
         </article>
@@ -418,12 +418,12 @@ function RoundReport({
           },
           {
             key: 'seeds',
-            label: '多 seed 结果',
+            label: '多局结果',
             children: <SeedPanel selectedRound={selectedRound} />,
           },
           {
             key: 'support',
-            label: '数据边界',
+            label: '数据来源说明',
             children: <DataSupportPanel items={replay.dataSupport} />,
           },
         ]}
@@ -485,20 +485,20 @@ function SeedPanel({ selectedRound }: { selectedRound: ReplayRound }) {
     <div className="showcase-seed-panel">
       <div className="showcase-section-title">
         <span>
-          <ExperimentOutlined /> 多 seed 稳定性
+          <ExperimentOutlined /> 多局稳定性
         </span>
-        <Text>seed 聚合结果，不把 seed 当成独立轮次</Text>
+        <Text>多局聚合结果，单局结果不作为独立轮次</Text>
       </div>
       <div className="showcase-seed-grid">
-        <Metric label="并行 seed" value={selectedRound.seedStats.seedCount} />
-        <Metric label="平均 score" value={selectedRound.seedStats.meanScore} />
+        <Metric label="并行局数" value={selectedRound.seedStats.seedCount} />
+        <Metric label="平均评分" value={selectedRound.seedStats.meanScore} />
         <Metric label="最好 / 最差" value={`${selectedRound.seedStats.bestScore} / ${selectedRound.seedStats.worstScore}`} />
         <Metric label="波动" value={`${selectedRound.seedStats.stdScore} · ${selectedRound.seedStats.volatilityLevel}`} />
       </div>
-      <div className="showcase-seed-runs" aria-label="seed run 结果">
+      <div className="showcase-seed-runs" aria-label="单局推演结果">
         {selectedRound.seedRuns.map((run) => (
           <span key={run.seed}>
-            <strong>seed {run.seed}</strong>
+            <strong>第 {run.seed} 局</strong>
             <em>{run.score}</em>
             {run.success ? '通过' : run.failureReason}
           </span>
@@ -679,7 +679,7 @@ function buildTrendOption(
           color: '#c96442',
           width: 3,
         },
-        name: 'Score 均值',
+        name: '综合评分均值',
         smooth: true,
         symbol: 'circle',
         type: 'line',

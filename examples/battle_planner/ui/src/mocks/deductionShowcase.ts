@@ -77,18 +77,25 @@ export const deductionShowcaseView = {
   sessions: [
     {
       id: 'deduction_0527_A',
-      displayName: '空海协同推演回放样例',
+      displayName: '空海协同推演记录',
       strategy: {
-        id: 'configured-strategy-east-sea-branch-a',
-        name: '东部海域压制 / 分支 A',
-        description: '毁伤优先，消耗受控，低暴露；用于展示策略进入推演后的执行效果。',
+        id: 'configured-strategy-east-sea',
+        name: '东部海域压制策略',
+        description: '毁伤优先、消耗受控、低暴露；支撑推荐轮次进入推演回放。',
         objective:
           '在关键目标暴露窗口内完成两批次协同打击，并持续观察目标毁伤、计划进度和平台风险。',
+        branches: [
+          {
+            id: 'branch-air-sea-coordination',
+            name: '空海协同打击分支',
+            summary: '围绕目标暴露窗口，组织空中力量与舰艇力量分批进入。',
+          },
+        ],
       },
       rounds: [
         {
           id: 'round-10',
-          label: 'Round 10 / 当前最佳',
+          label: '第 10 轮 / 当前最佳',
           version: 'V10 稳健短间隔方案',
           status: '已回放',
           statusTone: 'success',
@@ -157,7 +164,7 @@ export const deductionShowcaseView = {
         },
         {
           id: 'round-15',
-          label: 'Round 15 / 推荐方案',
+          label: '第 15 轮 / 推荐方案',
           version: 'V15 稳定性验证版',
           status: '回放中',
           statusTone: 'processing',
@@ -167,7 +174,7 @@ export const deductionShowcaseView = {
             currentTime: 'T+218',
             progress: '68%',
             summary:
-              '当前展示的是推荐轮次策略在推演中的执行效果：第二批次进入窗口已打开，目标毁伤达到阶段阈值，系统继续观察风险峰值和火力余量。',
+            '推荐轮次策略在推演中打开第二批次进入窗口，目标毁伤达到阶段阈值，系统继续观察风险峰值和火力余量。',
           },
           stages,
           metrics: [

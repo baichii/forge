@@ -2,7 +2,7 @@
   "roundId": "round-14",
   "roundNumber": 14,
   "label": "稳定性验证",
-  "title": "多 seed 稳定性验证",
+  "title": "多局稳定性验证",
   "summary": "不大改执行计划，仅做稳定性验证；波动下降，成功率继续提升。",
   "metrics": {
     "score": 86,
@@ -13,12 +13,12 @@
     "inactiveAgentCount": 0,
     "constraintViolationCount": 0
   },
-  "reportSummary": "候选方案在多 seed 下表现稳定，约束违背清零，最差样本也接近推荐阈值。",
+  "reportSummary": "候选方案在多局推演下表现稳定，约束违背清零，最差样本也接近推荐阈值。",
   "llmDiagnosis": "该轮证明主策略稳定。下一轮只做轻微火力回收，验证能否在保持成功率的情况下进一步降耗。",
   "decision": {
     "status": "stability_check",
     "recommendation": "通过稳定性验证",
-    "rationale": "多 seed 波动下降，失败原因明显减少。"
+    "rationale": "多局波动下降，失败原因明显减少。"
   },
   "executionPlan": {
     "planName": "稳定性验证方案",

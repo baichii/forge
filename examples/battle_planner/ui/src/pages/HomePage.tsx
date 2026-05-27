@@ -28,7 +28,7 @@ const entryCards = [
     icon: <HistoryOutlined />,
     index: '02',
     title: '策略迭代',
-    description: '选择已配置策略和历史 session，查看多轮策略调整、指标变化和总结摘要。',
+    description: '选择已配置策略和历史推演记录，查看多轮策略调整、指标变化和总结摘要。',
   },
   {
     key: 'showcase',
@@ -37,7 +37,7 @@ const entryCards = [
     icon: <DashboardOutlined />,
     index: '03',
     title: '推演展示',
-    description: '选择已配置策略和仿真连接，查看推演状态、态势视图、事件流和执行要点。',
+    description: '选择历史推演记录和策略轮次，回放态势变化、事件流和执行效果。',
   },
 ]
 
@@ -46,7 +46,7 @@ function HomePage() {
     <main className="home-main">
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero__copy">
-          <Tag className="home-eyebrow">Strategy · Agent · Simulation</Tag>
+          <Tag className="home-eyebrow">策略 · 智能体 · 推演</Tag>
           <Title id="home-title" className="home-title">
             把既定策略
             <br />
@@ -61,11 +61,11 @@ function HomePage() {
         <Card className="home-preview" variant="borderless">
           <div className="home-preview__head">
             <div>
-              <Text strong>静态回放视图</Text>
+              <Text strong>策略推演工作台</Text>
               <Text className="home-preview__meta">方案配置 / 策略迭代 / 推演展示</Text>
             </div>
             <Tag color="success" icon={<CheckCircleFilled />}>
-              可演示
+              已就绪
             </Tag>
           </div>
           <div className="home-preview__body">
@@ -76,15 +76,15 @@ function HomePage() {
               </div>
               <div className="home-step">
                 <Text strong>策略推演</Text>
-                <Text type="secondary">score · 毁伤 · 消耗</Text>
+                <Text type="secondary">评分 · 毁伤 · 消耗</Text>
               </div>
               <div className="home-step">
                 <Text strong>轮次摘要</Text>
-                <Text type="secondary">summary · advice</Text>
+                <Text type="secondary">摘要 · 建议</Text>
               </div>
               <div className="home-step">
                 <Text strong>推演展示</Text>
-                <Text type="secondary">status · event · metric</Text>
+                <Text type="secondary">状态 · 事件 · 指标</Text>
               </div>
             </div>
             <div className="home-map" aria-hidden="true">
@@ -102,7 +102,7 @@ function HomePage() {
             从方案到推演
           </Title>
           <Paragraph>
-            先沉淀业务偏好，再观察策略迭代证据，最后连接仿真展示实时效果。
+            先沉淀业务偏好，再观察策略迭代过程，最后回放策略在推演中的执行效果。
           </Paragraph>
         </div>
 

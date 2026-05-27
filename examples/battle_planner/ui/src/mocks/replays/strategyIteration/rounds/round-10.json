@@ -38,7 +38,7 @@
       "currentValue": "T+95",
       "direction": "later",
       "reason": "回避高风险暴露段。",
-      "impact": "风险下降，score 提升。"
+      "impact": "风险下降，综合评分提升。"
     },
     {
       "name": "最大仿真步数",

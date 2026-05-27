@@ -1,10 +1,17 @@
 export type DeductionStatusTone = 'success' | 'processing' | 'warning' | 'default'
 
+export type DeductionStrategyBranchSummary = {
+  id: string
+  name: string
+  summary: string
+}
+
 export type DeductionStrategySummary = {
   id: string
   name: string
   description: string
   objective: string
+  branches: DeductionStrategyBranchSummary[]
 }
 
 export type DeductionEffectSummary = {

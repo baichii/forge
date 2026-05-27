@@ -3,7 +3,7 @@
   "roundNumber": 5,
   "label": "探索",
   "title": "延长批次间隔的保守尝试",
-  "summary": "保守拉长批次间隔后，消耗稳定但错过一次目标窗口，score 回落。",
+  "summary": "保守拉长批次间隔后，消耗稳定但错过一次目标窗口，综合评分回落。",
   "metrics": {
     "score": 69,
     "targetDamageRatio": 0.74,
