@@ -35,7 +35,7 @@ def register_battle_planner_modules() -> None:
         "tick_agent/air_to_sea_strike_agent",
         register_tick_agent,
         "air_to_sea_strike_agent",
-        "battle_planner.tick_agents.air_to_sea_strike_tick_agent:Agent",
+        "battle_planner.tick_agents.air_to_sea_strike_tick_agent.agent:Agent",
     )
     _register_once(
         "tick_agent/naval_to_sea_strike_agent",

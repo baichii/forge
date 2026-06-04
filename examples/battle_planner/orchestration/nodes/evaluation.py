@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from battle_planner.evaluation.evaluator import TargetOutcomeEvaluator
+from battle_planner.orchestration.evaluation import TargetOutcomeEvaluator
 from battle_planner.orchestration.node_logging import log_node_end, log_node_error, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
 

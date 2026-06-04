@@ -25,6 +25,7 @@ examples/battle_planner/
     context/          # LLM agent 输入上下文：知识包构造和工具说明
   runtime/           # model provider、middleware、fallback 和 trace 记录
   tick_agents/       # 项目业务 tick agent、declaration 和 schema 加载入口
+  workspace/         # 本地复现工作区：source 存放外部资源快照，artifacts 存放运行产物
   tests/             # 测试用例和可直接运行的 demo 验证入口
 ```
 
@@ -74,7 +75,7 @@ agent 输入统一支持：
 
 agent 调用可传入 `model` 参数；如果传入值和当前 profile 的 `MODEL_NAME` 不一致，会直接返回配置错误，避免测试时误用模型。
 
-`display-mode` 可用于演示和 K3 闭环调试：设置 `BATTLE_PLANNER_DISPLAY_MODE=true` 后，想定理解、方案生成和总结仍由 LLM 生成，但 agent runtime 参数会从内置的 zc3_lite 预设 JSON 中按 `iteration_index` 读取，避免弱模型生成不存在的单位 id。这个能力是临时演示开关，preset 路径暂时写死在代码里。
+`display-mode` 可用于演示和 K3 闭环调试：设置 `BATTLE_PLANNER_DISPLAY_MODE=true` 后，想定理解、方案生成和总结仍由 LLM 生成，但 agent runtime 参数会从 `workspace/source/runtime_presets/` 中按 `iteration_index` 读取，避免弱模型生成不存在的单位 id。这个能力是临时演示开关。
 
 运行配置集中在 `config.py`。配置优先级为：
 

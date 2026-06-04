@@ -5,8 +5,9 @@ from pathlib import Path
 from battle_planner.data.models import SchemeSpec
 
 BATTLE_PLANNER_ROOT = Path(__file__).resolve().parents[1]
-PARAMS_DIR = BATTLE_PLANNER_ROOT / "params"
-SCHEME_CONFIG_DIR = PARAMS_DIR / "schemes"
+WORKSPACE_SOURCE_DIR = BATTLE_PLANNER_ROOT / "workspace" / "source"
+SCHEME_CONFIG_DIR = WORKSPACE_SOURCE_DIR / "schemes"
+LEGACY_SCHEME_CONFIG_DIR = BATTLE_PLANNER_ROOT / "params" / "schemes"
 
 
 def resolve_scheme_config_path(name: str | Path) -> Path:
@@ -15,7 +16,11 @@ def resolve_scheme_config_path(name: str | Path) -> Path:
         return path
     if path.suffix != ".json":
         path = path.with_suffix(".json")
-    return SCHEME_CONFIG_DIR / path
+    source_path = SCHEME_CONFIG_DIR / path
+    legacy_path = LEGACY_SCHEME_CONFIG_DIR / path
+    if source_path.exists() or not legacy_path.exists():
+        return source_path
+    return legacy_path
 
 
 def load_scheme_config(name: str | Path) -> SchemeSpec:

@@ -1,0 +1,74 @@
+name: air_to_sea_strike_agent
+description: |
+  # 空对海打击智能体
+
+  在指定时间窗口内组织空中单位对海上目标执行打击任务。
+
+  ## 适用场景
+  - 固定海上目标打击。
+  - 红方不主动防御或防御影响暂不建模。
+  - 以摧毁关键海上目标为主要目标，并关注武器消耗。
+
+  ## 行为逻辑
+  智能体在 `start_time <= sim_time <= end_time` 且尚未下发过任务时，输出一次 `NavalAsuWStrike_Air` 类型任务。
+
+  ## 输出说明
+  输出由 `pysim.schema.action.MissionFormatter.air_attack` 构建的标准 mission action。
+params:
+  start_time:
+    name: start_time
+    type: float
+    required: true
+    description: 智能体开始运行时间，单位秒。
+    default_value: null
+    examples: []
+    other: {}
+  end_time:
+    name: end_time
+    type: float
+    required: true
+    description: 智能体停止运行时间，单位秒。
+    default_value: null
+    examples: []
+    other: {}
+  unit_ids:
+    name: unit_ids
+    type: list
+    required: true
+    description: 执行任务的飞机单位 id 列表。
+    default_value: null
+    examples: []
+    other: {}
+  target_ids:
+    name: target_ids
+    type: list
+    required: true
+    description: 海上目标单位 id 列表。
+    default_value: null
+    examples: []
+    other: {}
+  wp_num:
+    name: wp_num
+    type: int
+    required: false
+    description: 每个目标分配的武器数量。
+    default_value: 2
+    examples:
+    - 1
+    - 2
+    - 4
+    other:
+      min_value: 1
+  clear_targets:
+    name: clear_targets
+    type: bool
+    required: false
+    description: 是否清理旧目标。
+    default_value: true
+    examples: []
+    other: {}
+entrypoint: battle_planner.tick_agents.air_to_sea_strike_tick_agent.agent:Agent
+status:
+- running
+- finished
+version: 0.1.0

@@ -118,7 +118,7 @@ class WorkflowConfig(BaseModel):
     fail_fast: bool = Field(default=False, description="Stop workflow immediately after stage failure.")
     save_artifacts: bool = Field(default=True, description="Save workflow artifacts.")
     artifact_dir: str = Field(
-        default="examples/battle_planner/artifacts", description="Artifact output dir."
+        default="examples/battle_planner/workspace/artifacts", description="Artifact output dir."
     )
     display_mode: bool = Field(
         default=False,
@@ -132,7 +132,9 @@ class WorkflowConfig(BaseModel):
             max_iterations=_get_int("BATTLE_PLANNER_WORKFLOW_MAX_ITERATIONS", 5),
             fail_fast=_get_bool("BATTLE_PLANNER_FAIL_FAST", False),
             save_artifacts=_get_bool("BATTLE_PLANNER_SAVE_ARTIFACTS", True),
-            artifact_dir=os.getenv("BATTLE_PLANNER_ARTIFACT_DIR", "examples/battle_planner/artifacts"),
+            artifact_dir=os.getenv(
+                "BATTLE_PLANNER_ARTIFACT_DIR", "examples/battle_planner/workspace/artifacts"
+            ),
             display_mode=_get_bool("BATTLE_PLANNER_DISPLAY_MODE", False),
         )
 
