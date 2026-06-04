@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from battle_planner.orchestration.node_logging import log_node_end, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.runtime.trace import identity_trace
+from battle_planner.llm_runtime.trace import identity_trace
 from battle_planner.tick_agents.schema import load_tick_agent_specs
 
 

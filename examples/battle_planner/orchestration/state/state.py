@@ -1,6 +1,6 @@
 from typing import Any
 
-from battle_planner.data.models import (
+from battle_planner.model.models import (
     EvaluationReport,
     LLMTrace,
     PlannerKnowledgePack,

@@ -5,7 +5,7 @@ import re
 from typing import Any
 
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
-from battle_planner.runtime.model_provider import ModelProvider
+from battle_planner.llm_runtime.model_provider import ModelProvider
 
 from forge.core.specs import TickAgentParams, TickAgentSpec
 

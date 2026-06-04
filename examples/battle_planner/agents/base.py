@@ -5,15 +5,15 @@ from dataclasses import dataclass, field
 from typing import Any, Generic, TypeVar
 
 from battle_planner.config import config
-from battle_planner.data.models import LLMTrace
-from battle_planner.runtime.middleware import (
+from battle_planner.model.models import LLMTrace
+from battle_planner.llm_runtime.middleware import (
     AgentMiddleware,
     AgentRunContext,
     InputContextMiddleware,
     TraceMetadataMiddleware,
 )
-from battle_planner.runtime.model_provider import ModelProvider, ModelRequest, build_model_provider
-from battle_planner.runtime.trace import build_trace
+from battle_planner.llm_runtime.model_provider import ModelProvider, ModelRequest, build_model_provider
+from battle_planner.llm_runtime.trace import build_trace
 
 from forge.core.lib.agent import TaskAgent
 

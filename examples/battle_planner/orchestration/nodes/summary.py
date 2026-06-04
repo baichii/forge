@@ -4,7 +4,7 @@ from typing import Any
 
 from battle_planner.agents.summary_generation import generate_summary
 from battle_planner.config import config
-from battle_planner.data.models import (
+from battle_planner.model.models import (
     AgentExecutionSummary,
     SummaryEvaluation,
     TargetObjectiveSummary,

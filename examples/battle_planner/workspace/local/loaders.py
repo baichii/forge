@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from battle_planner.data.models import SchemeSpec
+from battle_planner.model.models import SchemeSpec
 
-BATTLE_PLANNER_ROOT = Path(__file__).resolve().parents[1]
-WORKSPACE_SOURCE_DIR = BATTLE_PLANNER_ROOT / "workspace" / "source"
-SCHEME_CONFIG_DIR = WORKSPACE_SOURCE_DIR / "schemes"
+BATTLE_PLANNER_ROOT = Path(__file__).resolve().parents[2]
+LOCAL_WORKSPACE_DIR = BATTLE_PLANNER_ROOT / "workspace" / "local"
+SCHEME_CONFIG_DIR = LOCAL_WORKSPACE_DIR / "schemes"
 LEGACY_SCHEME_CONFIG_DIR = BATTLE_PLANNER_ROOT / "params" / "schemes"
 
 

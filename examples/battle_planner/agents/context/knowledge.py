@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from battle_planner.adapters.runtime.scenario_loader import summarize_scenario
-from battle_planner.data.models import (
+from battle_planner.model.models import (
     AssetSummary,
     CapabilitySummary,
     MissionSchemaSummary,
