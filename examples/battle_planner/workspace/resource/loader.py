@@ -99,4 +99,3 @@ def _resolve_entrypoint(*, root: Path, relative_entrypoint: str, resource_type: 
     resource_name = root.name
     normalized_module_name = module_name.replace("/", ".")
     return f"{RESOURCE_PACKAGE}.{resource_type}.{resource_name}.{normalized_module_name}:{attribute_name}"
-

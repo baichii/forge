@@ -9,9 +9,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
-DEFAULT_DECLARATION = (
-    "battle_planner.workspace.resource.tick_agents.air_to_sea_strike.agent:declaration"
-)
+DEFAULT_DECLARATION = "battle_planner.workspace.resource.tick_agents.air_to_sea_strike.agent:declaration"
 DEFAULT_OUTPUT = (
     REPO_ROOT
     / "examples"

@@ -93,8 +93,7 @@ def test_runner_simple() -> None:
 
 
 @pytest.mark.skipif(
-    os.getenv("BATTLE_PLANNER_RUN_HARD_RUNNER_TEST", "").strip().lower()
-    not in {"1", "true", "yes", "on"},
+    os.getenv("BATTLE_PLANNER_RUN_HARD_RUNNER_TEST", "").strip().lower() not in {"1", "true", "yes", "on"},
     reason="set BATTLE_PLANNER_RUN_HARD_RUNNER_TEST=true to run the long pysim hard runner",
 )
 def test_runner_hard() -> None:

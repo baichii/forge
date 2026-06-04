@@ -1,8 +1,8 @@
 """测试调用本地的codex/claude code执行任务"""
 
+import queue
 import subprocess
 import threading
-import queue
 import time
 from dataclasses import dataclass, field
 
