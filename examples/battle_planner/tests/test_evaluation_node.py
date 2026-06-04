@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from battle_planner.data.models import SimulationRunResult
+from battle_planner.model.models import SimulationRunResult
 from battle_planner.orchestration.nodes.evaluation import evaluation_node
 from battle_planner.orchestration.state.state import BattlePlannerState
 

@@ -19,7 +19,10 @@ format-check:
 test:
 	uv run pytest forge/tests -v
 
+test-battle-planner:
+	PYTHONPATH=$(BATTLE_PLANNER_PYTHONPATH) uv run pytest examples/battle_planner/tests -v
+
 run-battle-planner:
-	PYTHONPATH=$(BATTLE_PLANNER_PYTHONPATH) uv run python examples/battle_planner/tests/run_zc_lite_demo.py
+	PYTHONPATH=$(BATTLE_PLANNER_PYTHONPATH) uv run python examples/battle_planner/scripts/run_zc_lite_demo.py
 
 check: lint format-check test

@@ -69,7 +69,7 @@ def test_model_config_defaults_to_deepseek_profile(monkeypatch) -> None:
 
 
 def test_model_provider_rejects_requested_model_mismatch() -> None:
-    from battle_planner.runtime.model_provider import ModelRequest, OpenAICompatibleModelProvider
+    from battle_planner.llm_runtime.model_provider import ModelRequest, OpenAICompatibleModelProvider
 
     provider = OpenAICompatibleModelProvider(
         name="local_test",
@@ -84,8 +84,8 @@ def test_model_provider_rejects_requested_model_mismatch() -> None:
 
 
 def test_model_provider_passes_reasoning_and_thinking_options(monkeypatch) -> None:
-    from battle_planner.runtime import model_provider
-    from battle_planner.runtime.model_provider import ModelRequest, OpenAICompatibleModelProvider
+    from battle_planner.llm_runtime import model_provider
+    from battle_planner.llm_runtime.model_provider import ModelRequest, OpenAICompatibleModelProvider
 
     captured: dict = {}
 

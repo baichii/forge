@@ -9,7 +9,7 @@ def _load_components() -> dict[str, Any]:
     from battle_planner.agents.battle_plan_generation import BattlePlanGenerationAgent
     from battle_planner.agents.context import build_zc_lite_knowledge_pack
     from battle_planner.agents.scenario_understanding import ScenarioUnderstandingAgent
-    from battle_planner.runtime.model_provider import OfflineModelProvider
+    from battle_planner.llm_runtime.model_provider import OfflineModelProvider
 
     return {
         "AgentInputs": AgentInputs,

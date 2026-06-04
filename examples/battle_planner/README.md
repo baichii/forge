@@ -7,7 +7,7 @@
 ## Run
 
 ```bash
-uv run python examples/battle_planner/tests/run_zc_lite_demo.py
+PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/scripts/run_zc_lite_demo.py
 ```
 
 当前测试环境通过 battle-planner 本地 registry 构造 `pysim` 环境，并由 runner 驱动有限步推演。
@@ -75,7 +75,7 @@ agent 输入统一支持：
 
 agent 调用可传入 `model` 参数；如果传入值和当前 profile 的 `MODEL_NAME` 不一致，会直接返回配置错误，避免测试时误用模型。
 
-`display-mode` 可用于演示和 K3 闭环调试：设置 `BATTLE_PLANNER_DISPLAY_MODE=true` 后，想定理解、方案生成和总结仍由 LLM 生成，但 agent runtime 参数会从 `workspace/source/runtime_presets/` 中按 `iteration_index` 读取，避免弱模型生成不存在的单位 id。这个能力是临时演示开关。
+`display-mode` 可用于演示和 K3 闭环调试：设置 `BATTLE_PLANNER_DISPLAY_MODE=true` 后，想定理解、方案生成和总结仍由 LLM 生成，但 agent runtime 参数会从 `workspace/local/runtime_presets/` 中按 `iteration_index` 读取，避免弱模型生成不存在的单位 id。这个能力是临时演示开关。
 
 运行配置集中在 `config.py`。配置优先级为：
 

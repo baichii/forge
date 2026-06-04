@@ -90,7 +90,7 @@ make run-battle-planner
 等价命令：
 
 ```bash
-PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/tests/run_zc_lite_demo.py
+PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/scripts/run_zc_lite_demo.py
 ```
 
 ## Battle Planner

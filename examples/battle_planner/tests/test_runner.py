@@ -1,5 +1,8 @@
 """测试 runner 运行并输出结构化 report。"""
 
+import os
+
+import pytest
 from battle_planner.adapters.runtime.runner import Runner
 from battle_planner.registry import register_battle_planner_modules
 
@@ -84,9 +87,18 @@ class TestRunner:
             callbacks=callbacks,
         )
         runner.reset()
-        report = runner.run(max_step=None)
-        print("report: ", report)
+        report = runner.run(max_step=5)
 
+        assert report.env.env_name == "pysim"
+        assert report.env.step_count > 0
+        assert report.agents
+        assert "20001" in report.callbacks
+
+    @pytest.mark.skipif(
+        os.getenv("BATTLE_PLANNER_RUN_HARD_RUNNER_TEST", "").strip().lower()
+        not in {"1", "true", "yes", "on"},
+        reason="set BATTLE_PLANNER_RUN_HARD_RUNNER_TEST=true to run the long pysim hard runner",
+    )
     def test_runner_hard(self):
         register_battle_planner_modules()
         env_params = EnvParams(

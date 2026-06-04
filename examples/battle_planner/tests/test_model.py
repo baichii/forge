@@ -29,129 +29,130 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-class TestModel:
-    def test_connection(self):
-        client = OpenAI(
-            api_key=_env("MODEL_OPENAI_GPT54_MINI_API_KEY"),
-            base_url=_env("MODEL_OPENAI_GPT54_MINI_API_URL"),
-        )
+def test_connection() -> None:
+    client = OpenAI(
+        api_key=_env("MODEL_OPENAI_GPT54_MINI_API_KEY"),
+        base_url=_env("MODEL_OPENAI_GPT54_MINI_API_URL"),
+    )
 
-        response = client.chat.completions.create(
-            model=_env("MODEL_OPENAI_GPT54_MINI_MODEL_NAME"),
-            messages=[{"role": "user", "content": "hello"}],
-        )
+    response = client.chat.completions.create(
+        model=_env("MODEL_OPENAI_GPT54_MINI_MODEL_NAME"),
+        messages=[{"role": "user", "content": "hello"}],
+    )
 
-        assert len(response.choices[0].message.content) > 0, "Model response should not be empty"
+    assert len(response.choices[0].message.content) > 0, "Model response should not be empty"
 
-    def test_local_connection(self):
-        client = OpenAI(
-            api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
-            base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
-        )
 
-        response = client.chat.completions.create(
-            model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
-            messages=[{"role": "user", "content": "hello"}],
-            max_tokens=1024,
-        )
+def test_local_connection() -> None:
+    client = OpenAI(
+        api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
+        base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
+    )
 
-        message = response.choices[0].message
-        content = message.content or getattr(message, "reasoning", None)
-        print("content: ", content)
-        assert content and len(content) > 0, "Model response should not be empty"
+    response = client.chat.completions.create(
+        model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
+        messages=[{"role": "user", "content": "hello"}],
+        max_tokens=1024,
+    )
 
-    def test_local_stream_connection(self):
-        client = OpenAI(
-            api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
-            base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
-        )
+    message = response.choices[0].message
+    content = message.content or getattr(message, "reasoning", None)
+    print("content: ", content)
+    assert content and len(content) > 0, "Model response should not be empty"
 
-        stream = client.chat.completions.create(
-            model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
-            messages=[{"role": "user", "content": "hello"}],
-            max_tokens=1024,
-            stream=True,
-        )
 
-        chunks: list[str] = []
-        for chunk in stream:
-            if not chunk.choices:
-                continue
+def test_local_stream_connection() -> None:
+    client = OpenAI(
+        api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
+        base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
+    )
 
-            delta = chunk.choices[0].delta
-            text = delta.content or getattr(delta, "reasoning", None)
-            if not text:
-                continue
+    stream = client.chat.completions.create(
+        model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
+        messages=[{"role": "user", "content": "hello"}],
+        max_tokens=1024,
+        stream=True,
+    )
 
-            chunks.append(text)
+    chunks: list[str] = []
+    for chunk in stream:
+        if not chunk.choices:
+            continue
 
-        content = "".join(chunks)
-        assert content and len(content) > 0, "Stream response should not be empty"
+        delta = chunk.choices[0].delta
+        text = delta.content or getattr(delta, "reasoning", None)
+        if not text:
+            continue
 
-    def test_local_tool_call_connection(self):
-        client = OpenAI(
-            api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
-            base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
-        )
+        chunks.append(text)
 
-        response = client.chat.completions.create(
-            model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a battle planner assistant. When the user asks "
-                        "to query a task, call the provided tool instead of "
-                        "answering in plain text."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": "帮我查询 task_id 为 bp-20260514-0007 的方案优化任务当前状态。",
-                },
-            ],
-            tools=[
-                {
-                    "type": "function",
-                    "function": {
-                        "name": "scheme_query_tasks",
-                        "description": "Query battle-planner optimization task status by task id.",
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                "task_id": {
-                                    "type": "string",
-                                    "description": "The optimization task id to query.",
-                                },
-                                "include_logs": {
-                                    "type": "boolean",
-                                    "description": "Whether to include recent execution logs.",
-                                },
+    content = "".join(chunks)
+    assert content and len(content) > 0, "Stream response should not be empty"
+
+
+def test_local_tool_call_connection() -> None:
+    client = OpenAI(
+        api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
+        base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
+    )
+
+    response = client.chat.completions.create(
+        model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a battle planner assistant. When the user asks "
+                    "to query a task, call the provided tool instead of "
+                    "answering in plain text."
+                ),
+            },
+            {
+                "role": "user",
+                "content": "帮我查询 task_id 为 bp-20260514-0007 的方案优化任务当前状态。",
+            },
+        ],
+        tools=[
+            {
+                "type": "function",
+                "function": {
+                    "name": "scheme_query_tasks",
+                    "description": "Query battle-planner optimization task status by task id.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "task_id": {
+                                "type": "string",
+                                "description": "The optimization task id to query.",
                             },
-                            "required": ["task_id"],
-                            "additionalProperties": False,
+                            "include_logs": {
+                                "type": "boolean",
+                                "description": "Whether to include recent execution logs.",
+                            },
                         },
+                        "required": ["task_id"],
+                        "additionalProperties": False,
                     },
-                }
-            ],
-            tool_choice="auto",
-            max_tokens=1024,
-        )
+                },
+            }
+        ],
+        tool_choice="auto",
+        max_tokens=1024,
+    )
 
-        choice = response.choices[0]
-        message = choice.message
-        print("finish_reason:", choice.finish_reason)
-        print("content:", message.content)
-        print("reasoning:", getattr(message, "reasoning", None))
-        print("tool_calls:", message.tool_calls)
+    choice = response.choices[0]
+    message = choice.message
+    print("finish_reason:", choice.finish_reason)
+    print("content:", message.content)
+    print("reasoning:", getattr(message, "reasoning", None))
+    print("tool_calls:", message.tool_calls)
 
-        assert choice.finish_reason == "tool_calls"
-        assert message.tool_calls and len(message.tool_calls) > 0
+    assert choice.finish_reason == "tool_calls"
+    assert message.tool_calls and len(message.tool_calls) > 0
 
 
 if __name__ == "__main__":
-    test_model = TestModel()
-    # test_model.test_connection()
-    # test_model.test_local_connection()
-    # test_model.test_local_stream_connection()
-    test_model.test_local_tool_call_connection()
+    # test_connection()
+    # test_local_connection()
+    # test_local_stream_connection()
+    test_local_tool_call_connection()

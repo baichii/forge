@@ -5,8 +5,8 @@ from typing import Any
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
 from battle_planner.agents.context import render_knowledge_pack_md
 from battle_planner.agents.history_context import render_history_for_planning
-from battle_planner.model.models import PlannerKnowledgePack
 from battle_planner.llm_runtime.fallback import fallback_markdown
+from battle_planner.model.models import PlannerKnowledgePack
 
 
 class BattlePlanGenerationAgent(BasePlanningAgent[str]):

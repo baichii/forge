@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
-from battle_planner.model.models import EvaluationReport, SimulationRunResult, SummaryEvaluation
 from battle_planner.llm_runtime.fallback import fallback_markdown
+from battle_planner.model.models import EvaluationReport, SimulationRunResult, SummaryEvaluation
 
 from forge.core.specs import TickAgentParams
 

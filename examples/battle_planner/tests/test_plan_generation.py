@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import json
 
-from battle_planner.data.fixtures import load_scheme_config
-from battle_planner.data.models import (
+from battle_planner.config import config
+from battle_planner.model.models import (
     DeductionSpec,
     StrategyParam,
 )
@@ -12,11 +12,14 @@ from battle_planner.orchestration.nodes.agent_parameter_planning import (
 )
 from battle_planner.orchestration.nodes.agent_schema_loading import agent_schema_loading_node
 from battle_planner.orchestration.state.state import BattlePlannerState
+from battle_planner.workspace.local.loaders import load_scheme_config
 
 from forge.core.specs import EnvLink, EnvMode
 
 
-def test_plan_generation() -> None:
+def test_plan_generation(monkeypatch) -> None:
+    monkeypatch.setattr(config.workflow, "display_mode", True)
+
     # 1. 业务侧导入 scheme：首轮验证只保留一个策略分支。
     target_ids = ["red_CV16 “辽宁”号001型航空母舰_1"]
     air_unit_ids = ["blue_F/A-18F型“超级大黄蜂”战斗机_14"]
@@ -82,6 +85,7 @@ def test_plan_generation() -> None:
         ]
     )
     state = BattlePlannerState(
+        iteration_index=0,
         scenario_name=scheme.scenario_name,
         scenario_understanding_md=scenario_understanding_md,
         battle_plan_md=battle_plan_md,
@@ -147,6 +151,8 @@ def test_plan_generation() -> None:
     print("\n\n===== test_plan_generation_node_simulation_input =====")
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     print("===== end_test_plan_generation_node_simulation_input =====\n")
+    assert planned_agent_params
+    assert deduction.strategy_params[0].agent_configs == planned_agent_params
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from typing import Any
 
 from forge.core.specs import TickAgentParams
 
-BATTLE_PLANNER_ROOT = Path(__file__).resolve().parents[1]
+BATTLE_PLANNER_ROOT = Path(__file__).resolve().parents[2]
 DISPLAY_PRESET_FILE = (
     BATTLE_PLANNER_ROOT / "workspace" / "local" / "runtime_presets" / "zc3_lite_agent_params.json"
 )

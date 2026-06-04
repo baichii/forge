@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from battle_planner.config import config
-from battle_planner.data.models import (
+from battle_planner.model.models import (
     EvaluationReport,
     LLMTrace,
     PlannerKnowledgePack,
