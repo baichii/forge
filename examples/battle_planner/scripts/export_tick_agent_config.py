@@ -2,26 +2,24 @@ from __future__ import annotations
 
 import argparse
 import importlib
-import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-EXAMPLES_ROOT = REPO_ROOT / "examples"
-PYTHONLIB_ROOT = REPO_ROOT / "pythonlib"
-for path in (REPO_ROOT, EXAMPLES_ROOT, PYTHONLIB_ROOT):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
 
-DEFAULT_DECLARATION = "battle_planner.tick_agents.air_to_sea_strike_tick_agent:declaration"
+DEFAULT_DECLARATION = (
+    "battle_planner.workspace.resource.tick_agents.air_to_sea_strike.agent:declaration"
+)
 DEFAULT_OUTPUT = (
     REPO_ROOT
     / "examples"
     / "battle_planner"
+    / "workspace"
+    / "resource"
     / "tick_agents"
-    / "air_to_sea_strike_tick_agent"
+    / "air_to_sea_strike"
     / "config.yaml"
 )
 

@@ -13,7 +13,7 @@ TASK_TYPE = "NavalAsuWStrike_Naval"
 declaration = TickAgentSpec(
     name="naval_to_sea_strike_agent",
     version="0.1.0",
-    entrypoint="battle_planner.tick_agents.naval_to_sea_strike_tick_agent:Agent",
+    entrypoint="agent:Agent",
     description=f"""# 舰对海打击智能体
 
 在指定时间窗口内组织水面舰艇使用舰载导弹打击海上目标。

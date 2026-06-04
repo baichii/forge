@@ -18,6 +18,14 @@
 - `make test`: run core tests.
 - `make check`: run local validation.
 
+### Python Import Paths
+
+- Do not modify `sys.path` inside scripts to make repository imports work.
+- Run repository Python scripts with an explicit `PYTHONPATH` instead, usually:
+  `PYTHONPATH=.:examples:pythonlib uv run python <script>`.
+- For battle planner scripts, prefer:
+  `PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/scripts/<script>.py`.
+
 ### Engineering Boundaries
 
 - Keep `forge.core.lib` generic and small.
