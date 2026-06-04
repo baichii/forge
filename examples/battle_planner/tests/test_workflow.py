@@ -2,51 +2,78 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from typing import Any
+
 from battle_planner.config import ModelProfile, config
-from battle_planner.orchestration.session import (
-    BattlePlannerSession,
-    BattlePlannerSessionResult,
-    IterationView,
-)
+from battle_planner.orchestration.history import build_history_item
 from battle_planner.orchestration.state.state import BattlePlannerState
+from battle_planner.orchestration.workflow import BattlePlannerDemoWorkflow
 
 
-def run_workflow_session(*, max_iterations: int | None = None) -> BattlePlannerSessionResult:
-    return BattlePlannerSession(max_iterations=max_iterations).run()
+@dataclass
+class WorkflowLoopResult:
+    states: list[BattlePlannerState] = field(default_factory=list)
+    history: list[dict[str, Any]] = field(default_factory=list)
+    status: str = "completed"
+    stop_reason: str = "max_iterations"
+
+
+def run_workflow_loop(*, max_iterations: int | None = None) -> WorkflowLoopResult:
+    workflow = BattlePlannerDemoWorkflow()
+    iterations = max_iterations if max_iterations is not None else config.workflow.max_iterations
+    states: list[BattlePlannerState] = []
+    history: list[dict[str, Any]] = []
+    status = "completed"
+    stop_reason = "max_iterations"
+
+    for iteration_index in range(iterations):
+        state = workflow.run(BattlePlannerState(iteration_index=iteration_index, history=list(history)))
+        if state.cur_stage == "complete":
+            history.append(build_history_item(state))
+            state.history = list(history)
+        states.append(state)
+
+        if state.error:
+            status = "failed"
+            stop_reason = "error"
+            break
+
+    return WorkflowLoopResult(states=states, history=history, status=status, stop_reason=stop_reason)
 
 
 def main() -> None:
-    result = run_workflow_session()
+    result = run_workflow_loop()
     print("Battle planner workflow loop finished")
-    print(f"session_id: {result.session_id}")
     print(f"status: {result.status}")
     print(f"stop_reason: {result.stop_reason}")
     print(f"configured_iterations: {config.workflow.max_iterations}")
-    print(f"completed_iterations: {len(result.view.iterations)}")
+    print(f"completed_iterations: {len(result.states)}")
     print("")
 
-    for iteration in result.view.iterations:
-        _print_iteration(iteration)
+    for state in result.states:
+        _print_iteration(state)
 
     print("iteration summary")
     print(
         "index | preset | score | achieved | destroyed | health_initial | "
         "health_current | health_delta | damage_ratio | requested_wp"
     )
-    for iteration in result.view.iterations:
+    for state in result.states:
+        metrics = _mission_metrics(state)
         print(
             " | ".join(
                 [
-                    str(iteration.iteration_index),
-                    str(iteration.agent_param_preset_id or ""),
-                    str(iteration.score),
-                    str(iteration.objective_achieved),
-                    str(iteration.target_destroyed_count),
-                    str(iteration.target_initial_health),
-                    str(iteration.target_current_health),
-                    str(iteration.target_health_delta),
-                    str(iteration.target_damage_ratio),
-                    str(iteration.requested_weapon_count),
+                    str(state.iteration_index),
+                    str(state.agent_param_preset_id or ""),
+                    str(state.evaluation_report.score if state.evaluation_report else None),
+                    str(metrics.get("objective_achieved")),
+                    str(metrics.get("target_destroyed_count")),
+                    str(metrics.get("target_initial_health")),
+                    str(metrics.get("target_current_health")),
+                    str(metrics.get("target_health_delta")),
+                    str(metrics.get("target_damage_ratio")),
+                    str(metrics.get("requested_weapon_count")),
                 ]
             )
         )
@@ -55,7 +82,7 @@ def main() -> None:
 def test_workflow_loop_smoke(monkeypatch) -> None:
     _force_offline_display_mode(monkeypatch)
 
-    result = run_workflow_session()
+    result = run_workflow_loop()
     states = result.states
 
     assert len(states) == 2
@@ -64,7 +91,6 @@ def test_workflow_loop_smoke(monkeypatch) -> None:
     assert all(state.summary_md for state in states)
     assert states[0].agent_param_preset_id != states[1].agent_param_preset_id
     assert len(result.history) == 2
-    assert len(result.view.iterations) == 2
     assert "历史迭代反馈" in _trace_content(states[1], "battle_plan_generation")
 
 
@@ -80,23 +106,23 @@ def _force_offline_display_mode(monkeypatch) -> None:
     monkeypatch.setattr(config.simulation, "max_decision_steps", 70)
 
 
-def _print_iteration(iteration: IterationView) -> None:
-    print(f"iteration_index: {iteration.iteration_index}")
-    print(f"- agent_param_preset_id: {iteration.agent_param_preset_id}")
-    print(f"- score: {iteration.score}")
-    print(f"- objective_achieved: {iteration.objective_achieved}")
-    print(f"- target_destroyed_count: {iteration.target_destroyed_count}")
-    print(f"- target_initial_health: {iteration.target_initial_health}")
-    print(f"- target_current_health: {iteration.target_current_health}")
-    print(f"- target_health_delta: {iteration.target_health_delta}")
-    print(f"- target_damage_ratio: {iteration.target_damage_ratio}")
-    print(f"- requested_weapon_count: {iteration.requested_weapon_count}")
-    print(f"- key_events: {len(iteration.key_events)}")
+def _print_iteration(state: BattlePlannerState) -> None:
+    metrics = _mission_metrics(state)
+    print(f"iteration_index: {state.iteration_index}")
+    print(f"- agent_param_preset_id: {state.agent_param_preset_id}")
+    print(f"- score: {state.evaluation_report.score if state.evaluation_report else None}")
+    print(f"- objective_achieved: {metrics.get('objective_achieved')}")
+    print(f"- target_destroyed_count: {metrics.get('target_destroyed_count')}")
+    print(f"- target_initial_health: {metrics.get('target_initial_health')}")
+    print(f"- target_current_health: {metrics.get('target_current_health')}")
+    print(f"- target_health_delta: {metrics.get('target_health_delta')}")
+    print(f"- target_damage_ratio: {metrics.get('target_damage_ratio')}")
+    print(f"- requested_weapon_count: {metrics.get('requested_weapon_count')}")
     print("- summary_excerpt:")
-    for line in _summary_excerpt(iteration.summary_excerpt):
+    for line in _summary_excerpt(state.summary_md):
         print(f"  {line}")
-    if iteration.error:
-        print(f"- error: {iteration.error}")
+    if state.error:
+        print(f"- error: {state.error}")
     print("")
 
 
@@ -110,6 +136,12 @@ def _trace_content(state: BattlePlannerState, node_name: str) -> str:
 def _summary_excerpt(summary_md: str, *, max_lines: int = 12) -> list[str]:
     lines = [line for line in summary_md.splitlines() if line.strip()]
     return lines[:max_lines]
+
+
+def _mission_metrics(state: BattlePlannerState) -> dict[str, Any]:
+    if state.evaluation_report is None:
+        return {}
+    return dict(state.evaluation_report.mission_metrics)
 
 
 if __name__ == "__main__":
