@@ -5,10 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+import pytest
 from battle_planner.config import ModelProfile, config
 from battle_planner.orchestration.history import build_history_item
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.orchestration.workflow import BattlePlannerDemoWorkflow
+from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
+from battle_planner.orchestration.workflow_entropy import WorkflowEntropy, build_workflow
 
 
 @dataclass
@@ -20,7 +22,7 @@ class WorkflowLoopResult:
 
 
 def run_workflow_loop(*, max_iterations: int | None = None) -> WorkflowLoopResult:
-    workflow = BattlePlannerDemoWorkflow()
+    workflow = ZcLiteBaselineWorkflow()
     iterations = max_iterations if max_iterations is not None else config.workflow.max_iterations
     states: list[BattlePlannerState] = []
     history: list[dict[str, Any]] = []
@@ -92,6 +94,18 @@ def test_workflow_loop_smoke(monkeypatch) -> None:
     assert states[0].agent_param_preset_id != states[1].agent_param_preset_id
     assert len(result.history) == 2
     assert "历史迭代反馈" in _trace_content(states[1], "battle_plan_generation")
+
+
+def test_workflow_entropy_builds_workflow_by_name() -> None:
+    assert ZcLiteBaselineWorkflow.name == "zc_lite_baseline"
+
+    workflow = build_workflow("zc_lite_baseline")
+
+    assert isinstance(workflow, ZcLiteBaselineWorkflow)
+    assert WorkflowEntropy.build_workflow("zc_lite_baseline").name == "zc_lite_baseline"
+
+    with pytest.raises(ValueError, match="Unknown battle planner workflow"):
+        build_workflow("missing")
 
 
 def _force_offline_display_mode(monkeypatch) -> None:

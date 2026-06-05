@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from battle_planner.orchestration.nodes import (
     agent_parameter_planning_node,
     agent_schema_loading_node,
@@ -12,8 +14,10 @@ from battle_planner.orchestration.state.state import BattlePlannerState
 from langgraph.graph import END, StateGraph
 
 
-class BattlePlannerDemoWorkflow:
+class ZcLiteBaselineWorkflow:
     """End-to-end zc_lite demo workflow with LLM-visible stages."""
+
+    name: ClassVar[str] = "zc_lite_baseline"
 
     def build_graph(self):
         builder = StateGraph(BattlePlannerState)
@@ -63,7 +67,3 @@ def route_after_demo_step(state: BattlePlannerState) -> str:
     if state.error:
         return "end"
     return "continue"
-
-
-def build_zc_lite_demo_graph():
-    return BattlePlannerDemoWorkflow().build_graph()

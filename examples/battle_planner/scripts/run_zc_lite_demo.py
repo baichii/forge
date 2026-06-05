@@ -5,12 +5,12 @@ Notes:
 
 from time import perf_counter
 
-from battle_planner.orchestration.workflow import BattlePlannerDemoWorkflow
+from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
 
 
 def main() -> None:
     started_at = perf_counter()
-    final_state = BattlePlannerDemoWorkflow().run()
+    final_state = ZcLiteBaselineWorkflow().run()
     workflow_elapsed = perf_counter() - started_at
 
     print("Battle planner zc_lite demo finished")
