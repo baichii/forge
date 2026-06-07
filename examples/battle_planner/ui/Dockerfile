@@ -2,12 +2,12 @@
 
 FROM node:22-alpine AS build
 
-WORKDIR /app/ui
+WORKDIR /app
 
-COPY ui/package.json ui/package-lock.json ./
+COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY ui/ ./
+COPY . ./
 RUN npm run build
 
 FROM nginx:stable-alpine AS runtime
@@ -32,7 +32,7 @@ server {
 }
 EOF
 
-COPY --from=build /app/ui/dist /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
