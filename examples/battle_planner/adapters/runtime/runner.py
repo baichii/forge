@@ -196,7 +196,7 @@ class Runner(BaseRuner):
                     "done": done,
                 }
             )
-        if status.get("running") and report.first_active_step is None:
+        if _is_agent_running(status) and report.first_active_step is None:
             report.first_active_step = self._step
             report.first_active_sim_time = sim_time
         if done and report.finished_step is None:
@@ -215,3 +215,7 @@ class Runner(BaseRuner):
                 "raw_actions": actions,
             }
         )
+
+
+def _is_agent_running(status: dict[str, bool]) -> bool:
+    return bool(status.get("运行中") or status.get("running"))

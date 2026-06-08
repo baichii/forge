@@ -7,14 +7,11 @@ from pysim.schema.action import MissionFormatter
 from forge.core.lib.agent import TickAgent
 from forge.core.specs import ParamSpec, ParamSpecTemplate, ParamType, TickAgentParams, TickAgentSpec
 
-TASK_TYPE = "NavalAsuWStrike_Naval"
-
-
 declaration = TickAgentSpec(
-    name="naval_to_sea_strike_agent",
+    name="舰对海打击智能体",
     version="0.1.0",
     entrypoint="agent:Agent",
-    description=f"""# 舰对海打击智能体
+    description="""# 舰对海打击智能体
 
 在指定时间窗口内组织水面舰艇使用舰载导弹打击海上目标。
 
@@ -24,12 +21,12 @@ declaration = TickAgentSpec(
 - 可作为空对海打击后的补充打击手段。
 
 ## 行为逻辑
-智能体在 `start_time <= sim_time <= end_time` 且尚未下发过任务时，输出一次 `{TASK_TYPE}` 类型任务。
+智能体在 `start_time <= sim_time <= end_time` 且尚未下发过任务时，输出一次 `舰对海打击智能体` 类型任务。
 
 ## 输出说明
 输出由 `pysim.schema.action.MissionFormatter.attack` 构建的标准 mission action。
 """,
-    status=["running", "finished"],
+    status=["运行中", "已结束"],
     params={
         "start_time": ParamSpec.start_time.redeclaration(
             type=ParamType.FLOAT, description="智能体开始运行时间，单位秒。"
@@ -74,8 +71,8 @@ class Agent(TickAgent):
         start_time = float(self.params["start_time"])
         end_time = float(self.params["end_time"])
         status = {
-            "running": start_time <= sim_time <= end_time and not self._dispatched,
-            "finished": self._dispatched or sim_time > end_time,
+            "运行中": start_time <= sim_time <= end_time and not self._dispatched,
+            "已结束": self._dispatched or sim_time > end_time,
         }
         if self._dispatched:
             return [], status, True, {"reason": "mission_already_dispatched", "sim_time": sim_time}
@@ -97,8 +94,8 @@ class Agent(TickAgent):
         for action in actions:
             action["side"] = self.side
         status = {
-            "running": False,
-            "finished": True,
+            "运行中": False,
+            "已结束": True,
         }
         return (
             actions,
@@ -107,7 +104,6 @@ class Agent(TickAgent):
             {
                 "reason": "mission_dispatched",
                 "sim_time": sim_time,
-                "task_type": TASK_TYPE,
                 "source": self.declaration.name,
             },
         )

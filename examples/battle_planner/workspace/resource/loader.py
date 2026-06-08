@@ -64,7 +64,10 @@ def iter_tick_agent_resources() -> list[ResourceDescriptor]:
 
 
 def _load_tick_agent_descriptor(config_path: Path) -> ResourceDescriptor:
-    payload = _read_yaml(config_path)
+    payload = _normalize_tick_agent_payload(
+        _read_yaml(config_path),
+        resource_name=config_path.parent.name,
+    )
     relative_entrypoint = str(payload.get("entrypoint") or DEFAULT_TICK_AGENT_ENTRYPOINT)
     resolved_entrypoint = _resolve_entrypoint(
         root=config_path.parent,
@@ -87,6 +90,47 @@ def _read_yaml(path: Path) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"resource config `{path}` must contain a mapping")
     return payload
+
+
+def _normalize_tick_agent_payload(payload: dict[str, Any], *, resource_name: str) -> dict[str, Any]:
+    if "META" not in payload:
+        return payload
+
+    meta = _as_mapping(payload.get("META"))
+    return {
+        "name": str(meta.get("agent_name") or meta.get("agentName") or f"{resource_name}_agent"),
+        "description": str(meta.get("description") or ""),
+        "params": {
+            str(param["name"]): _normalize_param_payload(_as_mapping(param))
+            for param in _as_list(payload.get("PARAMS"))
+        },
+        "entrypoint": str(payload.get("ENTRYPOINT") or DEFAULT_TICK_AGENT_ENTRYPOINT),
+        "status": [str(item) for item in _as_list(payload.get("STATUS"))],
+        "version": str(payload.get("VERSION") or ""),
+    }
+
+
+def _normalize_param_payload(param: dict[str, Any]) -> dict[str, Any]:
+    chinese_name = param.get("chineseName")
+    return {
+        "name": str(param["name"]),
+        "type": str(param.get("type") or ""),
+        "required": bool(param.get("required", True)),
+        "description": str(param.get("description") or ""),
+        "default_value": param.get("default_value"),
+        "examples": list(param.get("examples") or []),
+        "other": {"chineseName": chinese_name} if chinese_name else {},
+    }
+
+
+def _as_mapping(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ValueError(f"expected mapping payload, got {type(value).__name__}")
+    return value
+
+
+def _as_list(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else []
 
 
 def _resolve_entrypoint(*, root: Path, relative_entrypoint: str, resource_type: str) -> str:
