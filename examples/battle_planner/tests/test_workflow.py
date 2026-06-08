@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
-from battle_planner.config import ModelProfile, config
+from battle_planner.config import LLMMode, config
 from battle_planner.orchestration.history import build_history_item
 from battle_planner.orchestration.state.state import BattlePlannerState
 from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
@@ -82,7 +82,7 @@ def main() -> None:
 
 
 def test_workflow_loop_smoke(monkeypatch) -> None:
-    _force_offline_display_mode(monkeypatch)
+    _force_offline_llm_mode(monkeypatch)
 
     result = run_workflow_loop()
     states = result.states
@@ -108,13 +108,16 @@ def test_workflow_entropy_builds_workflow_by_name() -> None:
         build_workflow("missing")
 
 
-def _force_offline_display_mode(monkeypatch) -> None:
-    config.model.profiles.setdefault(
-        "offline",
-        ModelProfile(name="offline", provider="offline", model_name="offline"),
-    )
-    monkeypatch.setattr(config.model, "selected", "offline")
-    monkeypatch.setattr(config.workflow, "display_mode", True)
+def test_workflow_entropy_uses_configured_default(monkeypatch) -> None:
+    monkeypatch.setattr(config.runtime, "workflow_name", "zc_lite_baseline")
+
+    workflow = build_workflow()
+
+    assert isinstance(workflow, ZcLiteBaselineWorkflow)
+
+
+def _force_offline_llm_mode(monkeypatch) -> None:
+    monkeypatch.setattr(config.runtime, "llm_mode", LLMMode.OFFLINE)
     monkeypatch.setattr(config.workflow, "max_iterations", 2)
     monkeypatch.setattr(config.workflow, "save_artifacts", False)
     monkeypatch.setattr(config.simulation, "max_decision_steps", 70)

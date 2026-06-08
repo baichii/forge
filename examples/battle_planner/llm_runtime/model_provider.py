@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from battle_planner.config import config
+from battle_planner.config import LLMMode, config
 from openai import OpenAI
 
 
@@ -118,13 +118,16 @@ class OfflineModelProvider(ModelProvider):
 
 
 def build_model_provider() -> ModelProvider:
+    if config.runtime.llm_mode == LLMMode.OFFLINE:
+        return OfflineModelProvider()
+    if config.runtime.llm_mode == LLMMode.REPLAY:
+        raise ValueError("LLM_MODE=replay is not implemented by model provider yet")
+
     model_config = config.model
     profile = model_config.active_profile
     provider = profile.provider
 
-    if provider == "offline":
-        return OfflineModelProvider()
-    if provider in {"openai", "local", "deepseek"}:
+    if provider in {"openai", "by", "deepseek"}:
         return OpenAICompatibleModelProvider(
             name=profile.name,
             base_url=profile.api_url,

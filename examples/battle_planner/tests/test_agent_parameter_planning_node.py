@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import importlib
 
-from battle_planner.config import config
+from battle_planner.config import LLMMode, config
 from battle_planner.orchestration.state.state import BattlePlannerState
 
 
 def test_agent_parameter_planning_node_uses_display_preset(monkeypatch) -> None:
     node_module = importlib.import_module("battle_planner.orchestration.nodes.agent_parameter_planning")
-    monkeypatch.setattr(config.workflow, "display_mode", True)
+    monkeypatch.setattr(config.runtime, "llm_mode", LLMMode.OFFLINE)
 
     def fail_build_model_provider():
-        raise AssertionError("display mode should not build model provider")
+        raise AssertionError("offline llm mode should not build model provider")
 
     monkeypatch.setattr(node_module, "build_model_provider", fail_build_model_provider)
 

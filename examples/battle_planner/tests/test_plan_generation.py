@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from battle_planner.config import config
+from battle_planner.config import LLMMode, config
 from battle_planner.model.models import (
     DeductionSpec,
     StrategyParam,
@@ -18,7 +18,7 @@ from forge.core.specs import EnvLink, EnvMode
 
 
 def test_plan_generation(monkeypatch) -> None:
-    monkeypatch.setattr(config.workflow, "display_mode", True)
+    monkeypatch.setattr(config.runtime, "llm_mode", LLMMode.OFFLINE)
 
     # 1. 业务侧导入 scheme：首轮验证只保留一个策略分支。
     target_ids = ["red_CV16 “辽宁”号001型航空母舰_1"]

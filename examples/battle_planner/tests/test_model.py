@@ -43,14 +43,14 @@ def test_connection() -> None:
     assert len(response.choices[0].message.content) > 0, "Model response should not be empty"
 
 
-def test_local_connection() -> None:
+def test_by_connection() -> None:
     client = OpenAI(
-        api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
-        base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
+        api_key=_env("MODEL_BY_QWEN36_API_KEY"),
+        base_url=_env("MODEL_BY_QWEN36_API_URL"),
     )
 
     response = client.chat.completions.create(
-        model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
+        model=_env("MODEL_BY_QWEN36_MODEL_NAME"),
         messages=[{"role": "user", "content": "hello"}],
         max_tokens=1024,
     )
@@ -61,14 +61,14 @@ def test_local_connection() -> None:
     assert content and len(content) > 0, "Model response should not be empty"
 
 
-def test_local_stream_connection() -> None:
+def test_by_stream_connection() -> None:
     client = OpenAI(
-        api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
-        base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
+        api_key=_env("MODEL_BY_QWEN36_API_KEY"),
+        base_url=_env("MODEL_BY_QWEN36_API_URL"),
     )
 
     stream = client.chat.completions.create(
-        model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
+        model=_env("MODEL_BY_QWEN36_MODEL_NAME"),
         messages=[{"role": "user", "content": "hello"}],
         max_tokens=1024,
         stream=True,
@@ -90,14 +90,14 @@ def test_local_stream_connection() -> None:
     assert content and len(content) > 0, "Stream response should not be empty"
 
 
-def test_local_tool_call_connection() -> None:
+def test_by_tool_call_connection() -> None:
     client = OpenAI(
-        api_key=_env("MODEL_LOCAL_QWEN36_API_KEY"),
-        base_url=_env("MODEL_LOCAL_QWEN36_API_URL"),
+        api_key=_env("MODEL_BY_QWEN36_API_KEY"),
+        base_url=_env("MODEL_BY_QWEN36_API_URL"),
     )
 
     response = client.chat.completions.create(
-        model=_env("MODEL_LOCAL_QWEN36_MODEL_NAME"),
+        model=_env("MODEL_BY_QWEN36_MODEL_NAME"),
         messages=[
             {
                 "role": "system",
@@ -153,6 +153,6 @@ def test_local_tool_call_connection() -> None:
 
 if __name__ == "__main__":
     # test_connection()
-    # test_local_connection()
-    # test_local_stream_connection()
-    test_local_tool_call_connection()
+    # test_by_connection()
+    # test_by_stream_connection()
+    test_by_tool_call_connection()

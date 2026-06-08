@@ -16,18 +16,29 @@ def test_dotenv_does_not_override_existing_env(monkeypatch, tmp_path) -> None:
 
 
 def test_config_groups_parse_env_values(monkeypatch) -> None:
-    from battle_planner.config import ModelConfig, ReportConfig, SimulationConfig, WorkflowConfig
+    from battle_planner.config import (
+        HostMode,
+        LLMMode,
+        ModelConfig,
+        ReportConfig,
+        RuntimeConfig,
+        SimulationConfig,
+        SourceMode,
+        WorkflowConfig,
+    )
 
-    monkeypatch.setenv("MODEL", "local_test")
-    monkeypatch.setenv("MODEL_PROFILES", "local_test,offline")
-    monkeypatch.setenv("MODEL_LOCAL_TEST_PROVIDER", "local")
-    monkeypatch.setenv("MODEL_LOCAL_TEST_API_URL", "http://localhost:8000/v1")
-    monkeypatch.setenv("MODEL_LOCAL_TEST_API_KEY", "dummy")
-    monkeypatch.setenv("MODEL_LOCAL_TEST_MODEL_NAME", "test-model")
-    monkeypatch.setenv("MODEL_LOCAL_TEST_REASONING_EFFORT", "high")
-    monkeypatch.setenv("MODEL_LOCAL_TEST_THINKING_TYPE", "enabled")
-    monkeypatch.setenv("MODEL_OFFLINE_PROVIDER", "offline")
-    monkeypatch.setenv("MODEL_OFFLINE_MODEL_NAME", "offline")
+    monkeypatch.setenv("HOST", "server")
+    monkeypatch.setenv("SOURCE", "service")
+    monkeypatch.setenv("WORKFLOW_NAME", "custom_workflow")
+    monkeypatch.setenv("LLM_MODE", "offline")
+    monkeypatch.setenv("MODEL", "by_test")
+    monkeypatch.setenv("MODEL_PROFILES", "by_test")
+    monkeypatch.setenv("MODEL_BY_TEST_PROVIDER", "by")
+    monkeypatch.setenv("MODEL_BY_TEST_API_URL", "http://localhost:8000/v1")
+    monkeypatch.setenv("MODEL_BY_TEST_API_KEY", "dummy")
+    monkeypatch.setenv("MODEL_BY_TEST_MODEL_NAME", "test-model")
+    monkeypatch.setenv("MODEL_BY_TEST_REASONING_EFFORT", "high")
+    monkeypatch.setenv("MODEL_BY_TEST_THINKING_TYPE", "enabled")
     monkeypatch.setenv("BATTLE_PLANNER_LLM_MAX_TOKENS", "4096")
     monkeypatch.setenv("BATTLE_PLANNER_LLM_TIMEOUT_SECONDS", "12.5")
     monkeypatch.setenv("BATTLE_PLANNER_LLM_MAX_RETRY", "3")
@@ -35,7 +46,6 @@ def test_config_groups_parse_env_values(monkeypatch) -> None:
     monkeypatch.setenv("BATTLE_PLANNER_WORKFLOW_MAX_ITERATIONS", "2")
     monkeypatch.setenv("BATTLE_PLANNER_FAIL_FAST", "true")
     monkeypatch.setenv("BATTLE_PLANNER_SAVE_ARTIFACTS", "false")
-    monkeypatch.setenv("BATTLE_PLANNER_DISPLAY_MODE", "true")
     monkeypatch.setenv("BATTLE_PLANNER_SIM_RUNS_PER_PLAN", "5")
     monkeypatch.setenv("BATTLE_PLANNER_SIM_MAX_PARALLEL", "2")
     monkeypatch.setenv("BATTLE_PLANNER_SIM_MAX_DECISION_STEPS", "7")
@@ -44,19 +54,23 @@ def test_config_groups_parse_env_values(monkeypatch) -> None:
     monkeypatch.setenv("BATTLE_PLANNER_REPORT_LEVEL", "standard")
     monkeypatch.setenv("BATTLE_PLANNER_REPORT_INCLUDE_LLM_TRACE", "false")
 
+    runtime = RuntimeConfig.from_env()
     model = ModelConfig.from_env()
     workflow = WorkflowConfig.from_env()
     simulation = SimulationConfig.from_env()
     report = ReportConfig.from_env()
 
-    assert model.selected == "local_test"
+    assert runtime.host == HostMode.SERVER
+    assert runtime.source == SourceMode.SERVICE
+    assert runtime.workflow_name == "custom_workflow"
+    assert runtime.llm_mode == LLMMode.OFFLINE
+    assert model.selected == "by_test"
     assert workflow.max_iterations == 2
-    assert workflow.display_mode is True
     assert simulation.max_decision_steps == 7
     assert report.level == "standard"
 
 
-def test_model_config_defaults_to_deepseek_profile(monkeypatch) -> None:
+def test_model_config_defaults_to_by_profile(monkeypatch) -> None:
     from battle_planner.config import ModelConfig
 
     monkeypatch.delenv("MODEL", raising=False)
@@ -64,8 +78,8 @@ def test_model_config_defaults_to_deepseek_profile(monkeypatch) -> None:
 
     model = ModelConfig.from_env()
 
-    assert model.selected == "deepseek_v4_pro"
-    assert "deepseek_v4_pro" in model.profiles
+    assert model.selected == "by_qwen36"
+    assert "by_qwen36" in model.profiles
 
 
 def test_model_provider_rejects_requested_model_mismatch() -> None:
@@ -133,13 +147,27 @@ def test_simulation_config_defaults_to_env_terminal_control(monkeypatch) -> None
     assert simulation.max_decision_steps is None
 
 
+def test_runtime_config_defaults(monkeypatch) -> None:
+    from battle_planner.config import HostMode, LLMMode, RuntimeConfig, SourceMode
+
+    monkeypatch.delenv("HOST", raising=False)
+    monkeypatch.delenv("SOURCE", raising=False)
+    monkeypatch.delenv("WORKFLOW_NAME", raising=False)
+    monkeypatch.delenv("LLM_MODE", raising=False)
+
+    runtime = RuntimeConfig.from_env()
+
+    assert runtime.host == HostMode.LOCAL
+    assert runtime.source == SourceMode.LOCAL
+    assert runtime.workflow_name == "zc_lite_baseline"
+    assert runtime.llm_mode == LLMMode.OFFLINE
+
+
 def test_workflow_config_defaults(monkeypatch) -> None:
     from battle_planner.config import WorkflowConfig
 
-    monkeypatch.delenv("BATTLE_PLANNER_DISPLAY_MODE", raising=False)
     monkeypatch.delenv("BATTLE_PLANNER_WORKFLOW_MAX_ITERATIONS", raising=False)
 
     workflow = WorkflowConfig.from_env()
 
     assert workflow.max_iterations == 5
-    assert workflow.display_mode is False

@@ -66,16 +66,15 @@ agent 输入统一支持：
 - `InputContextMiddleware`：把 tool、memory、skill 注入模型上下文
 - `TraceMetadataMiddleware`：记录 middleware hook 和输出摘要
 
-模型调用通过 `runtime/model_provider.py` 抽象。`.env` 中通过 `MODEL` 显式选择模型 profile，不再自动选择。默认使用 `MODEL=deepseek_v4_pro`：
+模型调用通过 `llm_runtime/model_provider.py` 抽象。`.env` 中通过 `LLM_MODE` 控制是否真实调用模型，并通过 `MODEL` 显式选择模型 profile。默认使用 `LLM_MODE=offline` 和 `MODEL=by_qwen36`：
 
-- `MODEL=deepseek_v4_pro`：使用 `MODEL_DEEPSEEK_V4_PRO_*`，并启用 `reasoning_effort=high` 和 `thinking.type=enabled`
+- `LLM_MODE=offline`：不请求模型，文本生成节点走 fallback，agent runtime 参数从本地 preset 读取
+- `LLM_MODE=live`：按 `MODEL` 选择的 profile 请求真实模型
+- `MODEL=by_qwen36`：使用 `MODEL_BY_QWEN36_*`
 - `MODEL=openai_gpt54_mini`：使用 `MODEL_OPENAI_GPT54_MINI_*`
-- `MODEL=local_qwen36`：使用 `MODEL_LOCAL_QWEN36_*`
-- `MODEL=offline`：不请求模型，直接走 fallback
+- `MODEL=deepseek_v4_pro`：使用 `MODEL_DEEPSEEK_V4_PRO_*`
 
 agent 调用可传入 `model` 参数；如果传入值和当前 profile 的 `MODEL_NAME` 不一致，会直接返回配置错误，避免测试时误用模型。
-
-`display-mode` 可用于演示和 K3 闭环调试：设置 `BATTLE_PLANNER_DISPLAY_MODE=true` 后，想定理解、方案生成和总结仍由 LLM 生成，但 agent runtime 参数会从 `workspace/local/runtime_presets/` 中按 `iteration_index` 读取，避免弱模型生成不存在的单位 id。这个能力是临时演示开关。
 
 运行配置集中在 `config.py`。配置优先级为：
 

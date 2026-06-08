@@ -12,7 +12,7 @@ from forge.core.specs import TickAgentParams
 
 
 def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
-    if config.workflow.display_mode:
+    if config.runtime.use_offline_llm:
         return _display_agent_parameter_planning_node(state)
 
     model_provider = build_model_provider()
