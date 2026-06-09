@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from battle_planner.model.models import TaskPlanSpec
+from battle_planner.model import TaskPlanSpec
 
 BATTLE_PLANNER_ROOT = Path(__file__).resolve().parents[2]
 LOCAL_WORKSPACE_DIR = BATTLE_PLANNER_ROOT / "workspace" / "local"

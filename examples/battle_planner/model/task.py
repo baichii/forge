@@ -5,18 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from battle_planner.model.human import BranchHumanInputSpec, PlanHumanInputSpec
+from battle_planner.model.options import TaskRunOptions
 from pydantic import BaseModel, Field
-
-
-class TaskRunOptions(BaseModel):
-    """一次完整策略迭代运行的配置。"""
-
-    workflow_name: str = Field(description="要构建的 workflow 名称。")
-    max_iterations: int = Field(default=5, description="最大迭代轮数。")
-    sim_runs_per_scheme: int = Field(default=1, description="每版方案的仿真次数。")
-    max_retry: int = Field(default=1, description="最大重试次数。")
-    timeout_seconds: int | None = Field(default=None, description="运行超时时间，单位秒。")
-    extra: dict[str, Any] = Field(default_factory=dict, description="workflow 对外暴露的其他约束配置。")
 
 
 class TaskBranchContextSpec(BaseModel):

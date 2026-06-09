@@ -4,7 +4,7 @@ from battle_planner.adapters.runtime.scenario_loader import render_scenario_summ
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
 from battle_planner.agents.context import render_knowledge_pack_md
 from battle_planner.llm_runtime.fallback import fallback_markdown
-from battle_planner.model.models import PlannerKnowledgePack
+from battle_planner.model import PlannerKnowledgePack
 
 
 class ScenarioUnderstandingAgent(BasePlanningAgent[str]):

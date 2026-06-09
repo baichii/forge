@@ -87,15 +87,15 @@ class LocalDemoSeed(BaseModel):
             ),
         ]
     )
-    run_options: dict[str, Any] = Field(
-        default_factory=lambda: {
-            "workflow_name": "zc_lite_baseline",
-            "max_iterations": 5,
-            "sim_runs_per_scheme": 1,
-            "max_retry": 1,
-            "timeout_seconds": None,
-            "extra": {},
-        }
+    run_options: TaskRunOptions = Field(
+        default_factory=lambda: TaskRunOptions(
+            workflow_name="zc_lite_baseline",
+            max_iterations=5,
+            sim_runs_per_scheme=1,
+            max_retry=1,
+            timeout_seconds=None,
+            extra={},
+        )
     )
 
 
@@ -267,5 +267,5 @@ def build_local_task_run(
         plan_id=task_context.plan_id,
         run_name=request.run_name,
         task_context=task_context,
-        options=TaskRunOptions.model_validate(request.options),
+        options=request.options,
     )

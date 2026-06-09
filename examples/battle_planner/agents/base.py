@@ -13,7 +13,7 @@ from battle_planner.llm_runtime.middleware import (
 )
 from battle_planner.llm_runtime.model_provider import ModelProvider, ModelRequest, build_model_provider
 from battle_planner.llm_runtime.trace import build_trace
-from battle_planner.model.models import LLMTrace
+from battle_planner.model import LLMTrace
 
 from forge.core.lib.agent import TaskAgent
 

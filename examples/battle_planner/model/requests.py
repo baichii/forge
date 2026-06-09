@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from battle_planner.model.human import BranchHumanInputSpec, PlanHumanInputSpec
+from battle_planner.model.options import TaskRunOptions
 from pydantic import BaseModel, Field
 
 
@@ -36,4 +35,4 @@ class TaskRunCreateRequest(BaseModel):
 
     context_id: str = Field(description="任务上下文 ID。")
     run_name: str = Field(default="", description="任务运行名称，用于内部日志生成。")
-    options: dict[str, Any] = Field(default_factory=dict, description="运行参数原始输入。")
+    options: TaskRunOptions = Field(description="运行参数。")

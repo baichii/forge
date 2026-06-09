@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from battle_planner.model.models import EvaluationReport, SimulationRunResult
+from battle_planner.model import EvaluationReport, SimulationRunResult
 
 
 class TargetOutcomeEvaluator:
