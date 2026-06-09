@@ -45,4 +45,5 @@
 - Modify only the content explicitly requested by the user; do not change unrelated files or behavior.
 - Do not rewrite unrelated files.
 - Add or update tests for behavior changes.
+- For `examples/battle_planner`, keep pytest tests offline and maintainable: do not add live model probes, manual payload-print tests, or `__main__` debug entrypoints under `tests/`.
 - For automation or configuration changes, verify with the matching `make` command.

@@ -17,16 +17,17 @@ PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/scripts/ru
 ```text
 examples/battle_planner/
   adapters/          # 对齐 forge.core 的项目适配层，不放业务策略
-    runtime/         # 外部想定和环境适配，包含 scenario_zc_lite 加载、pysim factory 和 runner
-  data/              # demo workflow 使用的 Pydantic 数据模型
-  evaluation/        # 业务评估和指标采集组件；首版指标为占位/随机
-  orchestration/     # LangGraph workflow、state 和节点
+    runtime/         # 外部想定和环境适配，包含 scenario 加载、pysim factory 和 runner
+  model/             # source/request/task/scheme/deduction 等 Pydantic 数据模型
+  orchestration/     # LangGraph workflow、state、nodes、pipeline 和业务评估逻辑
   agents/            # LLM agent：想定理解、方案生成、参数生成、总结
     context/          # LLM agent 输入上下文：知识包构造和工具说明
-  runtime/           # model provider、middleware、fallback 和 trace 记录
-  tick_agents/       # 项目业务 tick agent、declaration 和 schema 加载入口
-  workspace/         # 本地复现工作区：source 存放外部资源快照，artifacts 存放运行产物
-  tests/             # 测试用例和可直接运行的 demo 验证入口
+  llm_runtime/       # model provider、middleware、fallback 和 trace 记录
+  workspace/         # 本地复现工作区：local 存放 demo seed/source，resource 存放拉取资源
+  scripts/           # 本地数据生成、resource config 导出等薄脚本入口
+  experimental/      # 临时实验和运行产物，不作为稳定接口
+  tests/             # 最小离线可维护测试套件
+  ui/                # 临时演示 UI，当前冻结扩张
 ```
 
 ## Workflow
@@ -76,10 +77,30 @@ agent 输入统一支持：
 
 agent 调用可传入 `model` 参数；如果传入值和当前 profile 的 `MODEL_NAME` 不一致，会直接返回配置错误，避免测试时误用模型。
 
-运行配置集中在 `config.py`。配置优先级为：
+运行配置集中在 `conf.py`。配置优先级为：
 
 ```text
-容器/系统环境变量 > examples/battle_planner/.env > config.py 默认值
+容器/系统环境变量 > examples/battle_planner/.env > conf.py 默认值
 ```
 
-`.env.example` 按 `API / Model / Workflow / Simulation / Report` 分组列出可调参数。本地调试可复制为 `.env`，容器化部署时建议通过启动环境变量传入参数。
+`.env.example` 列出本地调试常用参数。本地调试可复制为 `.env`，容器化部署时建议通过启动环境变量传入参数。
+
+## Tests
+
+`examples/battle_planner/tests` 只维护最小离线测试套件。默认测试必须在断网、`LLM_MODE=offline`、不依赖真实模型服务的情况下通过。
+
+测试维护原则：
+
+- 测试只覆盖关键模块边界和主数据流，例如本地 seed 装配、resource 加载、核心 node、runner smoke 和 workflow smoke。
+- 不在 pytest 中维护 live model 连接探针、手动展示脚本或大段 payload 打印。
+- 不用大量断言复述 Pydantic 字段定义；优先验证“这个模块边界坏了是否能被发现”。
+- 不在测试文件中保留 `print(...)`、`if __name__ == "__main__"` 或需要人工观察输出的入口。
+- 需要真实 LLM、复杂演示或人工观察输出时，另开临时脚本，不进入 pytest 主套件。
+
+推荐验证命令：
+
+```bash
+PYTHONPATH=.:examples:pythonlib uv run pytest examples/battle_planner/tests -q
+PYTHONPATH=.:examples:pythonlib uv run ruff check examples/battle_planner
+PYTHONPATH=.:examples:pythonlib uv run ruff format --check examples/battle_planner
+```
