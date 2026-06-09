@@ -12,6 +12,11 @@ from battle_planner.model.evaluation import (
     SummaryEvaluation,
     TargetObjectiveSummary,
 )
+from battle_planner.model.human import (
+    BranchHumanInputSpec,
+    PlanHumanInputSpec,
+    RiskStyle,
+)
 from battle_planner.model.knowledge import (
     AssetSummary,
     PlannerKnowledgePack,
@@ -25,26 +30,27 @@ from battle_planner.model.requests import (
 from battle_planner.model.scheme import SchemeSpec
 from battle_planner.model.source import TaskBranchSpec, TaskPlanSpec, TickAgentSourceSpec
 from battle_planner.model.task import (
+    TaskBranchContextSpec,
     TaskContextSpec,
     TaskRunOptions,
     TaskRunSpec,
-    build_task_context,
-    build_task_run,
 )
-from battle_planner.model.workflow import HumanInputSpec
 
 __all__ = [
     "AgentExecutionSummary",
     "AssetSummary",
+    "BranchHumanInputSpec",
     "DeductionSpec",
     "EvaluationReport",
-    "HumanInputSpec",
     "LLMTrace",
+    "PlanHumanInputSpec",
     "PlannerKnowledgePack",
     "PlanningGoal",
+    "RiskStyle",
     "SchemeSpec",
     "SimulationRunResult",
     "SummaryEvaluation",
+    "TaskBranchContextSpec",
     "TaskBranchHumanInputRequest",
     "TaskBranchSpec",
     "TaskContextCreateRequest",
@@ -55,6 +61,4 @@ __all__ = [
     "TaskRunSpec",
     "TargetObjectiveSummary",
     "TickAgentSourceSpec",
-    "build_task_context",
-    "build_task_run",
 ]

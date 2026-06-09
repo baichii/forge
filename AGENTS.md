@@ -34,6 +34,11 @@
 - Keep environment truth inside adapters and runtimes.
 - Capability logic should provide planner-facing summaries, matching, and explanations, not a second simulator legality engine.
 
+### Code Style
+
+- When adding Python comments or docstrings, use Google-style conventions for parameter and return-value sections.
+- Keep comments short and purposeful; do not add comments that merely repeat obvious code.
+
 ### Change Policy
 
 - Prefer small, reviewable changes.

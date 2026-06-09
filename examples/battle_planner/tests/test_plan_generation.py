@@ -11,6 +11,18 @@ from battle_planner.orchestration.state.state import build_initial_state
 from battle_planner.workspace.local.demo_seed import build_local_task_run
 
 
+def _render_human_input_lines(human) -> list[str]:
+    lines = [
+        f"- 目标: {human.goal}",
+        f"- 风险偏好: {human.risk_style}",
+    ]
+    lines.extend(f"- 约束: {item}" for item in human.constraints)
+    lines.extend(f"- 风险点: {item}" for item in human.risk_points)
+    if human.notes:
+        lines.append(f"- 业务备注: {human.notes}")
+    return lines
+
+
 def test_plan_generation(monkeypatch) -> None:
     monkeypatch.setattr(config.runtime, "llm_mode", LLMMode.OFFLINE)
 
@@ -19,35 +31,33 @@ def test_plan_generation(monkeypatch) -> None:
     air_unit_ids = ["blue_F/A-18F型“超级大黄蜂”战斗机_14"]
     naval_unit_ids = ["blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1"]
     task_run = build_local_task_run()
-    task_context = task_run.task_context_snapshot
-    task_plan = task_context.plan_snapshot
-    branch = task_plan.branches[0]
+    task_context = task_run.task_context
+    branch_context = task_context.branches[0]
 
     # 2. 固定选择唯一分支，并把 TaskRun 信息整理成当前 agent node 可消费的输入。
-    branch_human = task_context.branch_humans[0].human
-    platform_summary = str(branch.platform.get("summary") or "")
-    platform_items = branch.platform.get("items") if isinstance(branch.platform.get("items"), list) else []
     scenario_understanding_md = "\n".join(
         [
             "# 海上航母对抗想定理解",
             "",
-            f"- plan_id: {task_plan.plan_id}",
+            f"- plan_id: {task_context.plan_id}",
             f"- context_id: {task_context.context_id}",
             f"- run_id: {task_run.run_id}",
-            f"- scenario_name: {task_plan.scenario_name}",
-            f"- side: {task_plan.side}",
-            f"- opponent_side: {task_plan.opponent_side}",
-            f"- objective: {task_plan.objective}",
+            f"- scenario_name: {task_context.scenario_name}",
+            f"- side: {task_context.side}",
+            f"- opponent_side: {task_context.opponent_side}",
+            f"- goal: {task_context.human.goal}",
             "",
             "## 约束",
-            *[f"- {item}" for item in task_plan.constraints],
+            *[f"- {item}" for item in task_context.human.constraints],
+            "",
+            "## 风险点",
+            *[f"- {item}" for item in task_context.human.risk_points],
             "",
             "## 分支",
-            *[f"- {item.name} ({item.branch_id}): {item.description}" for item in task_plan.branches],
+            *[f"- {item.name} ({item.branch_id}): {item.description}" for item in task_context.branches],
             "",
             "## 人工输入",
-            f"- {task_context.plan_human.summary}",
-            *[f"- {item}" for item in task_context.plan_human.items],
+            *_render_human_input_lines(task_context.human),
         ]
     )
     battle_plan_md = "\n".join(
@@ -55,15 +65,13 @@ def test_plan_generation(monkeypatch) -> None:
             "# 测试作战方案",
             "",
             "## 目标",
-            f"- {task_plan.objective}",
+            f"- {task_context.human.goal}",
             "",
-            "## 上游平台打法",
-            f"- {platform_summary}",
-            *[f"- {item}" for item in platform_items],
+            "## 分支配置",
+            f"- {branch_context.name}",
             "",
             "## 人工补充",
-            f"- {branch_human.summary}",
-            *[f"- {item}" for item in branch_human.items],
+            *_render_human_input_lines(branch_context.human),
             "",
             "## 参数生成提示",
             json.dumps(
@@ -101,7 +109,6 @@ def test_plan_generation(monkeypatch) -> None:
         "planned_agent_params": planned_agent_params,
     }
     payload = {
-        "task_plan": task_plan.model_dump(mode="json", exclude_defaults=True),
         "task_context": task_context.model_dump(mode="json", exclude_defaults=True),
         "task_run": task_run.model_dump(mode="json", exclude_defaults=True),
         "simulation_node_input": simulation_node_input,
@@ -120,8 +127,8 @@ def test_plan_generation(monkeypatch) -> None:
     assert planned_agent_params
     assert state.run_id == task_run.run_id
     assert state.context_id == task_context.context_id
-    assert state.plan_id == task_plan.plan_id
-    assert simulation_node_input["scenario_name"] == task_plan.scenario_name
+    assert state.plan_id == task_context.plan_id
+    assert simulation_node_input["scenario_name"] == task_context.scenario_name
     assert simulation_node_input["planned_agent_params"] == planned_agent_params
 
 

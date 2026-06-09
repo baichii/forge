@@ -7,7 +7,6 @@ from battle_planner.model.models import (
     SimulationRunResult,
     SummaryEvaluation,
     TaskContextSpec,
-    TaskPlanSpec,
     TaskRunOptions,
     TaskRunSpec,
 )
@@ -22,7 +21,6 @@ class BattlePlannerState(BaseModel):
     plan_id: str | None = None
     context_id: str | None = None
     run_id: str | None = None
-    task_plan_snapshot: TaskPlanSpec | None = None
     task_context: TaskContextSpec | None = None
     task_run_options: TaskRunOptions | None = None
     scenario_name: str | None = None
@@ -58,14 +56,12 @@ class BattlePlannerState(BaseModel):
 def build_initial_state(task_run: TaskRunSpec) -> BattlePlannerState:
     """Build workflow initial state from a TaskRun."""
 
-    task_context = task_run.task_context_snapshot
-    task_plan = task_context.plan_snapshot
+    task_context = task_run.task_context
     return BattlePlannerState(
         plan_id=task_run.plan_id,
         context_id=task_run.context_id,
         run_id=task_run.run_id,
-        task_plan_snapshot=task_plan,
         task_context=task_context,
         task_run_options=task_run.options,
-        scenario_name=task_plan.scenario_name,
+        scenario_name=task_context.scenario_name,
     )

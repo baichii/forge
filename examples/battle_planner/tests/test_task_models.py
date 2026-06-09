@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import pytest
-from battle_planner.model.models import (
-    HumanInputSpec,
-    TaskBranchHumanInputRequest,
-    TaskContextCreateRequest,
-    TaskPlanSpec,
-    build_task_context,
+from battle_planner.model.human import (
+    BranchHumanInputSpec,
+    PlanHumanInputSpec,
 )
+from battle_planner.model.task import TaskBranchContextSpec
 from battle_planner.orchestration.state.state import build_initial_state
 from battle_planner.workspace.local.demo_seed import (
     build_local_task_context,
@@ -17,18 +15,35 @@ from battle_planner.workspace.local.demo_seed import (
 )
 
 
-def test_build_task_context_and_task_run() -> None:
+def test_local_demo_seed_builds_task_context_and_task_run() -> None:
     task_plan = build_local_task_plan()
     context_request = build_local_task_context_request()
     task_run = build_local_task_run()
-    task_context = task_run.task_context_snapshot
+    task_context = task_run.task_context
     state = build_initial_state(task_run)
 
-    assert task_context.plan_snapshot == task_plan
-    assert task_context.plan_human == context_request.plan_human
-    assert task_context.branch_humans == context_request.branch_humans
+    assert task_context.plan_id == task_plan.plan_id
+    assert task_context.plan_name == task_plan.name
+    assert task_context.scenario_name == task_plan.scenario_name
+    assert task_context.side == task_plan.side
+    assert task_context.opponent_side == task_plan.opponent_side
+    assert task_context.human == context_request.plan_human
+    assert [item.branch_id for item in task_context.branches] == [
+        item.branch_id for item in context_request.branch_humans
+    ]
+    assert [item.human for item in task_context.branches] == [
+        item.human for item in context_request.branch_humans
+    ]
+    assert isinstance(task_context.human, PlanHumanInputSpec)
+    assert isinstance(task_context.branches[0], TaskBranchContextSpec)
+    assert isinstance(task_context.branches[0].human, BranchHumanInputSpec)
+    assert task_context.branches[0].name == task_plan.branches[0].name
+    assert not hasattr(task_context, "objective")
+    assert not hasattr(task_context.branches[0], "platform")
+    assert PlanHumanInputSpec().risk_style == "balanced"
+    assert BranchHumanInputSpec().risk_style == "balanced"
     assert task_run.plan_id == task_plan.plan_id
-    assert task_run.task_context_snapshot.plan_snapshot.plan_id == task_run.plan_id
+    assert task_run.task_context.plan_id == task_run.plan_id
     assert task_run.options.max_iterations == 5
     assert task_run.options.sim_runs_per_scheme == 1
     assert state.plan_id == task_run.plan_id
@@ -50,35 +65,9 @@ def test_local_demo_seed_can_select_branch_ids() -> None:
     task_context = build_local_task_context(branch_ids=[1])
 
     assert [item.branch_id for item in context_request.branch_humans] == [1]
-    assert [item.branch_id for item in task_context.branch_humans] == [1]
+    assert [item.branch_id for item in task_context.branches] == [1]
 
 
 def test_local_demo_seed_rejects_unknown_branch_ids() -> None:
     with pytest.raises(ValueError, match="do not exist in fixture"):
         build_local_task_context_request(branch_ids=[999])
-
-
-def test_build_task_context_rejects_unknown_branch() -> None:
-    task_plan = TaskPlanSpec(
-        plan_id="2175600675558391812",
-        name="航母对抗任务方案",
-        scenario_name="zc_lite",
-        side="blue",
-        branches=[{"branch_id": 1, "name": "空海协同打击"}],
-    )
-    context_request = TaskContextCreateRequest(
-        plan_id="2175600675558391812",
-        branch_humans=[
-            TaskBranchHumanInputRequest(
-                branch_id=999,
-                human=HumanInputSpec(summary="bad branch"),
-            )
-        ],
-    )
-
-    with pytest.raises(ValueError, match="unknown branch ids"):
-        build_task_context(
-            task_plan,
-            context_request,
-            context_id="2175600675558391811",
-        )

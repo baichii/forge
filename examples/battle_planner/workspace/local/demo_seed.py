@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+from battle_planner.model.human import BranchHumanInputSpec, PlanHumanInputSpec
 from battle_planner.model.requests import (
     TaskBranchHumanInputRequest,
     TaskContextCreateRequest,
@@ -12,12 +13,11 @@ from battle_planner.model.requests import (
 )
 from battle_planner.model.source import TaskPlanSpec
 from battle_planner.model.task import (
+    TaskBranchContextSpec,
     TaskContextSpec,
+    TaskRunOptions,
     TaskRunSpec,
-    build_task_context,
-    build_task_run,
 )
-from battle_planner.model.workflow import HumanInputSpec
 from battle_planner.workspace.local.loaders import load_task_plan_config
 from pydantic import BaseModel, Field
 
@@ -26,7 +26,7 @@ class LocalBranchDemoSeed(BaseModel):
     """Local human input for one task branch."""
 
     branch_id: int = Field(description="任务方案内的分支 ID。")
-    human: HumanInputSpec = Field(default_factory=HumanInputSpec, description="分支人工输入。")
+    human: BranchHumanInputSpec = Field(default_factory=BranchHumanInputSpec, description="分支人工输入。")
 
 
 class LocalDemoSeed(BaseModel):
@@ -39,35 +39,50 @@ class LocalDemoSeed(BaseModel):
     run_id: str = Field(default="2175600675558391810")
     context_name: str = Field(default="航母对抗任务上下文001")
     run_name: str = Field(default="航母对抗策略迭代运行001")
-    plan_human: HumanInputSpec = Field(
-        default_factory=lambda: HumanInputSpec(
-            summary="人工希望先验证任务方案、策略迭代和推演配置的数据链路。",
-            items=[
-                "当前只保留一个策略分支，不考虑备选方案对比。",
-                "只评价该策略是否完成摧毁航母目标。",
+    plan_human: PlanHumanInputSpec = Field(
+        default_factory=lambda: PlanHumanInputSpec(
+            goal="先验证任务方案、策略迭代和推演配置的数据链路。",
+            constraints=[
+                "当前只使用本地任务方案和本地 tick-agent 资源。",
+                "优先保证 workflow 输入结构稳定，暂不追求复杂业务覆盖。",
             ],
+            risk_points=[
+                "分支能力可能与本地 tick-agent 库不完全匹配。",
+                "仿真结果先用于链路验证，不作为最终业务评估结论。",
+            ],
+            notes="时间窗、偏好打法等不确定信息暂时在备注中保留。",
         )
     )
     branch_humans: list[LocalBranchDemoSeed] = Field(
         default_factory=lambda: [
             LocalBranchDemoSeed(
                 branch_id=1,
-                human=HumanInputSpec(
-                    summary="人工确认本轮保留空中突击与海对海打击分支。",
-                    items=[
+                human=BranchHumanInputSpec(
+                    goal="验证空中突击与海对海打击分支能否完成航母毁伤目标。",
+                    constraints=[
                         "不要同时优化对手策略。",
                         "武器数量先保守，后续根据仿真反馈调整。",
                     ],
+                    risk_points=[
+                        "空中突击窗口过短时可能导致毁伤不足。",
+                        "舰艇补充打击可能增加我方暴露风险。",
+                    ],
+                    notes="优先跑通空中突击压制后由舰艇编队补充打击的主链路。",
                 ),
             ),
             LocalBranchDemoSeed(
                 branch_id=2,
-                human=HumanInputSpec(
-                    summary="人工希望保留潜艇隐蔽打击分支用于能力缺口验证。",
-                    items=[
+                human=BranchHumanInputSpec(
+                    goal="保留潜艇隐蔽打击分支用于能力缺口验证。",
+                    constraints=[
                         "当前只要求方案卡片和人工输入可进入数据链路。",
                         "如果本地没有匹配 tick-agent，后续运行阶段应给出提示或跳过。",
                     ],
+                    risk_points=[
+                        "潜艇分支可能暂时缺少可用 tick-agent。",
+                        "能力缺口不应阻断其他可运行分支。",
+                    ],
+                    notes="该分支用于测试业务方案存在但本地能力暂不完整的情况。",
                 ),
             ),
         ]
@@ -117,7 +132,12 @@ def build_local_task_plan(
     *,
     branch_ids: Sequence[int] | None = None,
 ) -> TaskPlanSpec:
-    """Build the local source TaskPlan from the workspace fixture."""
+    """生成本地 TaskPlan。
+
+    Args:
+        seed: 本地测试数据。
+        branch_ids: 需要校验的分支 ID；不传时使用默认分支。
+    """
 
     task_plan = load_task_plan_config(seed.plan_name)
     if task_plan.plan_id != seed.plan_id:
@@ -133,7 +153,12 @@ def build_local_task_context_request(
     *,
     branch_ids: Sequence[int] | None = None,
 ) -> TaskContextCreateRequest:
-    """Build the local request that creates a TaskContext."""
+    """生成创建 TaskContext 的本地请求。
+
+    Args:
+        seed: 本地测试数据和人工输入。
+        branch_ids: 要生成人工输入的分支 ID；不传时使用默认分支。
+    """
 
     task_plan = build_local_task_plan(seed, branch_ids=branch_ids)
     selected_branch_ids = _resolve_branch_ids(seed, branch_ids)
@@ -157,17 +182,58 @@ def build_local_task_context(
     *,
     branch_ids: Sequence[int] | None = None,
 ) -> TaskContextSpec:
-    """Build the local TaskContext from the local TaskPlan and request."""
+    """生成本地 TaskContext。
 
-    return build_task_context(
-        build_local_task_plan(seed, branch_ids=branch_ids),
-        build_local_task_context_request(seed, branch_ids=branch_ids),
+    Args:
+        seed: 本地测试数据。
+        branch_ids: 进入上下文的分支 ID；不传时使用默认分支。
+    """
+
+    task_plan = build_local_task_plan(seed, branch_ids=branch_ids)
+    request = build_local_task_context_request(seed, branch_ids=branch_ids)
+    if request.plan_id != task_plan.plan_id:
+        raise ValueError(
+            f"request plan_id={request.plan_id!r} does not match plan_id={task_plan.plan_id!r}"
+        )
+
+    branch_by_id = {branch.branch_id: branch for branch in task_plan.branches}
+    plan_branch_ids = set(branch_by_id)
+    unknown_branch_ids = [
+        item.branch_id for item in request.branch_humans if item.branch_id not in plan_branch_ids
+    ]
+    if unknown_branch_ids:
+        raise ValueError(f"unknown branch ids for plan {task_plan.plan_id}: {unknown_branch_ids}")
+    branch_human_by_id = {item.branch_id: item.human for item in request.branch_humans}
+
+    return TaskContextSpec(
         context_id=seed.context_id,
+        plan_id=task_plan.plan_id,
+        name=request.name or task_plan.name,
+        plan_name=task_plan.name,
+        scenario_name=task_plan.scenario_name,
+        side=task_plan.side,
+        opponent_side=task_plan.opponent_side,
+        human=request.plan_human,
+        branches=[
+            TaskBranchContextSpec(
+                branch_id=branch_id,
+                name=branch_by_id[branch_id].name,
+                description=branch_by_id[branch_id].description,
+                human=branch_human_by_id[branch_id],
+                meta=branch_by_id[branch_id].meta,
+            )
+            for branch_id in branch_human_by_id
+        ],
+        meta=task_plan.meta,
     )
 
 
 def build_local_task_run_request(seed: LocalDemoSeed = LOCAL_DEMO_SEED) -> TaskRunCreateRequest:
-    """Build the local request that creates a TaskRun."""
+    """生成创建 TaskRun 的本地请求。
+
+    Args:
+        seed: 提供 context_id、run_name 和运行参数的本地测试数据。
+    """
 
     return TaskRunCreateRequest(
         context_id=seed.context_id,
@@ -181,10 +247,25 @@ def build_local_task_run(
     *,
     branch_ids: Sequence[int] | None = None,
 ) -> TaskRunSpec:
-    """Build the local workflow entry TaskRun."""
+    """生成 workflow 可直接使用的本地 TaskRun。
 
-    return build_task_run(
-        build_local_task_context(seed, branch_ids=branch_ids),
-        build_local_task_run_request(seed),
+    Args:
+        seed: 本地测试数据。
+        branch_ids: 本次运行包含的分支 ID；不传时使用默认分支。
+    """
+
+    task_context = build_local_task_context(seed, branch_ids=branch_ids)
+    request = build_local_task_run_request(seed)
+    if request.context_id != task_context.context_id:
+        raise ValueError(
+            f"request context_id={request.context_id!r} does not match context_id={task_context.context_id!r}"
+        )
+
+    return TaskRunSpec(
         run_id=seed.run_id,
+        context_id=task_context.context_id,
+        plan_id=task_context.plan_id,
+        run_name=request.run_name,
+        task_context=task_context,
+        options=TaskRunOptions.model_validate(request.options),
     )
