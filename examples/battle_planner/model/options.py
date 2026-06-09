@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 class TaskRunOptions(BaseModel):
     """一次完整策略迭代运行的配置。"""
 
-    workflow_name: str = Field(description="要构建的 workflow 名称。")
+    workflow_name: str = Field(default="", description="可选 workflow 名称；为空时使用部署配置。")
     max_iterations: int = Field(default=5, description="最大迭代轮数。")
     sim_runs_per_scheme: int = Field(default=1, description="每版方案的仿真次数。")
     max_retry: int = Field(default=1, description="最大重试次数。")

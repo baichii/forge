@@ -5,15 +5,21 @@ Notes:
 
 from time import perf_counter
 
-from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
+from battle_planner.orchestration.state.state import build_initial_state
+from battle_planner.orchestration.workflow_entropy import build_workflow
+from battle_planner.workspace.local.demo_seed import build_local_task_run
 
 
 def main() -> None:
+    task_run = build_local_task_run()
+    workflow = build_workflow(task_run.options.workflow_name)
+    initial_state = build_initial_state(task_run)
     started_at = perf_counter()
-    final_state = ZcLiteBaselineWorkflow().run()
+    final_state = workflow.run(initial_state)
     workflow_elapsed = perf_counter() - started_at
 
     print("Battle planner zc_lite demo finished")
+    print(f"run_id: {task_run.run_id}")
     print(f"stage: {final_state.cur_stage}")
     print(f"scenario: {final_state.scenario_name}")
     print(f"workflow_elapsed_seconds: {workflow_elapsed:.4f}")

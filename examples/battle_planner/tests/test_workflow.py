@@ -10,7 +10,7 @@ from battle_planner.conf import LLMMode, settings
 from battle_planner.orchestration.history import build_history_item
 from battle_planner.orchestration.state.state import BattlePlannerState, build_initial_state
 from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
-from battle_planner.orchestration.workflow_entropy import WorkflowEntropy, build_workflow
+from battle_planner.orchestration.workflow_entropy import build_workflow
 from battle_planner.workspace.local.demo_seed import build_local_task_run
 
 
@@ -23,8 +23,8 @@ class WorkflowLoopResult:
 
 
 def run_workflow_loop(*, max_iterations: int | None = None) -> WorkflowLoopResult:
-    workflow = ZcLiteBaselineWorkflow()
     task_run = build_local_task_run()
+    workflow = build_workflow(task_run.options.workflow_name)
     iterations = max_iterations if max_iterations is not None else task_run.options.max_iterations
     states: list[BattlePlannerState] = []
     history: list[dict[str, Any]] = []
@@ -101,24 +101,26 @@ def test_workflow_loop_smoke(monkeypatch) -> None:
     assert "历史迭代反馈" in _trace_content(states[1], "battle_plan_generation")
 
 
-def test_workflow_entropy_builds_workflow_by_name() -> None:
-    assert ZcLiteBaselineWorkflow.name == "zc_lite_baseline"
-
-    workflow = build_workflow("zc_lite_baseline")
-
-    assert isinstance(workflow, ZcLiteBaselineWorkflow)
-    assert WorkflowEntropy.build_workflow("zc_lite_baseline").name == "zc_lite_baseline"
-
-    with pytest.raises(ValueError, match="Unknown battle planner workflow"):
-        build_workflow("missing")
-
-
-def test_workflow_entropy_uses_configured_default(monkeypatch) -> None:
-    monkeypatch.setattr(settings, "WORKFLOW_NAME", "zc_lite_baseline")
-
+def test_workflow_entropy_uses_configured_default() -> None:
     workflow = build_workflow()
 
     assert isinstance(workflow, ZcLiteBaselineWorkflow)
+
+
+def test_workflow_entropy_accepts_option_workflow_name() -> None:
+    task_run = build_local_task_run()
+    task_run.options.workflow_name = "zc_lite_baseline"
+
+    workflow = build_workflow(task_run.options.workflow_name)
+
+    assert isinstance(workflow, ZcLiteBaselineWorkflow)
+
+
+def test_workflow_entropy_rejects_unknown_workflow_name(monkeypatch) -> None:
+    monkeypatch.setattr(settings, "WORKFLOW_NAME", "missing")
+
+    with pytest.raises(ValueError, match="Unknown battle planner workflow"):
+        build_workflow()
 
 
 def _force_offline_llm_mode(monkeypatch) -> None:

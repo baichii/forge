@@ -54,7 +54,14 @@ class BattlePlannerState(BaseModel):
 
 
 def build_initial_state(task_run: TaskRunSpec) -> BattlePlannerState:
-    """Build workflow initial state from a TaskRun."""
+    """从 TaskRun 构建 workflow 初始状态。
+
+    Args:
+        task_run: 本次策略迭代运行输入。
+
+    Returns:
+        workflow 可直接执行的初始状态。
+    """
 
     task_context = task_run.task_context
     return BattlePlannerState(

@@ -57,14 +57,15 @@ def test_settings_defaults(monkeypatch) -> None:
     assert settings.HOST == HostMode.LOCAL
     assert settings.SOURCE == SourceMode.LOCAL
     assert settings.LLM_MODE == LLMMode.OFFLINE
+    assert settings.WORKFLOW_NAME == "zc_lite_baseline"
     assert settings.MODEL == "by_qwen36"
     assert "by_qwen36" in settings.MODEL_PROFILES
 
 
 def test_task_run_options_defaults_and_explicit_values() -> None:
-    options = TaskRunOptions(workflow_name="zc_lite_baseline")
+    options = TaskRunOptions()
 
-    assert options.workflow_name == "zc_lite_baseline"
+    assert options.workflow_name == ""
     assert options.max_iterations == 5
     assert options.sim_runs_per_scheme == 1
     assert options.max_retry == 1

@@ -267,5 +267,5 @@ def build_local_task_run(
         plan_id=task_context.plan_id,
         run_name=request.run_name,
         task_context=task_context,
-        options=request.options,
+        options=request.options.model_copy(deep=True),
     )
