@@ -49,43 +49,6 @@ def run_workflow_loop(*, max_iterations: int | None = None) -> WorkflowLoopResul
     return WorkflowLoopResult(states=states, history=history, status=status, stop_reason=stop_reason)
 
 
-def main() -> None:
-    result = run_workflow_loop()
-    print("Battle planner workflow loop finished")
-    print(f"status: {result.status}")
-    print(f"stop_reason: {result.stop_reason}")
-    print(f"configured_iterations: {build_local_task_run().options.max_iterations}")
-    print(f"completed_iterations: {len(result.states)}")
-    print("")
-
-    for state in result.states:
-        _print_iteration(state)
-
-    print("iteration summary")
-    print(
-        "index | preset | score | achieved | destroyed | health_initial | "
-        "health_current | health_delta | damage_ratio | requested_wp"
-    )
-    for state in result.states:
-        metrics = _mission_metrics(state)
-        print(
-            " | ".join(
-                [
-                    str(state.iteration_index),
-                    str(state.agent_param_preset_id or ""),
-                    str(state.evaluation_report.score if state.evaluation_report else None),
-                    str(metrics.get("objective_achieved")),
-                    str(metrics.get("target_destroyed_count")),
-                    str(metrics.get("target_initial_health")),
-                    str(metrics.get("target_current_health")),
-                    str(metrics.get("target_health_delta")),
-                    str(metrics.get("target_damage_ratio")),
-                    str(metrics.get("requested_weapon_count")),
-                ]
-            )
-        )
-
-
 def test_workflow_loop_smoke(monkeypatch) -> None:
     _force_offline_llm_mode(monkeypatch)
 
@@ -128,43 +91,8 @@ def _force_offline_llm_mode(monkeypatch) -> None:
     monkeypatch.setattr(settings, "SIM_MAX_DECISION_STEPS", 70)
 
 
-def _print_iteration(state: BattlePlannerState) -> None:
-    metrics = _mission_metrics(state)
-    print(f"iteration_index: {state.iteration_index}")
-    print(f"- agent_param_preset_id: {state.agent_param_preset_id}")
-    print(f"- score: {state.evaluation_report.score if state.evaluation_report else None}")
-    print(f"- objective_achieved: {metrics.get('objective_achieved')}")
-    print(f"- target_destroyed_count: {metrics.get('target_destroyed_count')}")
-    print(f"- target_initial_health: {metrics.get('target_initial_health')}")
-    print(f"- target_current_health: {metrics.get('target_current_health')}")
-    print(f"- target_health_delta: {metrics.get('target_health_delta')}")
-    print(f"- target_damage_ratio: {metrics.get('target_damage_ratio')}")
-    print(f"- requested_weapon_count: {metrics.get('requested_weapon_count')}")
-    print("- summary_excerpt:")
-    for line in _summary_excerpt(state.summary_md):
-        print(f"  {line}")
-    if state.error:
-        print(f"- error: {state.error}")
-    print("")
-
-
 def _trace_content(state: BattlePlannerState, node_name: str) -> str:
     for trace in state.llm_traces:
         if trace.node_name == node_name and trace.input_messages:
             return str(trace.input_messages[-1].get("content") or "")
     return ""
-
-
-def _summary_excerpt(summary_md: str, *, max_lines: int = 12) -> list[str]:
-    lines = [line for line in summary_md.splitlines() if line.strip()]
-    return lines[:max_lines]
-
-
-def _mission_metrics(state: BattlePlannerState) -> dict[str, Any]:
-    if state.evaluation_report is None:
-        return {}
-    return dict(state.evaluation_report.mission_metrics)
-
-
-if __name__ == "__main__":
-    main()
