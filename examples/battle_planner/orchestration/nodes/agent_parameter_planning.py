@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from battle_planner.agents.agent_parameter_planning import plan_agent_params
-from battle_planner.config import config
+from battle_planner.conf import LLMMode, settings
 from battle_planner.llm_runtime.model_provider import build_model_provider
 from battle_planner.llm_runtime.trace import identity_trace
 from battle_planner.orchestration.node_logging import log_node_end, log_node_start
@@ -12,7 +12,7 @@ from forge.core.specs import TickAgentParams
 
 
 def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
-    if config.runtime.use_offline_llm:
+    if settings.LLM_MODE == LLMMode.OFFLINE:
         return _display_agent_parameter_planning_node(state)
 
     model_provider = build_model_provider()

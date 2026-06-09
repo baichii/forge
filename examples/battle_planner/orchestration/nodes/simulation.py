@@ -3,13 +3,13 @@ from __future__ import annotations
 from time import perf_counter
 
 from battle_planner.adapters.runtime.runner import Runner
-from battle_planner.config import config
+from battle_planner.conf import settings
 from battle_planner.model import SimulationRunResult
 from battle_planner.orchestration.node_logging import log_node_end, log_node_error, log_node_start
 from battle_planner.orchestration.state.state import BattlePlannerState
 from battle_planner.registry import register_battle_planner_modules
 
-from forge.core.specs import CallbackParams, EnvLink, EnvMode, EnvParams
+from forge.core.specs import EnvLink, EnvMode, EnvParams
 
 
 def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
@@ -20,7 +20,9 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
         planned_agents=len(state.planned_agent_params),
     )
     try:
-        max_steps = config.simulation.max_decision_steps
+        if not state.callback_params:
+            raise ValueError("simulation requires callback_params from scenario runtime config")
+        max_steps = settings.SIM_MAX_DECISION_STEPS
         register_battle_planner_modules()
         runner = Runner(
             env=EnvParams(
@@ -30,7 +32,7 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
                 params={"scenario_name": state.scenario_name or "zc_lite", "render_mode": "none"},
             ),
             tick_agents=state.planned_agent_params,
-            callbacks=state.callback_params or build_default_callback_params(),
+            callbacks=state.callback_params,
         )
         runner.reset()
         started_at = perf_counter()
@@ -80,17 +82,3 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
 
 def _is_env_finished(stop_reason: str) -> bool:
     return stop_reason in {"env_terminal", "env_truncated"}
-
-
-def build_default_callback_params() -> list[CallbackParams]:
-    target_statistic = config.simulation.target_statistic
-    return [
-        CallbackParams(
-            name="target_statistic",
-            callback_instance_id=target_statistic.callback_instance_id,
-            params={
-                "side": target_statistic.side,
-                "target_ids": target_statistic.target_ids,
-            },
-        )
-    ]

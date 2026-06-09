@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 from battle_planner.agents.summary_generation import generate_summary
-from battle_planner.config import config
 from battle_planner.model import (
     AgentExecutionSummary,
     SummaryEvaluation,
@@ -100,7 +99,7 @@ def _target_statistic_callback_id(state: BattlePlannerState) -> str:
     for callback in state.callback_params:
         if callback.name == "target_statistic" and callback.callback_instance_id:
             return callback.callback_instance_id
-    return config.simulation.target_statistic.callback_instance_id
+    raise ValueError("summary requires target_statistic callback_params from scenario runtime config")
 
 
 def _build_target_summary(*, target_id: str, payload: dict[str, Any]) -> TargetObjectiveSummary:

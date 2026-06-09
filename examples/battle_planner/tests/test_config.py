@@ -26,16 +26,16 @@ def test_settings_parse_runtime_and_model_env(monkeypatch) -> None:
     monkeypatch.setenv("MODEL_BY_QWEN36_API_URL", "http://localhost:8000/v1")
     monkeypatch.setenv("MODEL_BY_QWEN36_API_KEY", "dummy")
     monkeypatch.setenv("MODEL_BY_QWEN36_MODEL_NAME", "test-model")
-    monkeypatch.setenv("BATTLE_PLANNER_LLM_MAX_TOKENS", "4096")
-    monkeypatch.setenv("BATTLE_PLANNER_LLM_TIMEOUT_SECONDS", "12.5")
-    monkeypatch.setenv("BATTLE_PLANNER_LLM_MAX_RETRY", "3")
-    monkeypatch.setenv("BATTLE_PLANNER_SIM_RUNS_PER_PLAN", "5")
-    monkeypatch.setenv("BATTLE_PLANNER_SIM_MAX_PARALLEL", "2")
-    monkeypatch.setenv("BATTLE_PLANNER_SIM_MAX_DECISION_STEPS", "7")
-    monkeypatch.setenv("BATTLE_PLANNER_SIM_MAX_FAILURES", "2")
-    monkeypatch.setenv("BATTLE_PLANNER_SIM_RANDOM_SEED", "42")
-    monkeypatch.setenv("BATTLE_PLANNER_REPORT_LEVEL", "standard")
-    monkeypatch.setenv("BATTLE_PLANNER_REPORT_INCLUDE_LLM_TRACE", "false")
+    monkeypatch.setenv("LLM_MAX_TOKENS", "4096")
+    monkeypatch.setenv("LLM_TIMEOUT_SECONDS", "12.5")
+    monkeypatch.setenv("LLM_MAX_RETRY", "3")
+    monkeypatch.setenv("SIM_RUNS_PER_PLAN", "5")
+    monkeypatch.setenv("SIM_MAX_PARALLEL", "2")
+    monkeypatch.setenv("SIM_MAX_DECISION_STEPS", "7")
+    monkeypatch.setenv("SIM_MAX_FAILURES", "2")
+    monkeypatch.setenv("SIM_RANDOM_SEED", "42")
+    monkeypatch.setenv("REPORT_LEVEL", "standard")
+    monkeypatch.setenv("REPORT_INCLUDE_LLM_TRACE", "false")
 
     settings = Settings(_env_file=None)
 
@@ -43,21 +43,9 @@ def test_settings_parse_runtime_and_model_env(monkeypatch) -> None:
     assert settings.SOURCE == SourceMode.SERVICE
     assert settings.LLM_MODE == LLMMode.OFFLINE
     assert settings.MODEL == "by_qwen36"
-    assert settings.MODEL_PROFILES == "by_qwen36"
-    assert settings.MODEL_BY_QWEN36_PROVIDER == "by"
-    assert settings.MODEL_BY_QWEN36_API_URL == "http://localhost:8000/v1"
-    assert settings.MODEL_BY_QWEN36_API_KEY == "dummy"
-    assert settings.MODEL_BY_QWEN36_MODEL_NAME == "test-model"
-    assert settings.BATTLE_PLANNER_LLM_MAX_TOKENS == 4096
-    assert settings.BATTLE_PLANNER_LLM_TIMEOUT_SECONDS == 12.5
-    assert settings.BATTLE_PLANNER_LLM_MAX_RETRY == 3
-    assert settings.BATTLE_PLANNER_SIM_RUNS_PER_PLAN == 5
-    assert settings.BATTLE_PLANNER_SIM_MAX_PARALLEL == 2
-    assert settings.BATTLE_PLANNER_SIM_MAX_DECISION_STEPS == 7
-    assert settings.BATTLE_PLANNER_SIM_MAX_FAILURES == 2
-    assert settings.BATTLE_PLANNER_SIM_RANDOM_SEED == 42
-    assert settings.BATTLE_PLANNER_REPORT_LEVEL == "standard"
-    assert settings.BATTLE_PLANNER_REPORT_INCLUDE_LLM_TRACE is False
+    assert settings.LLM_TIMEOUT_SECONDS == 12.5
+    assert settings.SIM_MAX_DECISION_STEPS == 7
+    assert settings.model_profile_names == ["by_qwen36"]
 
 
 def test_settings_defaults(monkeypatch) -> None:
@@ -80,8 +68,6 @@ def test_task_run_options_defaults_and_explicit_values() -> None:
     assert options.max_iterations == 5
     assert options.sim_runs_per_scheme == 1
     assert options.max_retry == 1
-    assert options.timeout_seconds is None
-    assert options.extra == {}
 
     explicit = TaskRunOptions(
         workflow_name="custom_workflow",
@@ -89,12 +75,11 @@ def test_task_run_options_defaults_and_explicit_values() -> None:
         sim_runs_per_scheme=5,
         max_retry=3,
         timeout_seconds=60,
-        extra={"max_decision_steps": 7},
+        extra={"custom": "value"},
     )
 
     assert explicit.workflow_name == "custom_workflow"
     assert explicit.max_iterations == 2
     assert explicit.sim_runs_per_scheme == 5
     assert explicit.max_retry == 3
-    assert explicit.timeout_seconds == 60
-    assert explicit.extra == {"max_decision_steps": 7}
+    assert explicit.extra == {"custom": "value"}

@@ -1,24 +1,28 @@
 from __future__ import annotations
 
-from battle_planner.config import config
 from battle_planner.orchestration.state.state import BattlePlannerState
 
 from forge.core.specs import CallbackParams
 
-
-def test_simulation_node_uses_default_callback_params(monkeypatch) -> None:
-    import battle_planner.orchestration.nodes.simulation as simulation_module
-
-    captured = _patch_fake_runner(monkeypatch, simulation_module, stop_reason="env_terminal")
-
-    result = simulation_module.simulation_node(BattlePlannerState(scenario_name="zc3_lite"))
-
-    callbacks = captured["callbacks"]
-    assert result.simulation_result.done is True
-    assert callbacks[0].params["target_ids"] == config.simulation.target_statistic.target_ids
+TARGET_CARRIER_ID = "red_CV16 “辽宁”号001型航空母舰_1"
 
 
 def test_simulation_node_uses_state_callback_params(monkeypatch) -> None:
+    import battle_planner.orchestration.nodes.simulation as simulation_module
+
+    captured = _patch_fake_runner(monkeypatch, simulation_module, stop_reason="env_terminal")
+    callback = _make_target_statistic_callback()
+
+    result = simulation_module.simulation_node(
+        BattlePlannerState(scenario_name="zc3_lite", callback_params=[callback])
+    )
+
+    callbacks = captured["callbacks"]
+    assert result.simulation_result.done is True
+    assert callbacks[0].params["target_ids"] == [TARGET_CARRIER_ID]
+
+
+def test_simulation_node_accepts_custom_callback_params(monkeypatch) -> None:
     import battle_planner.orchestration.nodes.simulation as simulation_module
 
     captured = _patch_fake_runner(monkeypatch, simulation_module, stop_reason="max_step")
@@ -40,6 +44,17 @@ def test_simulation_node_uses_state_callback_params(monkeypatch) -> None:
 
     assert result.simulation_result.done is False
     assert captured["callbacks"] == [custom_callback]
+
+
+def _make_target_statistic_callback() -> CallbackParams:
+    return CallbackParams(
+        name="target_statistic",
+        callback_instance_id="target_statistic_carrier",
+        params={
+            "side": "red",
+            "target_ids": [TARGET_CARRIER_ID],
+        },
+    )
 
 
 def _patch_fake_runner(monkeypatch, simulation_module, *, stop_reason: str) -> dict:

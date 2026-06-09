@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import importlib
 
-from battle_planner.config import LLMMode, config
+from battle_planner.conf import LLMMode, settings
 from battle_planner.orchestration.state.state import BattlePlannerState
 
 
 def test_agent_parameter_planning_node_uses_display_preset(monkeypatch) -> None:
     node_module = importlib.import_module("battle_planner.orchestration.nodes.agent_parameter_planning")
-    monkeypatch.setattr(config.runtime, "llm_mode", LLMMode.OFFLINE)
+    monkeypatch.setattr(settings, "LLM_MODE", LLMMode.OFFLINE)
 
     def fail_build_model_provider():
         raise AssertionError("offline llm mode should not build model provider")

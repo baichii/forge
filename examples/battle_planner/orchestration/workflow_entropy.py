@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from battle_planner.config import config
+from battle_planner.conf import settings
 from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
 
 
@@ -13,7 +13,7 @@ class WorkflowEntropy:
 
     @classmethod
     def build_workflow(cls, name: str | None = None) -> ZcLiteBaselineWorkflow:
-        workflow_name = name or config.runtime.workflow_name
+        workflow_name = name or settings.WORKFLOW_NAME
         try:
             workflow_type = cls.workflow_types[workflow_name]
         except KeyError as exc:

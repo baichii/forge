@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BATTLE_PLANNER_ROOT = Path(__file__).resolve().parent
+PACKAGE_ROOT = Path(__file__).resolve().parent
 
 
 class HostMode(StrEnum):
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=BATTLE_PLANNER_ROOT / ".env",
+        env_file=PACKAGE_ROOT / ".env",
         env_file_encoding="utf-8",
         env_ignore_empty=True,
         extra="ignore",
@@ -75,23 +75,27 @@ class Settings(BaseSettings):
     MODEL_DEEPSEEK_V4_PRO_THINKING_TYPE: str = "enabled"
 
     # llm runtime
-    BATTLE_PLANNER_LLM_MAX_TOKENS: int = 2048
-    BATTLE_PLANNER_LLM_TIMEOUT_SECONDS: float = 30.0
-    BATTLE_PLANNER_LLM_MAX_RETRY: int = 2
+    LLM_MAX_TOKENS: int = 2048
+    LLM_TIMEOUT_SECONDS: float = 30.0
+    LLM_MAX_RETRY: int = 2
 
     # simulation
-    BATTLE_PLANNER_SIM_RUNS_PER_PLAN: int = 3
-    BATTLE_PLANNER_SIM_MAX_PARALLEL: int = 1
-    BATTLE_PLANNER_SIM_MAX_DECISION_STEPS: int | None = None
-    BATTLE_PLANNER_SIM_MAX_FAILURES: int = 1
-    BATTLE_PLANNER_SIM_RANDOM_SEED: int | None = None
+    SIM_RUNS_PER_PLAN: int = 3
+    SIM_MAX_PARALLEL: int = 1
+    SIM_MAX_DECISION_STEPS: int | None = None
+    SIM_MAX_FAILURES: int = 1
+    SIM_RANDOM_SEED: int | None = None
 
     # report
-    BATTLE_PLANNER_REPORT_LEVEL: str = "full"
-    BATTLE_PLANNER_REPORT_INCLUDE_LLM_TRACE: bool = True
-    BATTLE_PLANNER_REPORT_INCLUDE_SIM_LOGS: bool = True
-    BATTLE_PLANNER_REPORT_INCLUDE_FAILED_RUNS: bool = True
-    BATTLE_PLANNER_REPORT_FORMAT: str = "md"
+    REPORT_LEVEL: str = "full"
+    REPORT_INCLUDE_LLM_TRACE: bool = True
+    REPORT_INCLUDE_SIM_LOGS: bool = True
+    REPORT_INCLUDE_FAILED_RUNS: bool = True
+    REPORT_FORMAT: str = "md"
+
+    @property
+    def model_profile_names(self) -> list[str]:
+        return [item.strip() for item in self.MODEL_PROFILES.split(",") if item.strip()]
 
 
 @lru_cache

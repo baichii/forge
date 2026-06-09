@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from battle_planner.config import LLMMode, config
+from battle_planner.conf import LLMMode, settings
 from battle_planner.orchestration.nodes.agent_parameter_planning import (
     agent_parameter_planning_node,
 )
@@ -24,7 +24,7 @@ def _render_human_input_lines(human) -> list[str]:
 
 
 def test_plan_generation(monkeypatch) -> None:
-    monkeypatch.setattr(config.runtime, "llm_mode", LLMMode.OFFLINE)
+    monkeypatch.setattr(settings, "LLM_MODE", LLMMode.OFFLINE)
 
     # 1. 业务侧导入 TaskPlan，并叠加人工输入生成 TaskContext/TaskRun。
     target_ids = ["red_CV16 “辽宁”号001型航空母舰_1"]

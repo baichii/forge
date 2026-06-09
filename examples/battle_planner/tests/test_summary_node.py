@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from battle_planner.config import config
 from battle_planner.model import (
     EvaluationReport,
     LLMTrace,
@@ -10,10 +9,10 @@ from battle_planner.model import (
 )
 from battle_planner.orchestration.state.state import BattlePlannerState
 
-from forge.core.specs import TickAgentParams
+from forge.core.specs import CallbackParams, TickAgentParams
 
-TARGET_CARRIER_ID = config.simulation.target_statistic.target_ids[0]
-TARGET_STATISTIC_CALLBACK_ID = config.simulation.target_statistic.callback_instance_id
+TARGET_CARRIER_ID = "red_CV16 “辽宁”号001型航空母舰_1"
+TARGET_STATISTIC_CALLBACK_ID = "target_statistic_carrier"
 
 
 def test_summary_node_evaluates_target_alive_with_agent_actions(monkeypatch) -> None:
@@ -81,6 +80,7 @@ def _make_state(*, target_alive: bool, action_count: int, health_delta: int) -> 
         ),
         scenario_understanding_md="红方航母为关键目标。",
         battle_plan_md="使用空中突击和海对海打击。",
+        callback_params=[_make_target_statistic_callback()],
         planned_agent_params=[
             TickAgentParams(
                 agent_instance_id="air_001",
@@ -107,6 +107,17 @@ def _make_state(*, target_alive: bool, action_count: int, health_delta: int) -> 
             },
         ),
         evaluation_report=EvaluationReport(score=75.0),
+    )
+
+
+def _make_target_statistic_callback() -> CallbackParams:
+    return CallbackParams(
+        name="target_statistic",
+        callback_instance_id=TARGET_STATISTIC_CALLBACK_ID,
+        params={
+            "side": "red",
+            "target_ids": [TARGET_CARRIER_ID],
+        },
     )
 
 

@@ -6,11 +6,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pytest
-from battle_planner.config import LLMMode, config
+from battle_planner.conf import LLMMode, settings
 from battle_planner.orchestration.history import build_history_item
-from battle_planner.orchestration.state.state import BattlePlannerState
+from battle_planner.orchestration.state.state import BattlePlannerState, build_initial_state
 from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
 from battle_planner.orchestration.workflow_entropy import WorkflowEntropy, build_workflow
+from battle_planner.workspace.local.demo_seed import build_local_task_run
 
 
 @dataclass
@@ -23,14 +24,18 @@ class WorkflowLoopResult:
 
 def run_workflow_loop(*, max_iterations: int | None = None) -> WorkflowLoopResult:
     workflow = ZcLiteBaselineWorkflow()
-    iterations = max_iterations if max_iterations is not None else config.workflow.max_iterations
+    task_run = build_local_task_run()
+    iterations = max_iterations if max_iterations is not None else task_run.options.max_iterations
     states: list[BattlePlannerState] = []
     history: list[dict[str, Any]] = []
     status = "completed"
     stop_reason = "max_iterations"
 
     for iteration_index in range(iterations):
-        state = workflow.run(BattlePlannerState(iteration_index=iteration_index, history=list(history)))
+        initial_state = build_initial_state(task_run).model_copy(
+            update={"iteration_index": iteration_index, "history": list(history)}
+        )
+        state = workflow.run(initial_state)
         if state.cur_stage == "complete":
             history.append(build_history_item(state))
             state.history = list(history)
@@ -49,7 +54,7 @@ def main() -> None:
     print("Battle planner workflow loop finished")
     print(f"status: {result.status}")
     print(f"stop_reason: {result.stop_reason}")
-    print(f"configured_iterations: {config.workflow.max_iterations}")
+    print(f"configured_iterations: {build_local_task_run().options.max_iterations}")
     print(f"completed_iterations: {len(result.states)}")
     print("")
 
@@ -84,7 +89,7 @@ def main() -> None:
 def test_workflow_loop_smoke(monkeypatch) -> None:
     _force_offline_llm_mode(monkeypatch)
 
-    result = run_workflow_loop()
+    result = run_workflow_loop(max_iterations=2)
     states = result.states
 
     assert len(states) == 2
@@ -109,7 +114,7 @@ def test_workflow_entropy_builds_workflow_by_name() -> None:
 
 
 def test_workflow_entropy_uses_configured_default(monkeypatch) -> None:
-    monkeypatch.setattr(config.runtime, "workflow_name", "zc_lite_baseline")
+    monkeypatch.setattr(settings, "WORKFLOW_NAME", "zc_lite_baseline")
 
     workflow = build_workflow()
 
@@ -117,10 +122,8 @@ def test_workflow_entropy_uses_configured_default(monkeypatch) -> None:
 
 
 def _force_offline_llm_mode(monkeypatch) -> None:
-    monkeypatch.setattr(config.runtime, "llm_mode", LLMMode.OFFLINE)
-    monkeypatch.setattr(config.workflow, "max_iterations", 2)
-    monkeypatch.setattr(config.workflow, "save_artifacts", False)
-    monkeypatch.setattr(config.simulation, "max_decision_steps", 70)
+    monkeypatch.setattr(settings, "LLM_MODE", LLMMode.OFFLINE)
+    monkeypatch.setattr(settings, "SIM_MAX_DECISION_STEPS", 70)
 
 
 def _print_iteration(state: BattlePlannerState) -> None:
