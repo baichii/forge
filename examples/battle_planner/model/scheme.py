@@ -15,7 +15,7 @@ from forge.core.specs import CallbackParams, TickAgentParams
 class SchemeSpec(BaseModel):
     """LLM 迭代生成的一版可执行方案。"""
 
-    scheme_id: str = Field(description="可执行方案唯一 ID。")
+    scheme_id: int = Field(description="可执行方案 ID，在所属任务运行内从 1 开始自增。")
     run_id: str = Field(description="来源任务运行 ID。")
     version: int = Field(description="方案版本。")
     planned_agent_params: list[TickAgentParams] = Field(

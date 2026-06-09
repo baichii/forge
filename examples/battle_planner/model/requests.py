@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 class TaskBranchHumanInputRequest(BaseModel):
     """任务分支的人工输入。"""
 
-    branch_id: str = Field(description="来源任务分支 ID。")
+    branch_id: int = Field(description="来源任务分支 ID，在所属任务方案内从 1 开始自增。")
     human: HumanInputSpec = Field(default_factory=HumanInputSpec, description="分支人工输入。")
 
 
@@ -27,13 +27,11 @@ class TaskContextCreateRequest(BaseModel):
     branch_humans: list[TaskBranchHumanInputRequest] = Field(
         default_factory=list, description="任务分支人工输入。"
     )
-    raw_payload: dict[str, Any] = Field(default_factory=dict, description="原始请求内容，预留字段。")
 
 
 class TaskRunCreateRequest(BaseModel):
     """创建一次任务运行的请求。"""
 
-    task_context_id: str = Field(description="任务上下文 ID。")
-    run_name: str = Field(default="", description="任务运行名称。")
+    context_id: str = Field(description="任务上下文 ID。")
+    run_name: str = Field(default="", description="任务运行名称，用于内部日志生成。")
     options: dict[str, Any] = Field(default_factory=dict, description="运行参数原始输入。")
-    raw_payload: dict[str, Any] = Field(default_factory=dict, description="原始请求内容，预留字段。")

@@ -1,5 +1,5 @@
 {
-  "plan_id": "10001",
+  "plan_id": "2175600675558391808",
   "name": "海上航母对抗验证任务方案",
   "scenario_name": "zc3_lite",
   "side": "blue",
@@ -12,7 +12,7 @@
   ],
   "branches": [
     {
-      "branch_id": "branch-carrier-strike-validation",
+      "branch_id": 1,
       "name": "空中突击与海对海打击",
       "description": "蓝方先组织空中突击压制红方航母，再使用海对海打击补充毁伤，目标是击沉对方航母。",
       "platform": {
@@ -22,20 +22,20 @@
           "舰艇编队在空袭后补充打击同一航母目标。",
           "目标是击沉红方航母。"
         ]
-      },
-      "meta": {
-        "branch_label": "分支 A",
-        "display_tags": ["毁伤优先", "消耗受控", "低暴露"],
-        "agent_description_ids": [
-          "air_to_sea_strike_agent",
-          "naval_to_sea_strike_agent"
+      }
+    },
+    {
+      "branch_id": 2,
+      "name": "潜艇隐蔽打击",
+      "description": "蓝方尝试使用潜艇隐蔽接近红方航母编队，并在合适窗口发起海上目标打击。",
+      "platform": {
+        "summary": "上游平台建议保留潜艇隐蔽打击作为备选分支，用于验证当前资源库是否具备对应智能体能力。",
+        "items": [
+          "潜艇保持隐蔽接近，避免过早暴露。",
+          "在接近攻击窗口后尝试对红方航母发起打击。",
+          "如果当前本地资源库缺少对应智能体，运行阶段应提示能力缺口。"
         ]
       }
     }
-  ],
-  "meta": {
-    "fixture_id": "zc3_lite_carrier_validation",
-    "fixture_type": "demo_task_plan",
-    "source": "examples/battle_planner/workspace/local/task_plans"
-  }
+  ]
 }

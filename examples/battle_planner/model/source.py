@@ -13,17 +13,17 @@ class TickAgentSourceSpec(BaseModel):
     tick_agent_id: str = Field(description="tick agent 唯一标识，全局唯一。")
     name: str = Field(description="tick agent 名称。")
     description: str = Field(default="", description="tick agent 描述。")
-    params: dict[str, Any] = Field(default_factory=dict, description="tick agent 参数声明。")
+    params: dict[str, object] = Field(default_factory=dict, description="tick agent 参数声明。")
     version: str = Field(default="", description="tick agent 版本。")
 
 
 class TaskBranchSpec(BaseModel):
     """任务方案中的分支卡片。"""
 
-    branch_id: str = Field(description="分支唯一标识。")
+    branch_id: int = Field(description="分支 ID，在所属任务方案内从 1 开始自增。")
     name: str = Field(description="分支名称。")
     description: str = Field(default="", description="分支描述。")
-    platform: dict[str, Any] = Field(default_factory=dict, description="上游平台给出的分支信息。")
+    platform: dict[str, object] = Field(default_factory=dict, description="上游平台给出的分支信息。")
     meta: dict[str, Any] = Field(default_factory=dict, description="分支元信息，预留字段。")
 
 

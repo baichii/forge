@@ -3,20 +3,12 @@ from __future__ import annotations
 import json
 
 from battle_planner.config import LLMMode, config
-from battle_planner.model.models import (
-    HumanInputSpec,
-    TaskBranchHumanInputRequest,
-    TaskContextCreateRequest,
-    TaskRunCreateRequest,
-    build_task_context,
-    build_task_run,
-)
 from battle_planner.orchestration.nodes.agent_parameter_planning import (
     agent_parameter_planning_node,
 )
 from battle_planner.orchestration.nodes.agent_schema_loading import agent_schema_loading_node
 from battle_planner.orchestration.state.state import build_initial_state
-from battle_planner.workspace.local.loaders import load_task_plan_config
+from battle_planner.workspace.local.demo_seed import build_local_task_run
 
 
 def test_plan_generation(monkeypatch) -> None:
@@ -26,52 +18,10 @@ def test_plan_generation(monkeypatch) -> None:
     target_ids = ["red_CV16 “辽宁”号001型航空母舰_1"]
     air_unit_ids = ["blue_F/A-18F型“超级大黄蜂”战斗机_14"]
     naval_unit_ids = ["blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1"]
-    task_plan = load_task_plan_config("zc3_lite_carrier_validation")
+    task_run = build_local_task_run()
+    task_context = task_run.task_context_snapshot
+    task_plan = task_context.plan_snapshot
     branch = task_plan.branches[0]
-    task_context_request = TaskContextCreateRequest(
-        plan_id=task_plan.plan_id,
-        name="航母对抗任务上下文001",
-        plan_human=HumanInputSpec(
-            summary="人工希望先验证任务方案、策略迭代和推演配置的数据链路。",
-            items=[
-                "当前只保留一个策略分支，不考虑备选方案对比。",
-                "只评价该策略是否完成摧毁航母目标。",
-            ],
-        ),
-        branch_humans=[
-            TaskBranchHumanInputRequest(
-                branch_id=branch.branch_id,
-                human=HumanInputSpec(
-                    summary="人工确认本轮只做单分支验证。",
-                    items=[
-                        "不要同时优化对手策略。",
-                        "武器数量先保守，后续根据仿真反馈调整。",
-                    ],
-                ),
-            )
-        ],
-    )
-    task_context = build_task_context(
-        task_plan,
-        task_context_request,
-        task_context_id="task-context-test-001",
-        created_at="2026-06-09 00:00:00",
-    )
-    task_run = build_task_run(
-        task_context,
-        TaskRunCreateRequest(
-            task_context_id=task_context.task_context_id,
-            run_name="航母对抗策略迭代运行001",
-            options={
-                "workflow_name": "zc_lite_baseline",
-                "max_iterations": 5,
-                "sim_runs_per_scheme": 1,
-                "max_retry": 1,
-            },
-        ),
-        run_id="task-run-test-001",
-        created_at="2026-06-09 00:00:00",
-    )
 
     # 2. 固定选择唯一分支，并把 TaskRun 信息整理成当前 agent node 可消费的输入。
     branch_human = task_context.branch_humans[0].human
@@ -82,7 +32,7 @@ def test_plan_generation(monkeypatch) -> None:
             "# 海上航母对抗想定理解",
             "",
             f"- plan_id: {task_plan.plan_id}",
-            f"- task_context_id: {task_context.task_context_id}",
+            f"- context_id: {task_context.context_id}",
             f"- run_id: {task_run.run_id}",
             f"- scenario_name: {task_plan.scenario_name}",
             f"- side: {task_plan.side}",
@@ -169,7 +119,7 @@ def test_plan_generation(monkeypatch) -> None:
     print("===== end_test_plan_generation_node_simulation_input =====\n")
     assert planned_agent_params
     assert state.run_id == task_run.run_id
-    assert state.task_context_id == task_context.task_context_id
+    assert state.context_id == task_context.context_id
     assert state.plan_id == task_plan.plan_id
     assert simulation_node_input["scenario_name"] == task_plan.scenario_name
     assert simulation_node_input["planned_agent_params"] == planned_agent_params

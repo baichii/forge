@@ -62,7 +62,7 @@ def test_runner_simple() -> None:
     )
     tick_agents = [
         _make_air_strike_params(
-            instance_id="10001",
+            instance_id="2175601143269425152",
             params={
                 "unit_ids": [
                     "blue_F/A-18F型“超级大黄蜂”战斗机_15",
@@ -74,7 +74,7 @@ def test_runner_simple() -> None:
     ]
     callbacks = [
         _make_target_statistic_param(
-            instance_id="20001",
+            instance_id="2175601143269425153",
             params={"side": "red", "target_ids": [TARGET_CARRIER_ID]},
         )
     ]
@@ -89,7 +89,7 @@ def test_runner_simple() -> None:
     assert report.env.env_name == "pysim"
     assert report.env.step_count > 0
     assert report.agents
-    assert "20001" in report.callbacks
+    assert "2175601143269425153" in report.callbacks
 
 
 @pytest.mark.skipif(

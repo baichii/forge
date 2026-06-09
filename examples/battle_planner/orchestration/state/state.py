@@ -20,7 +20,7 @@ class BattlePlannerState(BaseModel):
     """Serializable state for the zc_lite end-to-end demo workflow."""
 
     plan_id: str | None = None
-    task_context_id: str | None = None
+    context_id: str | None = None
     run_id: str | None = None
     task_plan_snapshot: TaskPlanSpec | None = None
     task_context: TaskContextSpec | None = None
@@ -62,7 +62,7 @@ def build_initial_state(task_run: TaskRunSpec) -> BattlePlannerState:
     task_plan = task_context.plan_snapshot
     return BattlePlannerState(
         plan_id=task_run.plan_id,
-        task_context_id=task_run.task_context_id,
+        context_id=task_run.context_id,
         run_id=task_run.run_id,
         task_plan_snapshot=task_plan,
         task_context=task_context,

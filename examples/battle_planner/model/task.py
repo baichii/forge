@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 
 from battle_planner.conf import settings
 from battle_planner.model.requests import (
@@ -29,7 +29,7 @@ class TaskRunOptions(BaseModel):
 class TaskContextSpec(BaseModel):
     """任务上下文，作为 LLM 策略迭代的输入上下文。"""
 
-    task_context_id: str = Field(description="任务上下文唯一 ID。")
+    context_id: str = Field(description="任务上下文唯一 ID。")
     plan_id: str = Field(description="来源任务方案 ID。")
     name: str = Field(default="", description="任务上下文名称。")
     plan_snapshot: TaskPlanSpec = Field(description="创建上下文时的任务方案快照。")
@@ -37,7 +37,6 @@ class TaskContextSpec(BaseModel):
     branch_humans: list[TaskBranchHumanInputRequest] = Field(
         default_factory=list, description="任务分支人工输入。"
     )
-    created_at: str = Field(description="创建时间。")
     meta: dict[str, Any] = Field(default_factory=dict, description="任务上下文元信息，预留字段。")
 
 
@@ -45,15 +44,11 @@ class TaskRunSpec(BaseModel):
     """一次完整策略迭代运行。"""
 
     run_id: str = Field(description="任务运行唯一 ID。")
-    task_context_id: str = Field(description="任务上下文 ID。")
+    context_id: str = Field(description="任务上下文 ID。")
     plan_id: str = Field(description="来源任务方案 ID。")
+    run_name: str = Field(default="", description="任务运行名称，用于内部日志生成。")
     task_context_snapshot: TaskContextSpec = Field(description="创建运行时的任务上下文快照。")
     options: TaskRunOptions = Field(default_factory=TaskRunOptions, description="运行配置。")
-    status: Literal["created", "running", "completed", "failed"] = Field(
-        default="created", description="任务运行状态。"
-    )
-    created_at: str = Field(description="创建时间。")
-    updated_at: str | None = Field(default=None, description="更新时间。")
     meta: dict[str, Any] = Field(default_factory=dict, description="任务运行元信息，预留字段。")
 
 
@@ -61,8 +56,7 @@ def build_task_context(
     plan: TaskPlanSpec,
     request: TaskContextCreateRequest,
     *,
-    task_context_id: str,
-    created_at: str,
+    context_id: str,
 ) -> TaskContextSpec:
     """由任务方案和人工输入请求构建任务上下文。"""
 
@@ -77,14 +71,12 @@ def build_task_context(
         raise ValueError(f"unknown branch ids for plan {plan.plan_id}: {unknown_branch_ids}")
 
     return TaskContextSpec(
-        task_context_id=task_context_id,
+        context_id=context_id,
         plan_id=plan.plan_id,
         name=request.name or plan.name,
         plan_snapshot=plan,
         plan_human=request.plan_human,
         branch_humans=request.branch_humans,
-        created_at=created_at,
-        meta={"raw_payload": request.raw_payload} if request.raw_payload else {},
     )
 
 
@@ -93,29 +85,19 @@ def build_task_run(
     request: TaskRunCreateRequest,
     *,
     run_id: str,
-    created_at: str,
 ) -> TaskRunSpec:
     """由任务上下文和运行请求构建任务运行。"""
 
-    if request.task_context_id != context.task_context_id:
+    if request.context_id != context.context_id:
         raise ValueError(
-            f"request task_context_id={request.task_context_id!r} does not match "
-            f"task_context_id={context.task_context_id!r}"
+            f"request context_id={request.context_id!r} does not match context_id={context.context_id!r}"
         )
 
     return TaskRunSpec(
         run_id=run_id,
-        task_context_id=context.task_context_id,
+        context_id=context.context_id,
         plan_id=context.plan_id,
+        run_name=request.run_name,
         task_context_snapshot=context,
         options=TaskRunOptions.model_validate(request.options),
-        created_at=created_at,
-        meta={
-            key: value
-            for key, value in {
-                "run_name": request.run_name,
-                "raw_payload": request.raw_payload,
-            }.items()
-            if value
-        },
     )
