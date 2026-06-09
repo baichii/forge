@@ -68,10 +68,6 @@ def understand_scenario(
 
 def _fallback_scenario_understanding(knowledge_pack: PlannerKnowledgePack) -> str:
     goal = knowledge_pack.planning_goal
-    capability_lines = [
-        f"- {cap.agent_name}: {cap.capability}，{cap.subject} -> {cap.target}"
-        for cap in knowledge_pack.capability_catalog
-    ]
     return "\n".join(
         [
             "# 想定理解",
@@ -84,7 +80,7 @@ def _fallback_scenario_understanding(knowledge_pack: PlannerKnowledgePack) -> st
             *[f"- {item}" for item in goal.scenario_assumptions],
             "",
             "## 可用能力",
-            *capability_lines,
+            *[f"- {item}" for item in knowledge_pack.agent_capability_notes],
             "",
             "## 限制条件",
             *[f"- {item}" for item in goal.constraints],

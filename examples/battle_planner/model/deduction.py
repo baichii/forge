@@ -1,0 +1,19 @@
+"""推演模型预留。"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from battle_planner.model.evaluation import EvaluationReport, SimulationRunResult
+from pydantic import BaseModel, Field
+
+
+class DeductionSpec(BaseModel):
+    """某个可执行方案和仿真环境交互一次的推演记录。"""
+
+    deduction_id: str = Field(description="推演唯一 ID。")
+    scheme_id: str = Field(description="来源可执行方案 ID。")
+    run_id: str = Field(description="来源任务运行 ID。")
+    simulation_result: SimulationRunResult | None = Field(default=None, description="仿真结果。")
+    evaluation_report: EvaluationReport | None = Field(default=None, description="评估结果。")
+    meta: dict[str, Any] = Field(default_factory=dict, description="推演元信息，预留字段。")

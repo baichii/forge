@@ -1,0 +1,39 @@
+"""外部或本地入口请求模型。"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from battle_planner.model.workflow import HumanInputSpec
+from pydantic import BaseModel, Field
+
+
+class TaskBranchHumanInputRequest(BaseModel):
+    """任务分支的人工输入。"""
+
+    branch_id: str = Field(description="来源任务分支 ID。")
+    human: HumanInputSpec = Field(default_factory=HumanInputSpec, description="分支人工输入。")
+
+
+class TaskContextCreateRequest(BaseModel):
+    """创建任务上下文的请求。
+
+    TaskContext = TaskPlan + human input，是后续 LLM 迭代的上下文输入。
+    """
+
+    plan_id: str = Field(description="来源任务方案 ID。")
+    name: str = Field(default="", description="任务上下文名称。")
+    plan_human: HumanInputSpec = Field(default_factory=HumanInputSpec, description="任务方案层人工输入。")
+    branch_humans: list[TaskBranchHumanInputRequest] = Field(
+        default_factory=list, description="任务分支人工输入。"
+    )
+    raw_payload: dict[str, Any] = Field(default_factory=dict, description="原始请求内容，预留字段。")
+
+
+class TaskRunCreateRequest(BaseModel):
+    """创建一次任务运行的请求。"""
+
+    task_context_id: str = Field(description="任务上下文 ID。")
+    run_name: str = Field(default="", description="任务运行名称。")
+    options: dict[str, Any] = Field(default_factory=dict, description="运行参数原始输入。")
+    raw_payload: dict[str, Any] = Field(default_factory=dict, description="原始请求内容，预留字段。")

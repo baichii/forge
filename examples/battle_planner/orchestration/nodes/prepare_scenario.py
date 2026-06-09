@@ -20,7 +20,7 @@ def prepare_scenario_node(state: BattlePlannerState) -> BattlePlannerState:
         iteration_index=state.iteration_index,
         scenario=state.scenario_name,
         sides=list(state.scenario_conf_summary.get("sides", {}).keys()),
-        capabilities=len(state.planner_knowledge_pack.capability_catalog),
+        capabilities=len(state.planner_knowledge_pack.agent_capability_notes),
         tools=len(state.available_tools),
     )
     return state

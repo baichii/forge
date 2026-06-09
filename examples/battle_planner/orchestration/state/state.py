@@ -6,6 +6,10 @@ from battle_planner.model.models import (
     PlannerKnowledgePack,
     SimulationRunResult,
     SummaryEvaluation,
+    TaskContextSpec,
+    TaskPlanSpec,
+    TaskRunOptions,
+    TaskRunSpec,
 )
 from pydantic import BaseModel, Field
 
@@ -15,6 +19,12 @@ from forge.core.specs import CallbackParams, TickAgentParams, TickAgentSpec
 class BattlePlannerState(BaseModel):
     """Serializable state for the zc_lite end-to-end demo workflow."""
 
+    plan_id: str | None = None
+    task_context_id: str | None = None
+    run_id: str | None = None
+    task_plan_snapshot: TaskPlanSpec | None = None
+    task_context: TaskContextSpec | None = None
+    task_run_options: TaskRunOptions | None = None
     scenario_name: str | None = None
     scenario_conf: dict[str, Any] = Field(default_factory=dict)
     scenario_conf_summary: dict[str, Any] = Field(default_factory=dict)
@@ -43,3 +53,19 @@ class BattlePlannerState(BaseModel):
     def mark_error(self, error_message: str) -> None:
         self.error = error_message
         self.cur_stage = "error"
+
+
+def build_initial_state(task_run: TaskRunSpec) -> BattlePlannerState:
+    """Build workflow initial state from a TaskRun."""
+
+    task_context = task_run.task_context_snapshot
+    task_plan = task_context.plan_snapshot
+    return BattlePlannerState(
+        plan_id=task_run.plan_id,
+        task_context_id=task_run.task_context_id,
+        run_id=task_run.run_id,
+        task_plan_snapshot=task_plan,
+        task_context=task_context,
+        task_run_options=task_run.options,
+        scenario_name=task_plan.scenario_name,
+    )

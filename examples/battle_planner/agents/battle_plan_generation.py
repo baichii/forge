@@ -82,10 +82,6 @@ def generate_battle_plan(
 
 def _fallback_battle_plan(knowledge_pack: PlannerKnowledgePack) -> str:
     goal = knowledge_pack.planning_goal
-    mission_lines = [
-        f"- {cap.agent_name}: action={cap.action_type}, subject={cap.subject}, target={cap.target}"
-        for cap in knowledge_pack.capability_catalog
-    ]
     return "\n".join(
         [
             "# 模拟作战方案",
@@ -104,7 +100,7 @@ def _fallback_battle_plan(knowledge_pack: PlannerKnowledgePack) -> str:
             "4. 武器消耗控制：先按最小武器数分配，后续根据评估结果增加弹药。",
             "",
             "## 使用智能体能力",
-            *mission_lines,
+            *[f"- {item}" for item in knowledge_pack.agent_capability_notes],
             "",
             "## 参数建议",
             "- activation_time: 120",

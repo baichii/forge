@@ -5,8 +5,6 @@ from typing import Any
 from battle_planner.adapters.runtime.scenario_loader import summarize_scenario
 from battle_planner.model.models import (
     AssetSummary,
-    CapabilitySummary,
-    MissionSchemaSummary,
     PlannerKnowledgePack,
     PlanningGoal,
 )
@@ -38,8 +36,8 @@ def build_zc_lite_knowledge_pack(
     scenario_summary = summarize_scenario(scenario_conf)
     asset_catalog = _build_asset_catalog(scenario_conf)
     weapon_catalog = _build_weapon_catalog(asset_catalog)
-    mission_schema_catalog = _build_mission_schema_catalog()
-    capability_catalog = _build_capability_catalog()
+    mission_schema_notes = _build_mission_schema_notes()
+    agent_capability_notes = _build_agent_capability_notes()
 
     return PlannerKnowledgePack(
         scenario_summary=scenario_summary,
@@ -47,8 +45,8 @@ def build_zc_lite_knowledge_pack(
         force_summary=_build_force_summary(asset_catalog),
         asset_catalog=asset_catalog,
         weapon_catalog=weapon_catalog,
-        capability_catalog=capability_catalog,
-        mission_schema_catalog=mission_schema_catalog,
+        agent_capability_notes=agent_capability_notes,
+        mission_schema_notes=mission_schema_notes,
         planning_constraints=[
             *goal.assumptions,
             *goal.scenario_assumptions,
@@ -96,19 +94,10 @@ def render_knowledge_pack_md(knowledge_pack: PlannerKnowledgePack) -> str:
         )
 
     lines.extend(["", "## 可用能力"])
-    for capability in knowledge_pack.capability_catalog:
-        lines.append(
-            f"- {capability.agent_name}: {capability.capability}, "
-            f"subject={capability.subject}, target={capability.target}, action={capability.action_type}, "
-            f"reason={capability.rationale}"
-        )
+    lines.extend(f"- {item}" for item in knowledge_pack.agent_capability_notes)
 
     lines.extend(["", "## Mission Schema"])
-    for schema in knowledge_pack.mission_schema_catalog:
-        lines.append(
-            f"- {schema.mission_type}: required={schema.required_fields}, optional={schema.optional_fields}, "
-            f"example={schema.example}"
-        )
+    lines.extend(f"- {item}" for item in knowledge_pack.mission_schema_notes)
 
     lines.extend(["", "## 未知项"])
     lines.extend(f"- {item}" for item in knowledge_pack.unknowns)
@@ -176,58 +165,29 @@ def _build_force_summary(asset_catalog: list[AssetSummary]) -> dict[str, dict[st
     return summary
 
 
-def _build_capability_catalog() -> list[CapabilitySummary]:
+def _build_agent_capability_notes() -> list[str]:
     return [
-        CapabilitySummary(
-            capability="空对海打击",
-            agent_name="air_to_sea_strike_agent",
-            subject="blue_F/A-18F型“超级大黄蜂”战斗机编组",
-            target="red_CV16 “辽宁”号001型航空母舰_1",
-            action_type="NavalAsuWStrike_Air",
-            required_fields=["activation_time", "type", "unit_ids", "target_ids", "wp_nums"],
-            rationale="蓝方航母搭载 F/A-18F 编组，想定中存在 AGM-154C 空对海武器。",
-            confidence=0.7,
+        (
+            "air_to_sea_strike_agent：空对海打击，候选主体为 blue_F/A-18F型“超级大黄蜂”战斗机编组，"
+            "候选目标为 red_CV16 “辽宁”号001型航空母舰_1，action_type=NavalAsuWStrike_Air。"
         ),
-        CapabilitySummary(
-            capability="舰对海打击",
-            agent_name="naval_to_sea_strike_agent",
-            subject="blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1",
-            target="red_CV16 “辽宁”号001型航空母舰_1",
-            action_type="NavalAsuWStrike_Naval",
-            required_fields=["activation_time", "type", "unit_ids", "target_ids", "wp_nums"],
-            rationale="蓝方舰艇配置 RGM-109I 战斧巡航导弹，首版按可对海目标形成候选能力。",
-            confidence=0.55,
+        (
+            "naval_to_sea_strike_agent：舰对海打击，候选主体为 "
+            "blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1，"
+            "候选目标为 red_CV16 “辽宁”号001型航空母舰_1，action_type=NavalAsuWStrike_Naval。"
         ),
     ]
 
 
-def _build_mission_schema_catalog() -> list[MissionSchemaSummary]:
+def _build_mission_schema_notes() -> list[str]:
     return [
-        MissionSchemaSummary(
-            mission_type="NavalAsuWStrike_Air",
-            description="空对海打击任务。",
-            required_fields=["type", "unit_ids", "target_ids"],
-            optional_fields=["activation_time", "wp_nums", "clear_targets", "attack_mode"],
-            example={
-                "activation_time": 120,
-                "type": "NavalAsuWStrike_Air",
-                "unit_ids": ["blue_F/A-18F型“超级大黄蜂”战斗机_14"],
-                "target_ids": ["red_CV16 “辽宁”号001型航空母舰_1"],
-                "wp_nums": [2],
-            },
+        (
+            "NavalAsuWStrike_Air：空对海打击任务，必填字段 type/unit_ids/target_ids，"
+            "常用可选字段 activation_time/wp_nums/clear_targets/attack_mode。"
         ),
-        MissionSchemaSummary(
-            mission_type="NavalAsuWStrike_Naval",
-            description="舰对海打击任务。",
-            required_fields=["type", "unit_ids", "target_ids"],
-            optional_fields=["activation_time", "wp_nums", "clear_targets"],
-            example={
-                "activation_time": 180,
-                "type": "NavalAsuWStrike_Naval",
-                "unit_ids": ["blue_DDG 104“斯特瑞特”导弹护卫舰[阿利伯克级IIA]_1"],
-                "target_ids": ["red_CV16 “辽宁”号001型航空母舰_1"],
-                "wp_nums": [2],
-            },
+        (
+            "NavalAsuWStrike_Naval：舰对海打击任务，必填字段 type/unit_ids/target_ids，"
+            "常用可选字段 activation_time/wp_nums/clear_targets。"
         ),
     ]
 
