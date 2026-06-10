@@ -110,30 +110,10 @@ class OpenAICompatibleModelProvider(ModelProvider):
             )
 
 
-class OfflineModelProvider(ModelProvider):
-    name = "offline"
-    model = "offline"
-
-    def complete(self, request: ModelRequest) -> ModelResponse:
-        if request.model is not None and request.model != self.model:
-            return ModelResponse(
-                content="",
-                model=self.model,
-                provider=self.name,
-                error=(
-                    f"requested model `{request.model}` does not match configured "
-                    f"model `{self.model}` for profile `{self.name}`"
-                ),
-            )
-        return ModelResponse(
-            content="", model=self.model, provider=self.name, error="offline model provider"
-        )
-
-
 def build_model_provider(settings_obj: Settings | None = None) -> ModelProvider:
     active_settings = settings_obj or settings
     if active_settings.LLM_MODE == LLMMode.OFFLINE:
-        return OfflineModelProvider()
+        raise ValueError("LLM_MODE=offline uses run_output_seed and must not build a model provider")
     if active_settings.LLM_MODE == LLMMode.REPLAY:
         raise ValueError("LLM_MODE=replay is not implemented by model provider yet")
 
