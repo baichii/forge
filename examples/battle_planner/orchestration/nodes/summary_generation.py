@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 from battle_planner.agents.summary_generation import generate_summary
+from battle_planner.conf import LLMMode, settings
+from battle_planner.llm_runtime.trace import identity_trace
 from battle_planner.model import (
     AgentExecutionSummary,
     SummaryEvaluation,
@@ -12,6 +14,7 @@ from battle_planner.orchestration.event import EventLevels, EventPhases, EventTy
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
 from battle_planner.workspace.local.plan_presets import load_plan_preset
+from battle_planner.workspace.local.run_output_seed import load_summary_generation_output_seed
 
 
 def summary_generation_node(state: BattlePlannerState) -> BattlePlannerState:
@@ -39,14 +42,45 @@ def summary_generation_node(state: BattlePlannerState) -> BattlePlannerState:
         )
         return state
     summary_evaluation = build_summary_evaluation(state)
-    output, trace = generate_summary(
-        scenario_understanding_md=state.scenario_understanding_md,
-        battle_plan_md=state.battle_plan_md,
-        planned_agent_params=state.planned_agent_params,
-        simulation_result=state.simulation_result,
-        evaluation_report=state.evaluation_report,
-        summary_evaluation=summary_evaluation,
-    )
+    if settings.LLM_MODE == LLMMode.OFFLINE and settings.OUTPUT_SEED:
+        seed = load_summary_generation_output_seed(iteration_index=state.iteration_index)
+        event_handler(
+            EventTypes.LOG,
+            node=node_name,
+            phase=EventPhases.MESSAGE,
+            level=EventLevels.DETAIL,
+            iteration_index=state.iteration_index,
+            payload={
+                "source": "run_output_seed",
+                "seed_id": settings.OUTPUT_SEED,
+                "runtime_iteration_index": state.iteration_index,
+                **seed.trace_summary,
+            },
+        )
+        output = seed.summary_md
+        trace = identity_trace(
+            WorkflowStages.SUMMARY_GENERATION,
+            input_value={
+                "source": "run_output_seed",
+                "seed_id": settings.OUTPUT_SEED,
+                "runtime_iteration_index": state.iteration_index,
+                "objective_achieved": summary_evaluation.objective_achieved,
+                **seed.trace_summary,
+            },
+            output_value={
+                "summary_md": output,
+                "trace_summary": seed.trace_summary,
+            },
+        )
+    else:
+        output, trace = generate_summary(
+            scenario_understanding_md=state.scenario_understanding_md,
+            battle_plan_md=state.battle_plan_md,
+            planned_agent_params=state.planned_agent_params,
+            simulation_result=state.simulation_result,
+            evaluation_report=state.evaluation_report,
+            summary_evaluation=summary_evaluation,
+        )
     state.summary_evaluation = summary_evaluation
     state.summary_md = output
     state.add_trace(trace)

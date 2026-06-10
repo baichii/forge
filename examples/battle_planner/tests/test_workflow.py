@@ -61,8 +61,9 @@ def test_workflow_loop_smoke(monkeypatch) -> None:
     assert all(state.evaluation_report is not None for state in states)
     assert all(state.summary_md for state in states)
     assert states[0].agent_param_preset_id != states[1].agent_param_preset_id
+    assert states[0].battle_plan_md != states[1].battle_plan_md
     assert len(result.history) == 2
-    assert "历史迭代反馈" in _trace_content(states[1], WorkflowStages.BATTLE_PLAN_GENERATION)
+    assert _trace_source(states[1], WorkflowStages.BATTLE_PLAN_GENERATION) == "run_output_seed"
 
 
 def test_workflow_entropy_uses_configured_default() -> None:
@@ -92,8 +93,10 @@ def _force_offline_llm_mode(monkeypatch) -> None:
     monkeypatch.setattr(settings, "SIM_MAX_DECISION_STEPS", 70)
 
 
-def _trace_content(state: BattlePlannerState, node_name: str) -> str:
+def _trace_source(state: BattlePlannerState, node_name: str) -> str:
     for trace in state.llm_traces:
-        if trace.node_name == node_name and trace.input_messages:
-            return str(trace.input_messages[-1].get("content") or "")
+        if trace.node_name == node_name and isinstance(trace.parsed_output, dict):
+            trace_summary = trace.parsed_output.get("trace_summary")
+            if isinstance(trace_summary, dict):
+                return str(trace_summary.get("source") or "")
     return ""

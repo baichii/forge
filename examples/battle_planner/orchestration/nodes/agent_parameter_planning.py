@@ -7,14 +7,14 @@ from battle_planner.llm_runtime.trace import identity_trace
 from battle_planner.orchestration.event import EventLevels, EventPhases, EventTypes, event_handler
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.workspace.local.presets import select_display_agent_param_preset
+from battle_planner.workspace.local.run_output_seed import load_agent_parameter_planning_output_seed
 
 from forge.core.specs import TickAgentParams
 
 
 def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
     if settings.LLM_MODE == LLMMode.OFFLINE:
-        return _display_agent_parameter_planning_node(state)
+        return _run_output_seed_agent_parameter_planning_node(state)
 
     model_provider = build_model_provider()
     node_name = WorkflowStages.AGENT_PARAMETER_PLANNING
@@ -60,9 +60,9 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
     return state
 
 
-def _display_agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
-    preset = select_display_agent_param_preset(iteration_index=state.iteration_index)
-    planned = [item.model_copy(deep=True) for item in preset["agents"]]
+def _run_output_seed_agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
+    seed = load_agent_parameter_planning_output_seed(iteration_index=state.iteration_index)
+    planned = [item.model_copy(deep=True) for item in seed.planned_agent_params]
     node_name = WorkflowStages.AGENT_PARAMETER_PLANNING
     event_handler(
         EventTypes.LOG,
@@ -73,26 +73,26 @@ def _display_agent_parameter_planning_node(state: BattlePlannerState) -> BattleP
         payload={
             "agent_count": len(state.tick_agent_specs),
             "battle_plan_chars": len(state.battle_plan_md),
-            "display_mode": True,
-            "preset_id": preset["preset_id"],
+            "source": "run_output_seed",
+            "preset_id": seed.preset_id,
         },
     )
     state.planned_agent_params = planned
-    state.agent_param_source = "display_preset"
-    state.agent_param_preset_id = preset["preset_id"]
+    state.agent_param_source = "run_output_seed"
+    state.agent_param_preset_id = seed.preset_id
     state.add_trace(
         identity_trace(
             WorkflowStages.AGENT_PARAMETER_PLANNING,
             input_value={
-                "display_mode": True,
-                "source": "display_preset",
-                "iteration_index": state.iteration_index,
+                "source": "run_output_seed",
+                "seed_id": settings.OUTPUT_SEED,
+                "runtime_iteration_index": state.iteration_index,
+                **seed.trace_summary,
             },
             output_value={
-                "source": "display_preset",
-                "preset_id": preset["preset_id"],
-                "description": preset.get("description", ""),
-                "expected_stage": preset.get("expected_stage", ""),
+                "source": "run_output_seed",
+                "preset_id": seed.preset_id,
+                "trace_summary": seed.trace_summary,
                 "agents": [item.model_dump(mode="json") for item in planned],
             },
         )
@@ -105,8 +105,8 @@ def _display_agent_parameter_planning_node(state: BattlePlannerState) -> BattleP
         level=EventLevels.NODE,
         iteration_index=state.iteration_index,
         payload={
-            "display_mode": True,
-            "preset_id": preset["preset_id"],
+            "source": "run_output_seed",
+            "preset_id": seed.preset_id,
             "fallback": False,
             "planned_agents": _planned_agent_log_items(planned),
             "error": None,

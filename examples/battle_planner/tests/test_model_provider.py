@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import pytest
+from battle_planner.conf import LLMMode, settings
+
 
 def test_model_provider_rejects_requested_model_mismatch() -> None:
     from battle_planner.llm_runtime.model_provider import ModelRequest, OpenAICompatibleModelProvider
@@ -54,3 +57,12 @@ def test_model_provider_passes_reasoning_and_thinking_options(monkeypatch) -> No
 
     assert captured["reasoning_effort"] == "high"
     assert captured["extra_body"] == {"thinking": {"type": "enabled"}}
+
+
+def test_model_provider_rejects_offline_mode(monkeypatch) -> None:
+    from battle_planner.llm_runtime.model_provider import build_model_provider
+
+    monkeypatch.setattr(settings, "LLM_MODE", LLMMode.OFFLINE)
+
+    with pytest.raises(ValueError, match="run_output_seed"):
+        build_model_provider()

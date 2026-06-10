@@ -22,7 +22,7 @@ examples/battle_planner/
   orchestration/     # LangGraph workflow、state、nodes、pipeline 和业务评估逻辑
   agents/            # LLM agent：想定理解、方案生成、参数生成、总结
     context/          # LLM agent 输入上下文：知识包构造和工具说明
-  llm_runtime/       # model provider、middleware、fallback 和 trace 记录
+  llm_runtime/       # model provider、middleware 和 trace 记录
   workspace/         # 本地复现工作区：local 存放 demo seed/source，resource 存放拉取资源
   scripts/           # 本地数据生成、resource config 导出等薄脚本入口
   experimental/      # 临时实验和运行产物，不作为稳定接口
@@ -45,7 +45,7 @@ scenario_preparation
 
 `scenario_preparation` 会把 `scenario_zc_lite` 转成 `PlannerKnowledgePack`，其中包含想定摘要、作战目标、可用智能体能力、mission schema、约束、未知项和证据来源。后续 `scenario_understanding` 与 `battle_plan_generation` 都基于这个知识包工作。
 
-每个 LLM 环节都会记录 trace，包括输入消息、原始输出、解析结果、fallback 状态和错误信息。Markdown 生成环节在模型不可用时会使用模板兜底；智能体参数生成失败时不再自动补默认 agent，`planned_agent_params` 会保持为空，方便定位问题。
+每个 LLM 环节都会记录 trace，包括输入消息、原始输出、解析结果和错误信息。`LLM_MODE=offline` 时节点直接读取 `run_output_seed`，不会创建模型 provider，也不会触发 fallback；live 模型失败和校验重试策略后续再进入前端错误处理链路。
 
 ## Agent Runtime
 
@@ -69,7 +69,7 @@ agent 输入统一支持：
 
 模型调用通过 `llm_runtime/model_provider.py` 抽象。`.env` 中通过 `LLM_MODE` 控制是否真实调用模型，并通过 `MODEL` 显式选择模型 profile。默认使用 `LLM_MODE=offline` 和 `MODEL=by_qwen36`：
 
-- `LLM_MODE=offline`：不请求模型，文本生成节点走 fallback，agent runtime 参数从本地 preset 读取
+- `LLM_MODE=offline`：不请求模型，LLM 节点从 `workspace/local/run_output_seed.py` 读取本地产物
 - `LLM_MODE=live`：按 `MODEL` 选择的 profile 请求真实模型
 - `MODEL=by_qwen36`：使用 `MODEL_BY_QWEN36_*`
 - `MODEL=openai_gpt54_mini`：使用 `MODEL_OPENAI_GPT54_MINI_*`

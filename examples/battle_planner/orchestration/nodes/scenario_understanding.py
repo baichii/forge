@@ -25,7 +25,7 @@ def scenario_understanding_node(state: BattlePlannerState) -> BattlePlannerState
         payload={"scenario": state.scenario_name},
     )
     if settings.LLM_MODE == LLMMode.OFFLINE and settings.OUTPUT_SEED:
-        seed = load_scenario_understanding_output_seed()
+        seed = load_scenario_understanding_output_seed(iteration_index=state.iteration_index)
         event_handler(
             EventTypes.LOG,
             node=node_name,
@@ -35,6 +35,8 @@ def scenario_understanding_node(state: BattlePlannerState) -> BattlePlannerState
             payload={
                 "source": "run_output_seed",
                 "seed_id": settings.OUTPUT_SEED,
+                "runtime_iteration_index": state.iteration_index,
+                **seed.trace_summary,
             },
         )
         output = seed.scenario_understanding_md
@@ -44,6 +46,8 @@ def scenario_understanding_node(state: BattlePlannerState) -> BattlePlannerState
                 "source": "run_output_seed",
                 "seed_id": settings.OUTPUT_SEED,
                 "scenario": state.scenario_name,
+                "runtime_iteration_index": state.iteration_index,
+                **seed.trace_summary,
             },
             output_value={
                 "scenario_understanding_md": output,
