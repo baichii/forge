@@ -5,8 +5,8 @@ from battle_planner.orchestration.state.state import BattlePlannerState
 from forge.core.specs import CallbackParams
 
 
-def test_simulation_node_passes_state_callback_params_to_runner(monkeypatch) -> None:
-    import battle_planner.orchestration.nodes.simulation as simulation_module
+def test_simulation_execution_node_passes_state_callback_params_to_runner(monkeypatch) -> None:
+    import battle_planner.orchestration.nodes.simulation_execution as simulation_module
 
     captured = _patch_fake_runner(monkeypatch, simulation_module, stop_reason="max_step")
     custom_callback = CallbackParams(
@@ -18,7 +18,7 @@ def test_simulation_node_passes_state_callback_params_to_runner(monkeypatch) -> 
         },
     )
 
-    result = simulation_module.simulation_node(
+    result = simulation_module.simulation_execution_node(
         BattlePlannerState(
             scenario_name="zc3_lite",
             callback_params=[custom_callback],

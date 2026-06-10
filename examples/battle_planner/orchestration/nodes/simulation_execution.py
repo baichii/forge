@@ -13,7 +13,7 @@ from battle_planner.registry import register_battle_planner_modules
 from forge.core.specs import EnvLink, EnvMode, EnvParams
 
 
-def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
+def simulation_execution_node(state: BattlePlannerState) -> BattlePlannerState:
     node_name = WorkflowStages.SIMULATION_EXECUTION
     event_handler(
         EventTypes.LOG,

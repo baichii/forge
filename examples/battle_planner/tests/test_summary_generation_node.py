@@ -9,15 +9,17 @@ from battle_planner.model import (
 )
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
+from battle_planner.workspace.local.plan_presets import (
+    ZC3_LITE_PLAN_ID,
+    ZC3_LITE_TARGET_CARRIER_ID,
+    ZC3_LITE_TARGET_STATISTIC_CALLBACK_ID,
+)
 
 from forge.core.specs import CallbackParams, TickAgentParams
 
-TARGET_CARRIER_ID = "red_CV16 “辽宁”号001型航空母舰_1"
-TARGET_STATISTIC_CALLBACK_ID = "target_statistic_carrier"
 
-
-def test_summary_node_evaluates_target_alive_with_agent_actions(monkeypatch) -> None:
-    result = _run_summary_node(
+def test_summary_generation_node_evaluates_target_alive_with_agent_actions(monkeypatch) -> None:
+    result = _run_summary_generation_node(
         monkeypatch,
         _make_state(target_alive=True, action_count=2, health_delta=-200),
     )
@@ -27,8 +29,8 @@ def test_summary_node_evaluates_target_alive_with_agent_actions(monkeypatch) -> 
     assert evaluation.objective_achieved is False
 
 
-def test_summary_node_evaluates_target_destroyed_with_agent_actions(monkeypatch) -> None:
-    result = _run_summary_node(
+def test_summary_generation_node_evaluates_target_destroyed_with_agent_actions(monkeypatch) -> None:
+    result = _run_summary_generation_node(
         monkeypatch,
         _make_state(target_alive=False, action_count=3, health_delta=-1000),
     )
@@ -38,8 +40,8 @@ def test_summary_node_evaluates_target_destroyed_with_agent_actions(monkeypatch)
     assert evaluation.objective_achieved is True
 
 
-def test_summary_node_marks_inactive_agent(monkeypatch) -> None:
-    result = _run_summary_node(
+def test_summary_generation_node_marks_inactive_agent(monkeypatch) -> None:
+    result = _run_summary_generation_node(
         monkeypatch,
         _make_state(target_alive=True, action_count=0, health_delta=0),
     )
@@ -49,8 +51,8 @@ def test_summary_node_marks_inactive_agent(monkeypatch) -> None:
     assert evaluation.inactive_agents == ["air_001"]
 
 
-def test_summary_node_writes_summary_evaluation(monkeypatch) -> None:
-    result = _run_summary_node(
+def test_summary_generation_node_writes_summary_evaluation(monkeypatch) -> None:
+    result = _run_summary_generation_node(
         monkeypatch,
         _make_state(target_alive=True, action_count=2, health_delta=-200),
     )
@@ -59,19 +61,21 @@ def test_summary_node_writes_summary_evaluation(monkeypatch) -> None:
     assert result.cur_stage == WorkflowStages.COMPLETE
 
 
-def _run_summary_node(monkeypatch, state: BattlePlannerState) -> BattlePlannerState:
-    import battle_planner.orchestration.nodes.summary as summary_module
+def _run_summary_generation_node(monkeypatch, state: BattlePlannerState) -> BattlePlannerState:
+    import battle_planner.orchestration.nodes.summary_generation as summary_module
 
     def fake_generate_summary(**kwargs):
         return "summary from fake", LLMTrace(node_name=WorkflowStages.SUMMARY_GENERATION)
 
     monkeypatch.setattr(summary_module, "generate_summary", fake_generate_summary)
-    return summary_module.summary_node(state)
+    return summary_module.summary_generation_node(state)
 
 
 def _make_state(*, target_alive: bool, action_count: int, health_delta: int) -> BattlePlannerState:
     current_health = 0 if not target_alive else 1000 + health_delta
     return BattlePlannerState(
+        plan_id=ZC3_LITE_PLAN_ID,
+        scenario_name="zc3_lite",
         iteration_index=1,
         planner_knowledge_pack=PlannerKnowledgePack(
             planning_goal=PlanningGoal(
@@ -89,7 +93,7 @@ def _make_state(*, target_alive: bool, action_count: int, health_delta: int) -> 
                 side="blue",
                 params={
                     "unit_ids": ["blue_air_1"],
-                    "target_ids": [TARGET_CARRIER_ID],
+                    "target_ids": [ZC3_LITE_TARGET_CARRIER_ID],
                     "wp_num": 2,
                 },
             )
@@ -114,10 +118,10 @@ def _make_state(*, target_alive: bool, action_count: int, health_delta: int) -> 
 def _make_target_statistic_callback() -> CallbackParams:
     return CallbackParams(
         name="target_statistic",
-        callback_instance_id=TARGET_STATISTIC_CALLBACK_ID,
+        callback_instance_id=ZC3_LITE_TARGET_STATISTIC_CALLBACK_ID,
         params={
             "side": "red",
-            "target_ids": [TARGET_CARRIER_ID],
+            "target_ids": [ZC3_LITE_TARGET_CARRIER_ID],
         },
     )
 
@@ -141,8 +145,8 @@ def _runner_report(
             }
         ],
         "callbacks": {
-            TARGET_STATISTIC_CALLBACK_ID: {
-                TARGET_CARRIER_ID: {
+            ZC3_LITE_TARGET_STATISTIC_CALLBACK_ID: {
+                ZC3_LITE_TARGET_CARRIER_ID: {
                     "alive": target_alive,
                     "initial": {
                         "health": 1000,

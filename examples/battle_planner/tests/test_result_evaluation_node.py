@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from battle_planner.model import SimulationRunResult
-from battle_planner.orchestration.nodes.evaluation import evaluation_node
+from battle_planner.orchestration.nodes.result_evaluation import result_evaluation_node
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
 
 
-def test_evaluation_node_uses_target_outcome_report() -> None:
+def test_result_evaluation_node_uses_target_outcome_report() -> None:
     state = BattlePlannerState(
         simulation_result=SimulationRunResult(
             scenario_name="zc3_lite",
@@ -16,7 +16,7 @@ def test_evaluation_node_uses_target_outcome_report() -> None:
         )
     )
 
-    result = evaluation_node(state)
+    result = result_evaluation_node(state)
 
     assert result.cur_stage == WorkflowStages.RESULT_EVALUATION
     assert result.evaluation_report.mission_metrics["objective_achieved"] is True

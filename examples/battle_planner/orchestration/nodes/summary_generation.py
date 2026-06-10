@@ -11,9 +11,10 @@ from battle_planner.model import (
 from battle_planner.orchestration.event import EventLevels, EventPhases, EventTypes, event_handler
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
+from battle_planner.workspace.local.plan_presets import load_plan_preset
 
 
-def summary_node(state: BattlePlannerState) -> BattlePlannerState:
+def summary_generation_node(state: BattlePlannerState) -> BattlePlannerState:
     node_name = WorkflowStages.SUMMARY_GENERATION
     event_handler(
         EventTypes.LOG,
@@ -115,10 +116,8 @@ def build_summary_evaluation(state: BattlePlannerState) -> SummaryEvaluation:
 
 
 def _target_statistic_callback_id(state: BattlePlannerState) -> str:
-    for callback in state.callback_params:
-        if callback.name == "target_statistic" and callback.callback_instance_id:
-            return callback.callback_instance_id
-    raise ValueError("summary requires target_statistic callback_params from scenario runtime config")
+    plan_preset = load_plan_preset(state.plan_id, scenario_name=state.scenario_name)
+    return plan_preset.objective_callback_instance_id
 
 
 def _build_target_summary(*, target_id: str, payload: dict[str, Any]) -> TargetObjectiveSummary:

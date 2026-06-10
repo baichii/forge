@@ -4,11 +4,11 @@ from battle_planner.orchestration.nodes import (
     agent_parameter_planning_node,
     agent_schema_loading_node,
     battle_plan_generation_node,
-    evaluation_node,
-    prepare_scenario_node,
+    result_evaluation_node,
+    scenario_preparation_node,
     scenario_understanding_node,
-    simulation_node,
-    summary_node,
+    simulation_execution_node,
+    summary_generation_node,
 )
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
@@ -23,14 +23,14 @@ class ZcLiteBaselineWorkflow:
     def build_graph(self):
         builder = StateGraph(BattlePlannerState)
 
-        builder.add_node(WorkflowStages.SCENARIO_PREPARATION, prepare_scenario_node)
+        builder.add_node(WorkflowStages.SCENARIO_PREPARATION, scenario_preparation_node)
         builder.add_node(WorkflowStages.SCENARIO_UNDERSTANDING, scenario_understanding_node)
         builder.add_node(WorkflowStages.BATTLE_PLAN_GENERATION, battle_plan_generation_node)
         builder.add_node(WorkflowStages.AGENT_SCHEMA_LOADING, agent_schema_loading_node)
         builder.add_node(WorkflowStages.AGENT_PARAMETER_PLANNING, agent_parameter_planning_node)
-        builder.add_node(WorkflowStages.SIMULATION_EXECUTION, simulation_node)
-        builder.add_node(WorkflowStages.RESULT_EVALUATION, evaluation_node)
-        builder.add_node(WorkflowStages.SUMMARY_GENERATION, summary_node)
+        builder.add_node(WorkflowStages.SIMULATION_EXECUTION, simulation_execution_node)
+        builder.add_node(WorkflowStages.RESULT_EVALUATION, result_evaluation_node)
+        builder.add_node(WorkflowStages.SUMMARY_GENERATION, summary_generation_node)
 
         builder.set_entry_point(WorkflowStages.SCENARIO_PREPARATION)
         builder.add_edge(WorkflowStages.SCENARIO_PREPARATION, WorkflowStages.SCENARIO_UNDERSTANDING)

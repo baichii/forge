@@ -6,7 +6,7 @@ from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
 
 
-def evaluation_node(state: BattlePlannerState) -> BattlePlannerState:
+def result_evaluation_node(state: BattlePlannerState) -> BattlePlannerState:
     node_name = WorkflowStages.RESULT_EVALUATION
     event_handler(
         EventTypes.LOG,
