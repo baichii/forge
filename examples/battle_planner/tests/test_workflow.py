@@ -11,7 +11,7 @@ from battle_planner.orchestration.history import build_history_item
 from battle_planner.orchestration.state.state import BattlePlannerState, build_initial_state
 from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
 from battle_planner.orchestration.workflow_entropy import build_workflow
-from battle_planner.workspace.local.demo_seed import build_local_task_run
+from battle_planner.workspace.local.run_input_seed import build_local_task_run
 
 
 @dataclass

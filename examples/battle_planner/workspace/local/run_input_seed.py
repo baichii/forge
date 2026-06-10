@@ -1,4 +1,4 @@
-"""Local demo seed and builders for battle planner development."""
+"""Local run input seed and builders for battle planner development."""
 
 from __future__ import annotations
 
@@ -22,14 +22,14 @@ from battle_planner.workspace.local.loaders import load_task_plan_config
 from pydantic import BaseModel, Field
 
 
-class LocalBranchDemoSeed(BaseModel):
+class LocalBranchInputSeed(BaseModel):
     """Local human input for one task branch."""
 
     branch_id: int = Field(description="任务方案内的分支 ID。")
     human: BranchHumanInputSpec = Field(default_factory=BranchHumanInputSpec, description="分支人工输入。")
 
 
-class LocalDemoSeed(BaseModel):
+class LocalRunInputSeed(BaseModel):
     """Stable local development data used to assemble demo workflow inputs."""
 
     plan_name: str = Field(default="zc3_lite_carrier_validation")
@@ -53,9 +53,9 @@ class LocalDemoSeed(BaseModel):
             notes="时间窗、偏好打法等不确定信息暂时在备注中保留。",
         )
     )
-    branch_humans: list[LocalBranchDemoSeed] = Field(
+    branch_humans: list[LocalBranchInputSeed] = Field(
         default_factory=lambda: [
-            LocalBranchDemoSeed(
+            LocalBranchInputSeed(
                 branch_id=1,
                 human=BranchHumanInputSpec(
                     goal="验证空中突击与海对海打击分支能否完成航母毁伤目标。",
@@ -70,7 +70,7 @@ class LocalDemoSeed(BaseModel):
                     notes="优先跑通空中突击压制后由舰艇编队补充打击的主链路。",
                 ),
             ),
-            LocalBranchDemoSeed(
+            LocalBranchInputSeed(
                 branch_id=2,
                 human=BranchHumanInputSpec(
                     goal="保留潜艇隐蔽打击分支用于能力缺口验证。",
@@ -99,11 +99,11 @@ class LocalDemoSeed(BaseModel):
     )
 
 
-LOCAL_DEMO_SEED = LocalDemoSeed()
+LOCAL_RUN_INPUT_SEED = LocalRunInputSeed()
 
 
 def _resolve_branch_ids(
-    seed: LocalDemoSeed,
+    seed: LocalRunInputSeed,
     branch_ids: Sequence[int] | None,
 ) -> tuple[int, ...]:
     return tuple(branch_ids) if branch_ids is not None else seed.default_branch_ids
@@ -111,7 +111,7 @@ def _resolve_branch_ids(
 
 def _validate_branch_ids(
     *,
-    seed: LocalDemoSeed,
+    seed: LocalRunInputSeed,
     task_plan: TaskPlanSpec,
     branch_ids: Sequence[int],
 ) -> None:
@@ -128,7 +128,7 @@ def _validate_branch_ids(
 
 
 def build_local_task_plan(
-    seed: LocalDemoSeed = LOCAL_DEMO_SEED,
+    seed: LocalRunInputSeed = LOCAL_RUN_INPUT_SEED,
     *,
     branch_ids: Sequence[int] | None = None,
 ) -> TaskPlanSpec:
@@ -149,7 +149,7 @@ def build_local_task_plan(
 
 
 def build_local_task_context_request(
-    seed: LocalDemoSeed = LOCAL_DEMO_SEED,
+    seed: LocalRunInputSeed = LOCAL_RUN_INPUT_SEED,
     *,
     branch_ids: Sequence[int] | None = None,
 ) -> TaskContextCreateRequest:
@@ -178,7 +178,7 @@ def build_local_task_context_request(
 
 
 def build_local_task_context(
-    seed: LocalDemoSeed = LOCAL_DEMO_SEED,
+    seed: LocalRunInputSeed = LOCAL_RUN_INPUT_SEED,
     *,
     branch_ids: Sequence[int] | None = None,
 ) -> TaskContextSpec:
@@ -228,7 +228,7 @@ def build_local_task_context(
     )
 
 
-def build_local_task_run_request(seed: LocalDemoSeed = LOCAL_DEMO_SEED) -> TaskRunCreateRequest:
+def build_local_task_run_request(seed: LocalRunInputSeed = LOCAL_RUN_INPUT_SEED) -> TaskRunCreateRequest:
     """生成创建 TaskRun 的本地请求。
 
     Args:
@@ -243,7 +243,7 @@ def build_local_task_run_request(seed: LocalDemoSeed = LOCAL_DEMO_SEED) -> TaskR
 
 
 def build_local_task_run(
-    seed: LocalDemoSeed = LOCAL_DEMO_SEED,
+    seed: LocalRunInputSeed = LOCAL_RUN_INPUT_SEED,
     *,
     branch_ids: Sequence[int] | None = None,
 ) -> TaskRunSpec:

@@ -3,7 +3,7 @@
 import json
 
 from battle_planner.model.source import TickAgentSourceSpec
-from battle_planner.workspace.local.demo_seed import build_local_task_plan
+from battle_planner.workspace.local.run_input_seed import build_local_task_plan
 
 
 def generate_local_task_plan() -> dict:

@@ -93,6 +93,9 @@ class Settings(BaseSettings):
     REPORT_INCLUDE_FAILED_RUNS: bool = True
     REPORT_FORMAT: str = "md"
 
+    # replay seed, only work when LLM_MODE is offline
+    OUTPUT_SEED: str = "debug"
+
     @property
     def model_profile_names(self) -> list[str]:
         return [item.strip() for item in self.MODEL_PROFILES.split(",") if item.strip()]

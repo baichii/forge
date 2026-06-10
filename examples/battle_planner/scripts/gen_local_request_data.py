@@ -2,7 +2,7 @@
 
 import json
 
-from battle_planner.workspace.local.demo_seed import (
+from battle_planner.workspace.local.run_input_seed import (
     build_local_task_context_request,
     build_local_task_run_request,
 )
