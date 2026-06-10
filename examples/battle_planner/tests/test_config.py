@@ -20,6 +20,7 @@ def test_settings_parse_key_runtime_and_model_env(monkeypatch) -> None:
     monkeypatch.setenv("SOURCE", "service")
     monkeypatch.setenv("LLM_MODE", "offline")
     monkeypatch.setenv("WORKFLOW_NAME", "zc_lite_baseline")
+    monkeypatch.setenv("VERBOSE", "2")
     monkeypatch.setenv("MODEL", "by_qwen36")
     monkeypatch.setenv("MODEL_PROFILES", "by_qwen36")
 
@@ -29,15 +30,17 @@ def test_settings_parse_key_runtime_and_model_env(monkeypatch) -> None:
     assert settings.SOURCE == SourceMode.SERVICE
     assert settings.LLM_MODE == LLMMode.OFFLINE
     assert settings.WORKFLOW_NAME == "zc_lite_baseline"
+    assert settings.VERBOSE == 2
     assert settings.MODEL == "by_qwen36"
     assert settings.model_profile_names == ["by_qwen36"]
 
 
 def test_settings_defaults(monkeypatch) -> None:
-    for name in ["HOST", "SOURCE", "LLM_MODE", "MODEL", "MODEL_PROFILES"]:
+    for name in ["HOST", "SOURCE", "LLM_MODE", "VERBOSE", "MODEL", "MODEL_PROFILES"]:
         monkeypatch.delenv(name, raising=False)
 
     settings = Settings(_env_file=None)
 
     assert settings.HOST == HostMode.LOCAL
     assert settings.WORKFLOW_NAME == "zc_lite_baseline"
+    assert settings.VERBOSE == 1

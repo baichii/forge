@@ -7,10 +7,11 @@ from battle_planner.agents.context import render_knowledge_pack_md
 from battle_planner.agents.history_context import render_history_for_planning
 from battle_planner.llm_runtime.fallback import fallback_markdown
 from battle_planner.model import PlannerKnowledgePack
+from battle_planner.orchestration.stages import WorkflowStages
 
 
 class BattlePlanGenerationAgent(BasePlanningAgent[str]):
-    name = "battle_plan_generation"
+    name = WorkflowStages.BATTLE_PLAN_GENERATION
 
     def build_messages(self, inputs: AgentInputs) -> list[dict[str, str]]:
         scenario_understanding_md = inputs.data["scenario_understanding_md"]

@@ -103,14 +103,14 @@ PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/scripts/ru
 当前 demo 的核心链路是：
 
 ```text
-prepare_scenario
+scenario_preparation
  -> scenario_understanding
  -> battle_plan_generation
  -> agent_schema_loading
  -> agent_parameter_planning
- -> simulation
- -> evaluation
- -> summary
+ -> simulation_execution
+ -> result_evaluation
+ -> summary_generation
 ```
 
 ## Development Notes

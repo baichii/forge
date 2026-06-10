@@ -6,6 +6,7 @@ from typing import Any
 
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
 from battle_planner.llm_runtime.model_provider import ModelProvider
+from battle_planner.orchestration.stages import WorkflowStages
 
 from forge.core.specs import TickAgentParams, TickAgentSpec
 
@@ -46,7 +47,7 @@ def _extract_agent_param_items(text: str) -> list[dict[str, Any]] | None:
 
 
 class AgentParameterPlanningAgent(BasePlanningAgent[list[TickAgentParams]]):
-    name = "agent_parameter_planning"
+    name = WorkflowStages.AGENT_PARAMETER_PLANNING
 
     def build_messages(self, inputs: AgentInputs) -> list[dict[str, str]]:
         specs_payload = [spec.model_dump() for spec in inputs.data["agent_specs"]]

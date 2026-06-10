@@ -8,20 +8,34 @@ from battle_planner.model import (
     SummaryEvaluation,
     TargetObjectiveSummary,
 )
-from battle_planner.orchestration.node_logging import log_node_end, log_node_error, log_node_start
+from battle_planner.orchestration.event import EventLevels, EventPhases, EventTypes, event_handler
+from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
 
 
 def summary_node(state: BattlePlannerState) -> BattlePlannerState:
-    log_node_start(
-        "summary",
+    node_name = WorkflowStages.SUMMARY_GENERATION
+    event_handler(
+        EventTypes.LOG,
+        node=node_name,
+        phase=EventPhases.START,
+        level=EventLevels.NODE,
         iteration_index=state.iteration_index,
-        simulation_ready=state.simulation_result is not None,
-        evaluation_ready=state.evaluation_report is not None,
+        payload={
+            "simulation_ready": state.simulation_result is not None,
+            "evaluation_ready": state.evaluation_report is not None,
+        },
     )
     if state.simulation_result is None or state.evaluation_report is None:
         state.mark_error("summary requires simulation_result and evaluation_report")
-        log_node_error("summary", state.error or "missing inputs", iteration_index=state.iteration_index)
+        event_handler(
+            EventTypes.LOG,
+            node=node_name,
+            phase=EventPhases.ERROR,
+            level=EventLevels.NODE,
+            iteration_index=state.iteration_index,
+            payload={"error": state.error or "missing inputs"},
+        )
         return state
     summary_evaluation = build_summary_evaluation(state)
     output, trace = generate_summary(
@@ -35,15 +49,20 @@ def summary_node(state: BattlePlannerState) -> BattlePlannerState:
     state.summary_evaluation = summary_evaluation
     state.summary_md = output
     state.add_trace(trace)
-    state.cur_stage = "complete"
-    log_node_end(
-        "summary",
+    state.cur_stage = WorkflowStages.COMPLETE
+    event_handler(
+        EventTypes.LOG,
+        node=node_name,
+        phase=EventPhases.END,
+        level=EventLevels.NODE,
         iteration_index=state.iteration_index,
-        fallback=trace.fallback_used,
-        output_chars=len(output),
-        objective_achieved=summary_evaluation.objective_achieved,
-        inactive_agents=summary_evaluation.inactive_agents,
-        error=trace.error,
+        payload={
+            "fallback": trace.fallback_used,
+            "output_chars": len(output),
+            "objective_achieved": summary_evaluation.objective_achieved,
+            "inactive_agents": summary_evaluation.inactive_agents,
+            "error": trace.error,
+        },
     )
     return state
 

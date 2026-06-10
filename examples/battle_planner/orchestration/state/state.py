@@ -1,5 +1,6 @@
 from typing import Any
 
+from battle_planner.conf import settings
 from battle_planner.model import (
     EvaluationReport,
     LLMTrace,
@@ -10,6 +11,7 @@ from battle_planner.model import (
     TaskRunOptions,
     TaskRunSpec,
 )
+from battle_planner.orchestration.stages import WorkflowStages
 from pydantic import BaseModel, Field
 
 from forge.core.specs import CallbackParams, TickAgentParams, TickAgentSpec
@@ -35,6 +37,7 @@ class BattlePlannerState(BaseModel):
     callback_params: list[CallbackParams] = Field(default_factory=list)
     iteration_index: int = 0
     history: list[dict[str, Any]] = Field(default_factory=list)
+    verbose: int = Field(default_factory=lambda: settings.VERBOSE)
     agent_param_source: str = ""
     agent_param_preset_id: str | None = None
     simulation_result: SimulationRunResult | None = None
@@ -43,14 +46,14 @@ class BattlePlannerState(BaseModel):
     summary_md: str = ""
     llm_traces: list[LLMTrace] = Field(default_factory=list)
     error: str | None = None
-    cur_stage: str = "start"
+    cur_stage: str = WorkflowStages.START
 
     def add_trace(self, trace: LLMTrace) -> None:
         self.llm_traces.append(trace)
 
     def mark_error(self, error_message: str) -> None:
         self.error = error_message
-        self.cur_stage = "error"
+        self.cur_stage = WorkflowStages.ERROR
 
 
 def build_initial_state(task_run: TaskRunSpec) -> BattlePlannerState:

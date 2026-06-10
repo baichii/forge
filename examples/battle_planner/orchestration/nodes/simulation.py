@@ -5,7 +5,8 @@ from time import perf_counter
 from battle_planner.adapters.runtime.runner import Runner
 from battle_planner.conf import settings
 from battle_planner.model import SimulationRunResult
-from battle_planner.orchestration.node_logging import log_node_end, log_node_error, log_node_start
+from battle_planner.orchestration.event import EventLevels, EventPhases, EventTypes, event_handler
+from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
 from battle_planner.registry import register_battle_planner_modules
 
@@ -13,11 +14,17 @@ from forge.core.specs import EnvLink, EnvMode, EnvParams
 
 
 def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
-    log_node_start(
-        "simulation",
+    node_name = WorkflowStages.SIMULATION_EXECUTION
+    event_handler(
+        EventTypes.LOG,
+        node=node_name,
+        phase=EventPhases.START,
+        level=EventLevels.NODE,
         iteration_index=state.iteration_index,
-        scenario=state.scenario_name,
-        planned_agents=len(state.planned_agent_params),
+        payload={
+            "scenario": state.scenario_name,
+            "planned_agents": len(state.planned_agent_params),
+        },
     )
     try:
         if not state.callback_params:
@@ -65,18 +72,30 @@ def simulation_node(state: BattlePlannerState) -> BattlePlannerState:
                 "runner_report": report.model_dump(),
             },
         )
-        state.cur_stage = "simulation"
-        log_node_end(
-            "simulation",
+        state.cur_stage = node_name
+        event_handler(
+            EventTypes.LOG,
+            node=node_name,
+            phase=EventPhases.END,
+            level=EventLevels.NODE,
             iteration_index=state.iteration_index,
-            steps=state.simulation_result.steps,
-            done=state.simulation_result.done,
-            stop_reason=stop_reason,
-            env=state.simulation_result.raw_summary.get("env"),
+            payload={
+                "steps": state.simulation_result.steps,
+                "done": state.simulation_result.done,
+                "stop_reason": stop_reason,
+                "env": state.simulation_result.raw_summary.get("env"),
+            },
         )
     except Exception as exc:
         state.mark_error(f"simulation failed: {exc}")
-        log_node_error("simulation", state.error or str(exc), iteration_index=state.iteration_index)
+        event_handler(
+            EventTypes.LOG,
+            node=node_name,
+            phase=EventPhases.ERROR,
+            level=EventLevels.NODE,
+            iteration_index=state.iteration_index,
+            payload={"error": state.error or str(exc)},
+        )
     return state
 
 

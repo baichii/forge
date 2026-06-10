@@ -33,17 +33,17 @@ examples/battle_planner/
 ## Workflow
 
 ```text
-prepare_scenario
+scenario_preparation
  -> scenario_understanding
  -> battle_plan_generation
  -> agent_schema_loading
  -> agent_parameter_planning
- -> simulation
- -> evaluation
- -> summary
+ -> simulation_execution
+ -> result_evaluation
+ -> summary_generation
 ```
 
-`prepare_scenario` 会把 `scenario_zc_lite` 转成 `PlannerKnowledgePack`，其中包含想定摘要、作战目标、可用智能体能力、mission schema、约束、未知项和证据来源。后续 `scenario_understanding` 与 `battle_plan_generation` 都基于这个知识包工作。
+`scenario_preparation` 会把 `scenario_zc_lite` 转成 `PlannerKnowledgePack`，其中包含想定摘要、作战目标、可用智能体能力、mission schema、约束、未知项和证据来源。后续 `scenario_understanding` 与 `battle_plan_generation` 都基于这个知识包工作。
 
 每个 LLM 环节都会记录 trace，包括输入消息、原始输出、解析结果、fallback 状态和错误信息。Markdown 生成环节在模型不可用时会使用模板兜底；智能体参数生成失败时不再自动补默认 agent，`planned_agent_params` 会保持为空，方便定位问题。
 

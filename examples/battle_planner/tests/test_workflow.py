@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 from battle_planner.conf import LLMMode, settings
 from battle_planner.orchestration.history import build_history_item
+from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState, build_initial_state
 from battle_planner.orchestration.workflow.zc_lite_baseline import ZcLiteBaselineWorkflow
 from battle_planner.orchestration.workflow_entropy import build_workflow
@@ -36,7 +37,7 @@ def run_workflow_loop(*, max_iterations: int | None = None) -> WorkflowLoopResul
             update={"iteration_index": iteration_index, "history": list(history)}
         )
         state = workflow.run(initial_state)
-        if state.cur_stage == "complete":
+        if state.cur_stage == WorkflowStages.COMPLETE:
             history.append(build_history_item(state))
             state.history = list(history)
         states.append(state)
@@ -56,12 +57,12 @@ def test_workflow_loop_smoke(monkeypatch) -> None:
     states = result.states
 
     assert len(states) == 2
-    assert all(state.cur_stage == "complete" for state in states)
+    assert all(state.cur_stage == WorkflowStages.COMPLETE for state in states)
     assert all(state.evaluation_report is not None for state in states)
     assert all(state.summary_md for state in states)
     assert states[0].agent_param_preset_id != states[1].agent_param_preset_id
     assert len(result.history) == 2
-    assert "历史迭代反馈" in _trace_content(states[1], "battle_plan_generation")
+    assert "历史迭代反馈" in _trace_content(states[1], WorkflowStages.BATTLE_PLAN_GENERATION)
 
 
 def test_workflow_entropy_uses_configured_default() -> None:

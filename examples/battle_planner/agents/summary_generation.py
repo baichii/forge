@@ -3,12 +3,13 @@ from __future__ import annotations
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
 from battle_planner.llm_runtime.fallback import fallback_markdown
 from battle_planner.model import EvaluationReport, SimulationRunResult, SummaryEvaluation
+from battle_planner.orchestration.stages import WorkflowStages
 
 from forge.core.specs import TickAgentParams
 
 
 class SummaryAgent(BasePlanningAgent[str]):
-    name = "summary"
+    name = WorkflowStages.SUMMARY_GENERATION
 
     def build_messages(self, inputs: AgentInputs) -> list[dict[str, str]]:
         return [

@@ -4,7 +4,8 @@ from battle_planner.agents.agent_parameter_planning import plan_agent_params
 from battle_planner.conf import LLMMode, settings
 from battle_planner.llm_runtime.model_provider import build_model_provider
 from battle_planner.llm_runtime.trace import identity_trace
-from battle_planner.orchestration.node_logging import log_node_end, log_node_start
+from battle_planner.orchestration.event import EventLevels, EventPhases, EventTypes, event_handler
+from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
 from battle_planner.workspace.local.presets import select_display_agent_param_preset
 
@@ -16,14 +17,20 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
         return _display_agent_parameter_planning_node(state)
 
     model_provider = build_model_provider()
-    log_node_start(
-        "agent_parameter_planning",
+    node_name = WorkflowStages.AGENT_PARAMETER_PLANNING
+    event_handler(
+        EventTypes.LOG,
+        node=node_name,
+        phase=EventPhases.START,
+        level=EventLevels.NODE,
         iteration_index=state.iteration_index,
-        agent_count=len(state.tick_agent_specs),
-        battle_plan_chars=len(state.battle_plan_md),
-        display_mode=False,
-        model_provider=model_provider.name,
-        model=getattr(model_provider, "model", "") or model_provider.name,
+        payload={
+            "agent_count": len(state.tick_agent_specs),
+            "battle_plan_chars": len(state.battle_plan_md),
+            "display_mode": False,
+            "model_provider": model_provider.name,
+            "model": getattr(model_provider, "model", "") or model_provider.name,
+        },
     )
     planned, trace = plan_agent_params(
         scenario_understanding_md=state.scenario_understanding_md,
@@ -36,14 +43,19 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
     state.agent_param_source = "llm"
     state.agent_param_preset_id = None
     state.add_trace(trace)
-    state.cur_stage = "agent_parameter_planning"
-    log_node_end(
-        "agent_parameter_planning",
+    state.cur_stage = node_name
+    event_handler(
+        EventTypes.LOG,
+        node=node_name,
+        phase=EventPhases.END,
+        level=EventLevels.NODE,
         iteration_index=state.iteration_index,
-        display_mode=False,
-        fallback=trace.fallback_used,
-        planned_agents=_planned_agent_log_items(planned),
-        error=trace.error,
+        payload={
+            "display_mode": False,
+            "fallback": trace.fallback_used,
+            "planned_agents": _planned_agent_log_items(planned),
+            "error": trace.error,
+        },
     )
     return state
 
@@ -51,20 +63,26 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
 def _display_agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
     preset = select_display_agent_param_preset(iteration_index=state.iteration_index)
     planned = [item.model_copy(deep=True) for item in preset["agents"]]
-    log_node_start(
-        "agent_parameter_planning",
-        agent_count=len(state.tick_agent_specs),
-        battle_plan_chars=len(state.battle_plan_md),
-        display_mode=True,
+    node_name = WorkflowStages.AGENT_PARAMETER_PLANNING
+    event_handler(
+        EventTypes.LOG,
+        node=node_name,
+        phase=EventPhases.START,
+        level=EventLevels.NODE,
         iteration_index=state.iteration_index,
-        preset_id=preset["preset_id"],
+        payload={
+            "agent_count": len(state.tick_agent_specs),
+            "battle_plan_chars": len(state.battle_plan_md),
+            "display_mode": True,
+            "preset_id": preset["preset_id"],
+        },
     )
     state.planned_agent_params = planned
     state.agent_param_source = "display_preset"
     state.agent_param_preset_id = preset["preset_id"]
     state.add_trace(
         identity_trace(
-            "agent_parameter_planning",
+            WorkflowStages.AGENT_PARAMETER_PLANNING,
             input_value={
                 "display_mode": True,
                 "source": "display_preset",
@@ -79,15 +97,20 @@ def _display_agent_parameter_planning_node(state: BattlePlannerState) -> BattleP
             },
         )
     )
-    state.cur_stage = "agent_parameter_planning"
-    log_node_end(
-        "agent_parameter_planning",
+    state.cur_stage = node_name
+    event_handler(
+        EventTypes.LOG,
+        node=node_name,
+        phase=EventPhases.END,
+        level=EventLevels.NODE,
         iteration_index=state.iteration_index,
-        display_mode=True,
-        preset_id=preset["preset_id"],
-        fallback=False,
-        planned_agents=_planned_agent_log_items(planned),
-        error=None,
+        payload={
+            "display_mode": True,
+            "preset_id": preset["preset_id"],
+            "fallback": False,
+            "planned_agents": _planned_agent_log_items(planned),
+            "error": None,
+        },
     )
     return state
 

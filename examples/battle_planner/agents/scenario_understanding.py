@@ -5,10 +5,11 @@ from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanning
 from battle_planner.agents.context import render_knowledge_pack_md
 from battle_planner.llm_runtime.fallback import fallback_markdown
 from battle_planner.model import PlannerKnowledgePack
+from battle_planner.orchestration.stages import WorkflowStages
 
 
 class ScenarioUnderstandingAgent(BasePlanningAgent[str]):
-    name = "scenario_understanding"
+    name = WorkflowStages.SCENARIO_UNDERSTANDING
 
     def build_messages(self, inputs: AgentInputs) -> list[dict[str, str]]:
         if "knowledge_pack" in inputs.data:

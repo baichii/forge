@@ -7,6 +7,7 @@ from battle_planner.model import (
     PlanningGoal,
     SimulationRunResult,
 )
+from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
 
 from forge.core.specs import CallbackParams, TickAgentParams
@@ -55,14 +56,14 @@ def test_summary_node_writes_summary_evaluation(monkeypatch) -> None:
     )
 
     assert result.summary_md == "summary from fake"
-    assert result.cur_stage == "complete"
+    assert result.cur_stage == WorkflowStages.COMPLETE
 
 
 def _run_summary_node(monkeypatch, state: BattlePlannerState) -> BattlePlannerState:
     import battle_planner.orchestration.nodes.summary as summary_module
 
     def fake_generate_summary(**kwargs):
-        return "summary from fake", LLMTrace(node_name="summary")
+        return "summary from fake", LLMTrace(node_name=WorkflowStages.SUMMARY_GENERATION)
 
     monkeypatch.setattr(summary_module, "generate_summary", fake_generate_summary)
     return summary_module.summary_node(state)

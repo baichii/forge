@@ -50,6 +50,7 @@ class Settings(BaseSettings):
 
     # workflow use
     WORKFLOW_NAME: str = "zc_lite_baseline"
+    VERBOSE: int = 1
 
     # model use
     MODEL: str = "by_qwen36"
