@@ -57,8 +57,6 @@ class TargetOutcomeEvaluator:
         )
 
         return EvaluationReport(
-            run_index=result.run_index,
-            seed=result.seed,
             score=score,
             hard_violations=hard_violations,
             mission_metrics={
@@ -119,7 +117,7 @@ def aggregate_evaluation_reports(reports: list[EvaluationReport]) -> EvaluationA
         if bool(report.mission_metrics.get("objective_achieved")) and not report.hard_violations
     )
     failure_reasons = _aggregate_failure_reasons(reports)
-    best_report = max(reports, key=lambda report: report.score)
+    best_index, _ = max(enumerate(reports), key=lambda item: item[1].score)
     return EvaluationAggregateSpec(
         case_count=len(reports),
         success_count=success_count,
@@ -129,7 +127,7 @@ def aggregate_evaluation_reports(reports: list[EvaluationReport]) -> EvaluationA
         worst_score=_round_metric(min(scores)),
         std_score=_round_metric(pstdev(scores) if len(scores) > 1 else 0.0),
         objective_achieved_count=objective_achieved_count,
-        recommended_run_index=best_report.run_index,
+        recommended_simulation_index=best_index,
         failure_reasons=failure_reasons,
         metric_summary=_aggregate_numeric_metrics(reports),
     )

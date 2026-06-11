@@ -28,7 +28,6 @@ def test_simulation_execution_node_passes_state_callback_params_to_runner(monkey
 
     assert result.simulation_result.done is False
     assert len(result.simulation_results) == 1
-    assert result.simulation_results[0].run_index == 0
     assert captured["callbacks"] == [custom_callback]
 
 
@@ -54,7 +53,6 @@ def test_simulation_execution_node_runs_multiple_simulations(monkeypatch) -> Non
     )
 
     assert len(result.simulation_results) == 2
-    assert [item.run_index for item in result.simulation_results] == [0, 1]
     assert result.simulation_result == result.simulation_results[0]
     assert captured["run_count"] == 2
 

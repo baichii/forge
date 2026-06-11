@@ -33,8 +33,7 @@ def simulation_execution_node(state: BattlePlannerState) -> BattlePlannerState:
         repeat_count = _simulation_repeat_count(state)
         register_battle_planner_modules()
         simulation_results: list[SimulationRunResult] = []
-        for run_index in range(repeat_count):
-            seed = _simulation_seed(run_index)
+        for _ in range(repeat_count):
             runner = Runner(
                 env=EnvParams(
                     name="pysim",
@@ -52,22 +51,16 @@ def simulation_execution_node(state: BattlePlannerState) -> BattlePlannerState:
             stop_reason = report.env.stop_reason
             simulation_results.append(
                 SimulationRunResult(
-                    scenario_name=state.scenario_name or "",
-                    run_index=run_index,
-                    seed=seed,
                     steps=report.env.step_count,
                     done=_is_env_finished(stop_reason),
                     logs=[
                         f"reset scenario={state.scenario_name}",
-                        f"run_index={run_index}",
                         f"run registered pysim runner max_steps={max_steps} tick_agents={len(state.planned_agent_params)}",
                         f"stop_reason={stop_reason}",
                         f"simulation_elapsed_seconds={elapsed_seconds:.4f}",
                     ],
                     raw_summary={
                         "env": "pysim",
-                        "run_index": run_index,
-                        "seed": seed,
                         "max_steps": max_steps,
                         "stop_reason": stop_reason,
                         "tick_agents": [
@@ -123,9 +116,3 @@ def _simulation_repeat_count(state: BattlePlannerState) -> int:
     if state.task_run_options is None:
         return 1
     return max(1, state.task_run_options.sim_runs_per_scheme)
-
-
-def _simulation_seed(run_index: int) -> int | None:
-    if settings.SIM_RANDOM_SEED is None:
-        return None
-    return settings.SIM_RANDOM_SEED + run_index

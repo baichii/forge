@@ -6,9 +6,9 @@ New code should import from the semantic modules in this package.
 from battle_planner.model.deduction import DeductionSpec
 from battle_planner.model.evaluation import (
     AgentExecutionSummary,
-    EvaluationReport,
+    EvaluationAggregateSpec,
+    EvaluationFailureReason,
     LLMTrace,
-    SimulationRunResult,
     SummaryEvaluation,
     TargetObjectiveSummary,
 )
@@ -23,12 +23,21 @@ from battle_planner.model.knowledge import (
     PlanningGoal,
 )
 from battle_planner.model.options import TaskRunOptions
+from battle_planner.model.outputs import (
+    RunArtifactSpec,
+    RunIterationOutputSpec,
+    RunIterationTagSpec,
+    RunOutputSpec,
+    RunSimulationRecordSpec,
+    RunTextSummarySpec,
+)
 from battle_planner.model.requests import (
     TaskBranchHumanInputRequest,
     TaskContextCreateRequest,
     TaskRunCreateRequest,
 )
 from battle_planner.model.scheme import SchemeSpec
+from battle_planner.model.simulation import EvaluationReport, SimulationRunResult
 from battle_planner.model.source import TaskBranchSpec, TaskPlanSpec, TickAgentSourceSpec
 from battle_planner.model.task import (
     TaskBranchContextSpec,
@@ -41,12 +50,20 @@ __all__ = [
     "AssetSummary",
     "BranchHumanInputSpec",
     "DeductionSpec",
+    "EvaluationAggregateSpec",
+    "EvaluationFailureReason",
     "EvaluationReport",
     "LLMTrace",
     "PlanHumanInputSpec",
     "PlannerKnowledgePack",
     "PlanningGoal",
     "RiskStyle",
+    "RunArtifactSpec",
+    "RunIterationOutputSpec",
+    "RunIterationTagSpec",
+    "RunOutputSpec",
+    "RunSimulationRecordSpec",
+    "RunTextSummarySpec",
     "SchemeSpec",
     "SimulationRunResult",
     "SummaryEvaluation",

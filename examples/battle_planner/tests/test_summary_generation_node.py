@@ -101,7 +101,6 @@ def _make_state(*, target_alive: bool, action_count: int, health_delta: int) -> 
             )
         ],
         simulation_result=SimulationRunResult(
-            scenario_name="zc3_lite",
             steps=10,
             done=not target_alive,
             raw_summary={

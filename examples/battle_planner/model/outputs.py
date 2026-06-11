@@ -58,7 +58,7 @@ class RunArtifactSpec(BaseModel):
 class RunSimulationRecordSpec(BaseModel):
     """同一轮迭代内的一次仿真验证记录。"""
 
-    run_index: int = Field(default=0, description="同一轮迭代内的仿真序号。")
+    simulation_index: int = Field(default=0, description="同一轮迭代内的仿真序号。")
     seed: int | None = Field(default=None, description="随机种子。")
     simulation_result: SimulationRunResult | None = Field(default=None, description="仿真结果。")
     evaluation_report: EvaluationReport | None = Field(default=None, description="评估报告。")

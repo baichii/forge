@@ -9,7 +9,6 @@ from battle_planner.orchestration.state.state import BattlePlannerState
 def test_result_evaluation_node_uses_target_outcome_report() -> None:
     state = BattlePlannerState(
         simulation_result=SimulationRunResult(
-            scenario_name="zc3_lite",
             steps=10,
             done=True,
             raw_summary={"runner_report": _runner_report()},
@@ -29,15 +28,11 @@ def test_result_evaluation_node_aggregates_multiple_simulation_results() -> None
     state = BattlePlannerState(
         simulation_results=[
             SimulationRunResult(
-                scenario_name="zc3_lite",
-                run_index=0,
                 steps=10,
                 done=True,
                 raw_summary={"runner_report": _runner_report(alive=False, current_health=0, delta=-1000)},
             ),
             SimulationRunResult(
-                scenario_name="zc3_lite",
-                run_index=1,
                 steps=10,
                 done=True,
                 raw_summary={"runner_report": _runner_report(alive=True, current_health=500, delta=-500)},
@@ -53,7 +48,7 @@ def test_result_evaluation_node_aggregates_multiple_simulation_results() -> None
     assert result.evaluation_summary.success_count == 1
     assert result.evaluation_summary.success_rate == 0.5
     assert result.evaluation_summary.mean_score == 69
-    assert result.evaluation_summary.recommended_run_index == 0
+    assert result.evaluation_summary.recommended_simulation_index == 0
 
 
 def _runner_report(*, alive: bool = False, current_health: int = 0, delta: int = -1000) -> dict:
