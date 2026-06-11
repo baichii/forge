@@ -37,7 +37,7 @@ from battle_planner.model.requests import (
     TaskRunCreateRequest,
 )
 from battle_planner.model.scheme import SchemeSpec
-from battle_planner.model.simulation import EvaluationReport, SimulationRunResult
+from battle_planner.model.simulation import EvaluationFindingSpec, EvaluationReport, SimulationRunResult
 from battle_planner.model.source import TaskBranchSpec, TaskPlanSpec, TickAgentSourceSpec
 from battle_planner.model.task import (
     TaskBranchContextSpec,
@@ -52,6 +52,7 @@ __all__ = [
     "DeductionSpec",
     "EvaluationAggregateSpec",
     "EvaluationFailureReason",
+    "EvaluationFindingSpec",
     "EvaluationReport",
     "LLMTrace",
     "PlanHumanInputSpec",

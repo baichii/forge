@@ -48,6 +48,7 @@ class SummaryAgent(BasePlanningAgent[str]):
             return raw_output, False, None
         simulation_result = inputs.data["simulation_result"]
         evaluation_report = inputs.data["evaluation_report"]
+        evaluation_summary = inputs.data.get("evaluation_summary")
         summary_evaluation = inputs.data["summary_evaluation"]
         return (
             fallback_markdown(
@@ -55,6 +56,7 @@ class SummaryAgent(BasePlanningAgent[str]):
                 _fallback_summary_body(
                     simulation_result=simulation_result,
                     evaluation_report=evaluation_report,
+                    evaluation_summary=evaluation_summary,
                     summary_evaluation=summary_evaluation,
                 ),
             ),
@@ -106,6 +108,7 @@ def _fallback_summary_body(
     *,
     simulation_result: SimulationRunResult,
     evaluation_report: EvaluationReport,
+    evaluation_summary: EvaluationAggregateSpec | None,
     summary_evaluation: SummaryEvaluation,
 ) -> str:
     objective_line = "作战目标已达成。" if summary_evaluation.objective_achieved else "作战目标尚未达成。"
@@ -125,15 +128,17 @@ def _fallback_summary_body(
         for item in summary_evaluation.agent_execution
     ]
     warning_lines = [f"- {item}" for item in summary_evaluation.warnings] or ["- 无"]
-    requested_weapon_count = evaluation_report.mission_metrics.get("requested_weapon_count", 0)
-    next_advice = evaluation_report.advice or summary_evaluation.advice
+    requested_weapon_count = simulation_result.metrics.get("requested_weapon_count", 0)
+    mean_score = evaluation_summary.mean_score if evaluation_summary else None
+    next_advice = summary_evaluation.advice
     return "\n".join(
         [
             (
                 f"真实环境执行 {simulation_result.steps} 个决策步，"
-                f"真实评估分数为 {evaluation_report.score}，"
+                f"多局平均评分为 {mean_score}，"
                 f"请求火力数为 {requested_weapon_count}。"
             ),
+            f"评估判定 objective_achieved={evaluation_report.objective_achieved}。",
             objective_line,
             "",
             "## 目标状态",

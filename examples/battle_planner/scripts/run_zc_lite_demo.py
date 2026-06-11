@@ -53,10 +53,12 @@ def main() -> None:
     if final_state.evaluation_report:
         print("")
         print("evaluation")
-        print(f"- score: {final_state.evaluation_report.score}")
-        for key, value in final_state.evaluation_report.mission_metrics.items():
+        print(f"- objective_achieved: {final_state.evaluation_report.objective_achieved}")
+        print(f"- findings: {len(final_state.evaluation_report.findings)}")
+        for finding in final_state.evaluation_report.findings:
+            print(f"  - {finding.severity}:{finding.code} {finding.message}")
+        for key, value in final_state.simulation_result.metrics.items():
             print(f"- {key}: {value}")
-        print(f"- advice: {final_state.evaluation_report.advice}")
 
     print("")
     print("llm traces")

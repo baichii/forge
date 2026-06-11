@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from battle_planner.model.scheme import SchemeSpec
-from battle_planner.model.simulation import EvaluationReport, SimulationRunResult
+from battle_planner.model.simulation import SimulationRunResult
 from pydantic import BaseModel, Field
 
 from forge.core.specs import CallbackParams, TickAgentParams
@@ -61,8 +61,7 @@ class RunSimulationRecordSpec(BaseModel):
     simulation_index: int = Field(default=0, description="同一轮迭代内的仿真序号。")
     seed: int | None = Field(default=None, description="随机种子。")
     simulation_result: SimulationRunResult | None = Field(default=None, description="仿真结果。")
-    evaluation_report: EvaluationReport | None = Field(default=None, description="评估报告。")
-    summary: RunTextSummarySpec | None = Field(default=None, description="单次仿真摘要。")
+    summary: RunTextSummarySpec | None = Field(default=None, description="本次仿真事实摘要。")
     meta: dict[str, Any] = Field(default_factory=dict, description="预留扩展字段。")
 
 

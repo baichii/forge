@@ -15,8 +15,9 @@ def render_history_for_planning(history: list[dict[str, Any]]) -> str:
 
     lines = ["", "", "历史迭代反馈（临时直传，后续替换为正式 history spec）："]
     for item in history:
+        simulation_result = _as_dict(item.get("simulation_result"))
+        metrics = _as_dict(simulation_result.get("metrics"))
         evaluation_report = _as_dict(item.get("evaluation_report"))
-        metrics = _as_dict(evaluation_report.get("mission_metrics"))
         summary_evaluation = _as_dict(item.get("summary_evaluation"))
         lines.extend(
             [
@@ -25,7 +26,7 @@ def render_history_for_planning(history: list[dict[str, Any]]) -> str:
                 f"- preset: {item.get('agent_param_preset_id') or ''}",
                 (
                     "- objective_achieved: "
-                    f"{metrics.get('objective_achieved', summary_evaluation.get('objective_achieved', ''))}"
+                    f"{evaluation_report.get('objective_achieved', summary_evaluation.get('objective_achieved', ''))}"
                 ),
                 f"- target_health_delta: {metrics.get('target_health_delta', '')}",
                 f"- requested_weapon_count: {metrics.get('requested_weapon_count', '')}",

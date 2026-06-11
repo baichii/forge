@@ -99,20 +99,17 @@ def artifact_snapshot(state: BattlePlannerState) -> dict:
 
 
 def _iteration_summary(state: BattlePlannerState) -> str:
-    score = state.evaluation_report.score if state.evaluation_report else None
-    objective_achieved = (
-        state.evaluation_report.mission_metrics.get("objective_achieved")
-        if state.evaluation_report
-        else None
-    )
+    metrics = state.simulation_result.metrics if state.simulation_result else {}
+    objective_achieved = state.evaluation_report.objective_achieved if state.evaluation_report else None
     return (
         f"iteration={state.iteration_index + 1} "
         f"stage={state.cur_stage} "
         f"preset={state.agent_param_preset_id} "
         f"sim_runs={len(state.simulation_results)} "
-        f"score={score} "
         f"mean_score={state.evaluation_summary.mean_score if state.evaluation_summary else None} "
-        f"objective_achieved={objective_achieved}"
+        f"objective_achieved={objective_achieved} "
+        f"target_health_delta={metrics.get('target_health_delta')} "
+        f"requested_weapon_count={metrics.get('requested_weapon_count')}"
     )
 
 

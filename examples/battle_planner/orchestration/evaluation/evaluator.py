@@ -7,6 +7,7 @@ from typing import Any
 from battle_planner.model import (
     EvaluationAggregateSpec,
     EvaluationFailureReason,
+    EvaluationFindingSpec,
     EvaluationReport,
     SimulationRunResult,
 )
@@ -32,10 +33,12 @@ class TargetOutcomeEvaluator:
         health_delta = _sum_numbers(item["health_delta"] for item in target_stats)
         damage = max(0.0, -health_delta)
         damage_ratio = _damage_ratio(
-            damage=damage, initial_health=initial_health, target_count=target_count
+            damage=damage,
+            initial_health=initial_health,
+            target_count=target_count,
         )
 
-        requested_weapon_count, weapon_events = _collect_requested_weapon_count(agent_reports)
+        requested_weapon_count, _weapon_events = _collect_requested_weapon_count(agent_reports)
         action_count = sum(int(_as_dict(agent).get("action_count") or 0) for agent in agent_reports)
         inactive_agents = [
             str(_as_dict(agent).get("agent_instance_id") or "")
@@ -44,25 +47,10 @@ class TargetOutcomeEvaluator:
         ]
         inactive_agents = [item for item in inactive_agents if item]
 
-        hard_violations = _build_hard_violations(
-            result=result,
-            target_count=target_count,
-            action_count=action_count,
-        )
-        score = _score(
-            objective_achieved=objective_achieved,
-            damage_ratio=damage_ratio,
-            requested_weapon_count=requested_weapon_count,
-            inactive_agent_count=len(inactive_agents),
-        )
-
-        return EvaluationReport(
-            score=score,
-            hard_violations=hard_violations,
-            mission_metrics={
+        result.metrics.update(
+            {
                 "sim_decision_steps": result.steps,
                 "env_done": result.done,
-                "objective_achieved": objective_achieved,
                 "target_count": target_count,
                 "target_destroyed_count": destroyed_count,
                 "target_initial_health": _round_metric(initial_health),
@@ -73,51 +61,42 @@ class TargetOutcomeEvaluator:
                 "agent_action_count": action_count,
                 "inactive_agent_count": len(inactive_agents),
                 "requested_weapon_count": requested_weapon_count,
-            },
-            diagnostic_events=[
-                {
-                    "event": "target_outcome",
-                    "objective_achieved": objective_achieved,
-                    "targets": target_stats,
-                },
-                {
-                    "event": "weapon_request",
-                    "requested_weapon_count": requested_weapon_count,
-                    "detail": "基于 runner 下发 action 中的 wp_num/wp_nums/weapon_nums 估算请求火力。",
-                    "actions": weapon_events,
-                },
-                {
-                    "event": "score_rule",
-                    "detail": "目标摧毁优先；未摧毁时按毁伤比例计分；目标摧毁后对请求火力数做轻量扣分。",
-                },
-            ],
-            advice=_build_advice(
+            }
+        )
+
+        return EvaluationReport(
+            objective_achieved=objective_achieved,
+            findings=_build_findings(
+                result=result,
+                target_count=target_count,
+                action_count=action_count,
                 objective_achieved=objective_achieved,
-                damage=damage,
-                requested_weapon_count=requested_weapon_count,
                 inactive_agents=inactive_agents,
-                hard_violations=hard_violations,
             ),
         )
 
 
-def aggregate_evaluation_reports(reports: list[EvaluationReport]) -> EvaluationAggregateSpec:
+def aggregate_evaluation_reports(
+    reports: list[EvaluationReport],
+    simulation_results: list[SimulationRunResult] | None = None,
+) -> EvaluationAggregateSpec:
     """聚合同一 DeductionSpec 下的多次仿真评估结果。"""
 
     if not reports:
         return EvaluationAggregateSpec()
 
-    scores = [report.score for report in reports]
-    objective_achieved_count = sum(
-        1 for report in reports if bool(report.mission_metrics.get("objective_achieved"))
-    )
+    simulation_results = simulation_results or []
+    scores = [
+        _score_from_metrics(
+            report=report,
+            metrics=simulation_results[index].metrics if index < len(simulation_results) else {},
+        )
+        for index, report in enumerate(reports)
+    ]
     success_count = sum(
-        1
-        for report in reports
-        if bool(report.mission_metrics.get("objective_achieved")) and not report.hard_violations
+        1 for report in reports if report.objective_achieved and not _has_error_findings(report)
     )
-    failure_reasons = _aggregate_failure_reasons(reports)
-    best_index, _ = max(enumerate(reports), key=lambda item: item[1].score)
+    best_index, _ = max(enumerate(scores), key=lambda item: item[1])
     return EvaluationAggregateSpec(
         case_count=len(reports),
         success_count=success_count,
@@ -126,30 +105,98 @@ def aggregate_evaluation_reports(reports: list[EvaluationReport]) -> EvaluationA
         best_score=_round_metric(max(scores)),
         worst_score=_round_metric(min(scores)),
         std_score=_round_metric(pstdev(scores) if len(scores) > 1 else 0.0),
-        objective_achieved_count=objective_achieved_count,
+        objective_achieved_count=sum(1 for report in reports if report.objective_achieved),
         recommended_simulation_index=best_index,
-        failure_reasons=failure_reasons,
-        metric_summary=_aggregate_numeric_metrics(reports),
+        failure_reasons=_aggregate_failure_reasons(reports),
+        metric_summary=_aggregate_numeric_metrics(simulation_results),
     )
+
+
+def _build_findings(
+    *,
+    result: SimulationRunResult,
+    target_count: int,
+    action_count: int,
+    objective_achieved: bool,
+    inactive_agents: list[str],
+) -> list[EvaluationFindingSpec]:
+    findings: list[EvaluationFindingSpec] = []
+    if result.steps <= 0:
+        findings.append(
+            EvaluationFindingSpec(
+                code="simulation_no_steps",
+                message="仿真没有产生决策步。",
+                severity="error",
+            )
+        )
+    if target_count <= 0:
+        findings.append(
+            EvaluationFindingSpec(
+                code="target_callback_missing",
+                message="未获取到目标统计 callback 结果。",
+                severity="error",
+            )
+        )
+    if action_count <= 0:
+        findings.append(
+            EvaluationFindingSpec(
+                code="agent_no_action_dispatched",
+                message="未下发任何 agent 动作。",
+                severity="error",
+            )
+        )
+    if target_count > 0 and not objective_achieved:
+        findings.append(
+            EvaluationFindingSpec(
+                code="target_not_destroyed",
+                message="目标未全部摧毁。",
+                severity="warning",
+            )
+        )
+    if inactive_agents:
+        findings.append(
+            EvaluationFindingSpec(
+                code="agent_inactive",
+                message="存在未执行动作的 agent。",
+                severity="warning",
+                detail={"agent_instance_ids": inactive_agents},
+            )
+        )
+    return findings
+
+
+def _score_from_metrics(*, report: EvaluationReport, metrics: dict[str, Any]) -> float:
+    return _score(
+        objective_achieved=report.objective_achieved,
+        damage_ratio=_number_or_zero(metrics.get("target_damage_ratio")),
+        requested_weapon_count=int(_number_or_zero(metrics.get("requested_weapon_count"))),
+        inactive_agent_count=int(_number_or_zero(metrics.get("inactive_agent_count"))),
+    )
+
+
+def _has_error_findings(report: EvaluationReport) -> bool:
+    return any(finding.severity == "error" for finding in report.findings)
 
 
 def _aggregate_failure_reasons(reports: list[EvaluationReport]) -> list[EvaluationFailureReason]:
     counter: Counter[str] = Counter()
+    summaries: dict[str, str] = {}
     for report in reports:
-        if report.hard_violations:
-            counter.update(report.hard_violations)
-        elif not bool(report.mission_metrics.get("objective_achieved")) and report.advice:
-            counter.update([report.advice])
+        for finding in report.findings:
+            if report.objective_achieved and finding.severity != "error":
+                continue
+            counter.update([finding.code])
+            summaries.setdefault(finding.code, finding.message or finding.code)
     return [
-        EvaluationFailureReason(reason=reason, count=count, summary=reason)
+        EvaluationFailureReason(reason=reason, count=count, summary=summaries.get(reason, reason))
         for reason, count in counter.most_common()
     ]
 
 
-def _aggregate_numeric_metrics(reports: list[EvaluationReport]) -> dict[str, Any]:
+def _aggregate_numeric_metrics(simulation_results: list[SimulationRunResult]) -> dict[str, Any]:
     metric_values: dict[str, list[float]] = {}
-    for report in reports:
-        for key, value in report.mission_metrics.items():
+    for result in simulation_results:
+        for key, value in result.metrics.items():
             if isinstance(value, bool):
                 continue
             if isinstance(value, int | float):
@@ -241,22 +288,6 @@ def _weapon_count_from_action(action: dict[str, Any]) -> int:
     return 0
 
 
-def _build_hard_violations(
-    *,
-    result: SimulationRunResult,
-    target_count: int,
-    action_count: int,
-) -> list[str]:
-    hard_violations: list[str] = []
-    if result.steps <= 0:
-        hard_violations.append("simulation produced no steps")
-    if target_count <= 0:
-        hard_violations.append("target_statistic callback produced no target result")
-    if action_count <= 0:
-        hard_violations.append("no agent action was dispatched")
-    return hard_violations
-
-
 def _score(
     *,
     objective_achieved: bool,
@@ -270,27 +301,6 @@ def _score(
         return round(max(0.0, 100.0 - weapon_penalty - inactive_penalty), 2)
     inactive_penalty = min(20.0, inactive_agent_count * 10.0)
     return round(max(0.0, damage_ratio * 80.0 - inactive_penalty), 2)
-
-
-def _build_advice(
-    *,
-    objective_achieved: bool,
-    damage: float,
-    requested_weapon_count: int,
-    inactive_agents: list[str],
-    hard_violations: list[str],
-) -> str:
-    if "target_statistic callback produced no target result" in hard_violations:
-        return "未获取到目标统计结果，优先检查 callback 配置和目标 id。"
-    if "no agent action was dispatched" in hard_violations:
-        return "未下发任何 agent 动作，优先检查时间窗口、目标接地和单位匹配。"
-    if objective_achieved:
-        return f"目标已摧毁，本轮请求火力数为 {requested_weapon_count}；下一轮可降低火力寻找临界条件。"
-    if inactive_agents:
-        return "目标未摧毁且存在未执行 agent，下一轮优先检查未执行 agent 的时间窗口和单位/目标匹配。"
-    if damage > 0:
-        return f"目标未摧毁但已造成 {round(damage, 4)} 点毁伤，下一轮可增强火力或调整打击时序。"
-    return "目标未摧毁且未形成可见毁伤，下一轮优先检查武器能力、射程、命中窗口和任务格式。"
 
 
 def _damage_ratio(*, damage: float, initial_health: float, target_count: int) -> float:

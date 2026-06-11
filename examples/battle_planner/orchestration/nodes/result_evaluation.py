@@ -36,8 +36,9 @@ def result_evaluation_node(state: BattlePlannerState) -> BattlePlannerState:
     evaluation_reports = [evaluator.evaluate(result) for result in simulation_results]
     state.evaluation_reports = evaluation_reports
     state.evaluation_report = evaluation_reports[0] if evaluation_reports else None
-    state.evaluation_summary = aggregate_evaluation_reports(evaluation_reports)
+    state.evaluation_summary = aggregate_evaluation_reports(evaluation_reports, simulation_results)
     state.cur_stage = node_name
+    first_metrics = simulation_results[0].metrics if simulation_results else {}
     event_handler(
         EventTypes.LOG,
         node=node_name,
@@ -46,21 +47,14 @@ def result_evaluation_node(state: BattlePlannerState) -> BattlePlannerState:
         iteration_index=state.iteration_index,
         payload={
             "run_count": len(state.evaluation_reports),
-            "score": state.evaluation_report.score if state.evaluation_report else None,
             "mean_score": state.evaluation_summary.mean_score if state.evaluation_summary else None,
             "success_rate": state.evaluation_summary.success_rate if state.evaluation_summary else None,
-            "hard_violations": len(state.evaluation_report.hard_violations)
+            "findings": len(state.evaluation_report.findings) if state.evaluation_report else None,
+            "objective_achieved": state.evaluation_report.objective_achieved
             if state.evaluation_report
             else None,
-            "objective_achieved": state.evaluation_report.mission_metrics.get("objective_achieved")
-            if state.evaluation_report
-            else None,
-            "target_health_delta": state.evaluation_report.mission_metrics.get("target_health_delta")
-            if state.evaluation_report
-            else None,
-            "requested_weapon_count": state.evaluation_report.mission_metrics.get("requested_weapon_count")
-            if state.evaluation_report
-            else None,
+            "target_health_delta": first_metrics.get("target_health_delta"),
+            "requested_weapon_count": first_metrics.get("requested_weapon_count"),
         },
     )
     return state

@@ -18,8 +18,8 @@ def test_result_evaluation_node_uses_target_outcome_report() -> None:
     result = result_evaluation_node(state)
 
     assert result.cur_stage == WorkflowStages.RESULT_EVALUATION
-    assert result.evaluation_report.mission_metrics["objective_achieved"] is True
-    assert result.evaluation_report.mission_metrics["requested_weapon_count"] == 4
+    assert result.evaluation_report.objective_achieved is True
+    assert result.simulation_result.metrics["requested_weapon_count"] == 4
     assert result.evaluation_summary.case_count == 1
     assert result.evaluation_summary.success_rate == 1
 
@@ -49,6 +49,8 @@ def test_result_evaluation_node_aggregates_multiple_simulation_results() -> None
     assert result.evaluation_summary.success_rate == 0.5
     assert result.evaluation_summary.mean_score == 69
     assert result.evaluation_summary.recommended_simulation_index == 0
+    assert result.simulation_results[1].metrics["target_damage_ratio"] == 0.5
+    assert result.evaluation_reports[1].findings[0].code == "target_not_destroyed"
 
 
 def _runner_report(*, alive: bool = False, current_health: int = 0, delta: int = -1000) -> dict:

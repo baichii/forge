@@ -112,7 +112,7 @@ def _make_state(*, target_alive: bool, action_count: int, health_delta: int) -> 
                 )
             },
         ),
-        evaluation_report=EvaluationReport(score=75.0),
+        evaluation_report=EvaluationReport(objective_achieved=not target_alive),
     )
 
 
