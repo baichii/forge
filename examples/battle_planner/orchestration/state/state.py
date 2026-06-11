@@ -2,6 +2,7 @@ from typing import Any
 
 from battle_planner.conf import settings
 from battle_planner.model import (
+    EvaluationAggregateSpec,
     EvaluationReport,
     LLMTrace,
     PlannerKnowledgePack,
@@ -40,8 +41,11 @@ class BattlePlannerState(BaseModel):
     verbose: int = Field(default_factory=lambda: settings.VERBOSE)
     agent_param_source: str = ""
     agent_param_preset_id: str | None = None
+    simulation_results: list[SimulationRunResult] = Field(default_factory=list)
     simulation_result: SimulationRunResult | None = None
+    evaluation_reports: list[EvaluationReport] = Field(default_factory=list)
     evaluation_report: EvaluationReport | None = None
+    evaluation_summary: EvaluationAggregateSpec | None = None
     summary_evaluation: SummaryEvaluation | None = None
     summary_md: str = ""
     llm_traces: list[LLMTrace] = Field(default_factory=list)

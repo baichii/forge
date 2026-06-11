@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanningAgent
 from battle_planner.llm_runtime.fallback import fallback_markdown
-from battle_planner.model import EvaluationReport, SimulationRunResult, SummaryEvaluation
+from battle_planner.model import (
+    EvaluationAggregateSpec,
+    EvaluationReport,
+    SimulationRunResult,
+    SummaryEvaluation,
+)
 from battle_planner.orchestration.stages import WorkflowStages
 
 from forge.core.specs import TickAgentParams
@@ -26,6 +31,7 @@ class SummaryAgent(BasePlanningAgent[str]):
                     f"智能体参数：\n{[item.model_dump() for item in inputs.data['planned_agent_params']]}\n\n"
                     f"仿真结果：\n{inputs.data['simulation_result'].model_dump()}\n\n"
                     f"评估报告：\n{inputs.data['evaluation_report'].model_dump()}\n\n"
+                    f"多次评估聚合：\n{_model_dump_or_none(inputs.data.get('evaluation_summary'))}\n\n"
                     f"报告理解反馈：\n{inputs.data['summary_evaluation'].model_dump()}"
                 ),
             },
@@ -64,6 +70,7 @@ def generate_summary(
     planned_agent_params: list[TickAgentParams],
     simulation_result: SimulationRunResult,
     evaluation_report: EvaluationReport,
+    evaluation_summary: EvaluationAggregateSpec | None = None,
     summary_evaluation: SummaryEvaluation,
 ) -> tuple[str, object]:
     result: AgentRunResult[str] = SummaryAgent().run(
@@ -74,15 +81,25 @@ def generate_summary(
                 "planned_agent_params": planned_agent_params,
                 "simulation_result": simulation_result,
                 "evaluation_report": evaluation_report,
+                "evaluation_summary": evaluation_summary,
                 "summary_evaluation": summary_evaluation,
             },
             memory={
+                "evaluation_summary": _model_dump_or_none(evaluation_summary),
                 "summary_evaluation": summary_evaluation.model_dump(mode="json"),
             },
             skills=["读取仿真和评估结果并生成 Markdown 复盘"],
         )
     )
     return result.output, result.trace
+
+
+def _model_dump_or_none(value: object | None) -> dict | None:
+    if value is None:
+        return None
+    if hasattr(value, "model_dump"):
+        return value.model_dump(mode="json")
+    return None
 
 
 def _fallback_summary_body(

@@ -30,48 +30,61 @@ def simulation_execution_node(state: BattlePlannerState) -> BattlePlannerState:
         if not state.callback_params:
             raise ValueError("simulation requires callback_params from scenario runtime config")
         max_steps = settings.SIM_MAX_DECISION_STEPS
+        repeat_count = _simulation_repeat_count(state)
         register_battle_planner_modules()
-        runner = Runner(
-            env=EnvParams(
-                name="pysim",
-                mode=EnvMode.CREATE,
-                link=EnvLink.GYM,
-                params={"scenario_name": state.scenario_name or "zc_lite", "render_mode": "none"},
-            ),
-            tick_agents=state.planned_agent_params,
-            callbacks=state.callback_params,
-        )
-        runner.reset()
-        started_at = perf_counter()
-        report = runner.run(max_step=max_steps)
-        elapsed_seconds = perf_counter() - started_at
-        stop_reason = report.env.stop_reason
-        state.simulation_result = SimulationRunResult(
-            scenario_name=state.scenario_name,
-            steps=report.env.step_count,
-            done=_is_env_finished(stop_reason),
-            logs=[
-                f"reset scenario={state.scenario_name}",
-                f"run registered pysim runner max_steps={max_steps} tick_agents={len(state.planned_agent_params)}",
-                f"stop_reason={stop_reason}",
-                f"simulation_elapsed_seconds={elapsed_seconds:.4f}",
-            ],
-            raw_summary={
-                "env": "pysim",
-                "max_steps": max_steps,
-                "stop_reason": stop_reason,
-                "tick_agents": [
-                    {
-                        "agent_instance_id": item.agent_instance_id,
-                        "agent_name": item.agent_name,
-                        "side": item.side,
-                    }
-                    for item in state.planned_agent_params
-                ],
-                "elapsed_seconds": elapsed_seconds,
-                "runner_report": report.model_dump(),
-            },
-        )
+        simulation_results: list[SimulationRunResult] = []
+        for run_index in range(repeat_count):
+            seed = _simulation_seed(run_index)
+            runner = Runner(
+                env=EnvParams(
+                    name="pysim",
+                    mode=EnvMode.CREATE,
+                    link=EnvLink.GYM,
+                    params={"scenario_name": state.scenario_name or "zc_lite", "render_mode": "none"},
+                ),
+                tick_agents=state.planned_agent_params,
+                callbacks=state.callback_params,
+            )
+            runner.reset()
+            started_at = perf_counter()
+            report = runner.run(max_step=max_steps)
+            elapsed_seconds = perf_counter() - started_at
+            stop_reason = report.env.stop_reason
+            simulation_results.append(
+                SimulationRunResult(
+                    scenario_name=state.scenario_name or "",
+                    run_index=run_index,
+                    seed=seed,
+                    steps=report.env.step_count,
+                    done=_is_env_finished(stop_reason),
+                    logs=[
+                        f"reset scenario={state.scenario_name}",
+                        f"run_index={run_index}",
+                        f"run registered pysim runner max_steps={max_steps} tick_agents={len(state.planned_agent_params)}",
+                        f"stop_reason={stop_reason}",
+                        f"simulation_elapsed_seconds={elapsed_seconds:.4f}",
+                    ],
+                    raw_summary={
+                        "env": "pysim",
+                        "run_index": run_index,
+                        "seed": seed,
+                        "max_steps": max_steps,
+                        "stop_reason": stop_reason,
+                        "tick_agents": [
+                            {
+                                "agent_instance_id": item.agent_instance_id,
+                                "agent_name": item.agent_name,
+                                "side": item.side,
+                            }
+                            for item in state.planned_agent_params
+                        ],
+                        "elapsed_seconds": elapsed_seconds,
+                        "runner_report": report.model_dump(),
+                    },
+                )
+            )
+        state.simulation_results = simulation_results
+        state.simulation_result = simulation_results[0] if simulation_results else None
         state.cur_stage = node_name
         event_handler(
             EventTypes.LOG,
@@ -80,10 +93,13 @@ def simulation_execution_node(state: BattlePlannerState) -> BattlePlannerState:
             level=EventLevels.NODE,
             iteration_index=state.iteration_index,
             payload={
-                "steps": state.simulation_result.steps,
-                "done": state.simulation_result.done,
-                "stop_reason": stop_reason,
-                "env": state.simulation_result.raw_summary.get("env"),
+                "run_count": len(state.simulation_results),
+                "steps": state.simulation_result.steps if state.simulation_result else None,
+                "done": state.simulation_result.done if state.simulation_result else None,
+                "stop_reason": state.simulation_result.raw_summary.get("stop_reason")
+                if state.simulation_result
+                else None,
+                "env": state.simulation_result.raw_summary.get("env") if state.simulation_result else None,
             },
         )
     except Exception as exc:
@@ -101,3 +117,15 @@ def simulation_execution_node(state: BattlePlannerState) -> BattlePlannerState:
 
 def _is_env_finished(stop_reason: str) -> bool:
     return stop_reason in {"env_terminal", "env_truncated"}
+
+
+def _simulation_repeat_count(state: BattlePlannerState) -> int:
+    if state.task_run_options is None:
+        return 1
+    return max(1, state.task_run_options.sim_runs_per_scheme)
+
+
+def _simulation_seed(run_index: int) -> int | None:
+    if settings.SIM_RANDOM_SEED is None:
+        return None
+    return settings.SIM_RANDOM_SEED + run_index

@@ -80,11 +80,16 @@ def artifact_snapshot(state: BattlePlannerState) -> dict:
         "scenario_understanding_md": state.scenario_understanding_md,
         "battle_plan_md": state.battle_plan_md,
         "planned_agent_params": [item.model_dump(mode="json") for item in state.planned_agent_params],
+        "simulation_results": [item.model_dump(mode="json") for item in state.simulation_results],
         "simulation_result": state.simulation_result.model_dump(mode="json")
         if state.simulation_result
         else None,
+        "evaluation_reports": [item.model_dump(mode="json") for item in state.evaluation_reports],
         "evaluation_report": state.evaluation_report.model_dump(mode="json")
         if state.evaluation_report
+        else None,
+        "evaluation_summary": state.evaluation_summary.model_dump(mode="json")
+        if state.evaluation_summary
         else None,
         "summary_evaluation": state.summary_evaluation.model_dump(mode="json")
         if state.summary_evaluation
@@ -104,7 +109,9 @@ def _iteration_summary(state: BattlePlannerState) -> str:
         f"iteration={state.iteration_index + 1} "
         f"stage={state.cur_stage} "
         f"preset={state.agent_param_preset_id} "
+        f"sim_runs={len(state.simulation_results)} "
         f"score={score} "
+        f"mean_score={state.evaluation_summary.mean_score if state.evaluation_summary else None} "
         f"objective_achieved={objective_achieved}"
     )
 

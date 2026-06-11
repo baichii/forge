@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from battle_planner.conf import LLMMode
 from battle_planner.model import (
     EvaluationReport,
     LLMTrace,
@@ -67,6 +68,7 @@ def _run_summary_generation_node(monkeypatch, state: BattlePlannerState) -> Batt
     def fake_generate_summary(**kwargs):
         return "summary from fake", LLMTrace(node_name=WorkflowStages.SUMMARY_GENERATION)
 
+    monkeypatch.setattr(summary_module.settings, "LLM_MODE", LLMMode.LIVE)
     monkeypatch.setattr(summary_module, "generate_summary", fake_generate_summary)
     return summary_module.summary_generation_node(state)
 

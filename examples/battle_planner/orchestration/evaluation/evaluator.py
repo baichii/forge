@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+from collections import Counter
+from statistics import mean, pstdev
 from typing import Any
 
-from battle_planner.model import EvaluationReport, SimulationRunResult
+from battle_planner.model import (
+    EvaluationAggregateSpec,
+    EvaluationFailureReason,
+    EvaluationReport,
+    SimulationRunResult,
+)
 
 
 class TargetOutcomeEvaluator:
@@ -50,6 +57,8 @@ class TargetOutcomeEvaluator:
         )
 
         return EvaluationReport(
+            run_index=result.run_index,
+            seed=result.seed,
             score=score,
             hard_violations=hard_violations,
             mission_metrics={
@@ -92,6 +101,72 @@ class TargetOutcomeEvaluator:
                 hard_violations=hard_violations,
             ),
         )
+
+
+def aggregate_evaluation_reports(reports: list[EvaluationReport]) -> EvaluationAggregateSpec:
+    """聚合同一 DeductionSpec 下的多次仿真评估结果。"""
+
+    if not reports:
+        return EvaluationAggregateSpec()
+
+    scores = [report.score for report in reports]
+    objective_achieved_count = sum(
+        1 for report in reports if bool(report.mission_metrics.get("objective_achieved"))
+    )
+    success_count = sum(
+        1
+        for report in reports
+        if bool(report.mission_metrics.get("objective_achieved")) and not report.hard_violations
+    )
+    failure_reasons = _aggregate_failure_reasons(reports)
+    best_report = max(reports, key=lambda report: report.score)
+    return EvaluationAggregateSpec(
+        case_count=len(reports),
+        success_count=success_count,
+        success_rate=_round_metric(success_count / len(reports)),
+        mean_score=_round_metric(mean(scores)),
+        best_score=_round_metric(max(scores)),
+        worst_score=_round_metric(min(scores)),
+        std_score=_round_metric(pstdev(scores) if len(scores) > 1 else 0.0),
+        objective_achieved_count=objective_achieved_count,
+        recommended_run_index=best_report.run_index,
+        failure_reasons=failure_reasons,
+        metric_summary=_aggregate_numeric_metrics(reports),
+    )
+
+
+def _aggregate_failure_reasons(reports: list[EvaluationReport]) -> list[EvaluationFailureReason]:
+    counter: Counter[str] = Counter()
+    for report in reports:
+        if report.hard_violations:
+            counter.update(report.hard_violations)
+        elif not bool(report.mission_metrics.get("objective_achieved")) and report.advice:
+            counter.update([report.advice])
+    return [
+        EvaluationFailureReason(reason=reason, count=count, summary=reason)
+        for reason, count in counter.most_common()
+    ]
+
+
+def _aggregate_numeric_metrics(reports: list[EvaluationReport]) -> dict[str, Any]:
+    metric_values: dict[str, list[float]] = {}
+    for report in reports:
+        for key, value in report.mission_metrics.items():
+            if isinstance(value, bool):
+                continue
+            if isinstance(value, int | float):
+                metric_values.setdefault(key, []).append(float(value))
+
+    return {
+        key: {
+            "mean": _round_metric(mean(values)),
+            "min": _round_metric(min(values)),
+            "max": _round_metric(max(values)),
+            "std": _round_metric(pstdev(values) if len(values) > 1 else 0.0),
+        }
+        for key, values in metric_values.items()
+        if values
+    }
 
 
 def _collect_target_statistic_results(runner_report: dict[str, Any]) -> dict[str, Any]:

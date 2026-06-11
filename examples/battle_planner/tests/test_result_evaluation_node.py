@@ -21,9 +21,42 @@ def test_result_evaluation_node_uses_target_outcome_report() -> None:
     assert result.cur_stage == WorkflowStages.RESULT_EVALUATION
     assert result.evaluation_report.mission_metrics["objective_achieved"] is True
     assert result.evaluation_report.mission_metrics["requested_weapon_count"] == 4
+    assert result.evaluation_summary.case_count == 1
+    assert result.evaluation_summary.success_rate == 1
 
 
-def _runner_report() -> dict:
+def test_result_evaluation_node_aggregates_multiple_simulation_results() -> None:
+    state = BattlePlannerState(
+        simulation_results=[
+            SimulationRunResult(
+                scenario_name="zc3_lite",
+                run_index=0,
+                steps=10,
+                done=True,
+                raw_summary={"runner_report": _runner_report(alive=False, current_health=0, delta=-1000)},
+            ),
+            SimulationRunResult(
+                scenario_name="zc3_lite",
+                run_index=1,
+                steps=10,
+                done=True,
+                raw_summary={"runner_report": _runner_report(alive=True, current_health=500, delta=-500)},
+            ),
+        ]
+    )
+
+    result = result_evaluation_node(state)
+
+    assert len(result.evaluation_reports) == 2
+    assert result.evaluation_report == result.evaluation_reports[0]
+    assert result.evaluation_summary.case_count == 2
+    assert result.evaluation_summary.success_count == 1
+    assert result.evaluation_summary.success_rate == 0.5
+    assert result.evaluation_summary.mean_score == 69
+    assert result.evaluation_summary.recommended_run_index == 0
+
+
+def _runner_report(*, alive: bool = False, current_health: int = 0, delta: int = -1000) -> dict:
     target_id = "red_CV16 “辽宁”号001型航空母舰_1"
     return {
         "agents": [
@@ -55,10 +88,10 @@ def _runner_report() -> dict:
         "callbacks": {
             "target_statistic_carrier": {
                 target_id: {
-                    "alive": False,
+                    "alive": alive,
                     "initial": {"health": 1000, "health_percent": 1.0},
-                    "current": {"health": 0, "health_percent": 0.0},
-                    "delta": {"health": -1000, "health_percent": -1.0},
+                    "current": {"health": current_health, "health_percent": current_health / 1000},
+                    "delta": {"health": delta, "health_percent": delta / 1000},
                 }
             }
         },

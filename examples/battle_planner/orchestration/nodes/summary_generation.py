@@ -28,6 +28,8 @@ def summary_generation_node(state: BattlePlannerState) -> BattlePlannerState:
         payload={
             "simulation_ready": state.simulation_result is not None,
             "evaluation_ready": state.evaluation_report is not None,
+            "simulation_count": len(state.simulation_results),
+            "evaluation_count": len(state.evaluation_reports),
         },
     )
     if state.simulation_result is None or state.evaluation_report is None:
@@ -65,6 +67,9 @@ def summary_generation_node(state: BattlePlannerState) -> BattlePlannerState:
                 "seed_id": settings.OUTPUT_SEED,
                 "runtime_iteration_index": state.iteration_index,
                 "objective_achieved": summary_evaluation.objective_achieved,
+                "evaluation_summary": state.evaluation_summary.model_dump(mode="json")
+                if state.evaluation_summary
+                else None,
                 **seed.trace_summary,
             },
             output_value={
@@ -79,6 +84,7 @@ def summary_generation_node(state: BattlePlannerState) -> BattlePlannerState:
             planned_agent_params=state.planned_agent_params,
             simulation_result=state.simulation_result,
             evaluation_report=state.evaluation_report,
+            evaluation_summary=state.evaluation_summary,
             summary_evaluation=summary_evaluation,
         )
     state.summary_evaluation = summary_evaluation
@@ -95,6 +101,7 @@ def summary_generation_node(state: BattlePlannerState) -> BattlePlannerState:
             "fallback": trace.fallback_used,
             "output_chars": len(output),
             "objective_achieved": summary_evaluation.objective_achieved,
+            "mean_score": state.evaluation_summary.mean_score if state.evaluation_summary else None,
             "inactive_agents": summary_evaluation.inactive_agents,
             "error": trace.error,
         },
