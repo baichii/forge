@@ -14,7 +14,7 @@ def build_history_item(state: Any) -> dict[str, Any]:
         "iteration_index": state.iteration_index,
         "battle_plan_md": state.battle_plan_md,
         "agent_param_source": state.agent_param_source,
-        "agent_param_preset_id": state.agent_param_preset_id,
+        "planned_branch_executions": _dump_model_list(state.planned_branch_executions),
         "planned_agent_params": _dump_model_list(state.planned_agent_params),
         "simulation_result": _dump_model(state.simulation_result),
         "evaluation_report": _dump_model(state.evaluation_report),

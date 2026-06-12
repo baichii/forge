@@ -32,7 +32,7 @@ class LocalBranchInputSeed(BaseModel):
 class LocalRunInputSeed(BaseModel):
     """Stable local development data used to assemble demo workflow inputs."""
 
-    plan_name: str = Field(default="zc3_lite_carrier_validation")
+    plan_name: str = Field(default="zc3_lite_carrier_strike")
     plan_id: str = Field(default="2175600675558391808")
     default_branch_ids: tuple[int, ...] = Field(default=(1, 2))
     context_id: str = Field(default="2175600675558391809")
@@ -58,31 +58,31 @@ class LocalRunInputSeed(BaseModel):
             LocalBranchInputSeed(
                 branch_id=1,
                 human=BranchHumanInputSpec(
-                    goal="验证空中突击与海对海打击分支能否完成航母毁伤目标。",
+                    goal="验证空对海打击分支能否对红方航母形成有效首轮毁伤。",
                     constraints=[
-                        "不要同时优化对手策略。",
-                        "武器数量先保守，后续根据仿真反馈调整。",
+                        "只绑定空对海打击 tick-agent。",
+                        "武器数量先保守，后续根据仿真反馈逐轮调整。",
                     ],
                     risk_points=[
                         "空中突击窗口过短时可能导致毁伤不足。",
-                        "舰艇补充打击可能增加我方暴露风险。",
+                        "单独依赖空中火力时可能无法稳定击沉航母。",
                     ],
-                    notes="优先跑通空中突击压制后由舰艇编队补充打击的主链路。",
+                    notes="该分支专职表达空中编队对海上目标的打击参数。",
                 ),
             ),
             LocalBranchInputSeed(
                 branch_id=2,
                 human=BranchHumanInputSpec(
-                    goal="保留潜艇隐蔽打击分支用于能力缺口验证。",
+                    goal="验证海对海打击分支能否补充航母毁伤并控制武器消耗。",
                     constraints=[
-                        "当前只要求方案卡片和人工输入可进入数据链路。",
-                        "如果本地没有匹配 tick-agent，后续运行阶段应给出提示或跳过。",
+                        "只绑定海对海打击 tick-agent。",
+                        "舰艇打击应作为补充毁伤和火力平衡手段。",
                     ],
                     risk_points=[
-                        "潜艇分支可能暂时缺少可用 tick-agent。",
-                        "能力缺口不应阻断其他可运行分支。",
+                        "舰艇补充打击可能造成过量火力。",
+                        "舰艇暴露风险暂时不在当前简化评估中完全建模。",
                     ],
-                    notes="该分支用于测试业务方案存在但本地能力暂不完整的情况。",
+                    notes="该分支专职表达舰艇编队对海上目标的打击参数。",
                 ),
             ),
         ]

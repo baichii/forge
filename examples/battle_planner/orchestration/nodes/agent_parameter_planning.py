@@ -39,9 +39,9 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
         model=getattr(model_provider, "model", None),
         model_provider=model_provider,
     )
+    state.planned_branch_executions = []
     state.planned_agent_params = planned
     state.agent_param_source = "llm"
-    state.agent_param_preset_id = None
     state.add_trace(trace)
     state.cur_stage = node_name
     event_handler(
@@ -63,6 +63,7 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
 def _run_output_seed_agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
     seed = load_agent_parameter_planning_output_seed(iteration_index=state.iteration_index)
     planned = [item.model_copy(deep=True) for item in seed.planned_agent_params]
+    branch_executions = [item.model_copy(deep=True) for item in seed.branch_executions]
     node_name = WorkflowStages.AGENT_PARAMETER_PLANNING
     event_handler(
         EventTypes.LOG,
@@ -74,12 +75,11 @@ def _run_output_seed_agent_parameter_planning_node(state: BattlePlannerState) ->
             "agent_count": len(state.tick_agent_specs),
             "battle_plan_chars": len(state.battle_plan_md),
             "source": "run_output_seed",
-            "preset_id": seed.preset_id,
         },
     )
+    state.planned_branch_executions = branch_executions
     state.planned_agent_params = planned
     state.agent_param_source = "run_output_seed"
-    state.agent_param_preset_id = seed.preset_id
     state.add_trace(
         identity_trace(
             WorkflowStages.AGENT_PARAMETER_PLANNING,
@@ -91,8 +91,8 @@ def _run_output_seed_agent_parameter_planning_node(state: BattlePlannerState) ->
             },
             output_value={
                 "source": "run_output_seed",
-                "preset_id": seed.preset_id,
                 "trace_summary": seed.trace_summary,
+                "branch_executions": [item.model_dump(mode="json") for item in branch_executions],
                 "agents": [item.model_dump(mode="json") for item in planned],
             },
         )
@@ -106,7 +106,6 @@ def _run_output_seed_agent_parameter_planning_node(state: BattlePlannerState) ->
         iteration_index=state.iteration_index,
         payload={
             "source": "run_output_seed",
-            "preset_id": seed.preset_id,
             "fallback": False,
             "planned_agents": _planned_agent_log_items(planned),
             "error": None,

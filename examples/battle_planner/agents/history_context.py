@@ -23,7 +23,6 @@ def render_history_for_planning(history: list[dict[str, Any]]) -> str:
             [
                 "",
                 f"## Iteration {int(item.get('iteration_index') or 0) + 1}",
-                f"- preset: {item.get('agent_param_preset_id') or ''}",
                 (
                     "- objective_achieved: "
                     f"{evaluation_report.get('objective_achieved', summary_evaluation.get('objective_achieved', ''))}"

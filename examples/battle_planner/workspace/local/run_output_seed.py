@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from battle_planner.conf import settings
-from battle_planner.workspace.local.presets import select_display_agent_param_preset
+from battle_planner.model import RunIterationTagSpec, SchemeBranchExecutionSpec
+from battle_planner.workspace.local.presets import select_agent_param_preset
 from pydantic import BaseModel, Field
 
 from forge.core.specs import TickAgentParams
@@ -28,7 +29,9 @@ class BattlePlanGenerationOutputSeed(BaseModel):
 class AgentParameterPlanningOutputSeed(BaseModel):
     """Offline output for the agent parameter planning node."""
 
-    preset_id: str = Field(description="参数产物标识。")
+    branch_executions: list[SchemeBranchExecutionSpec] = Field(
+        default_factory=list, description="分支绑定的 agent runtime 参数。"
+    )
     planned_agent_params: list[TickAgentParams] = Field(description="预置的 agent runtime 参数。")
     trace_summary: dict[str, Any] = Field(default_factory=dict, description="可选 trace 摘要。")
 
@@ -45,6 +48,7 @@ class IterationOutputSeed(BaseModel):
 
     iteration_index: int = Field(description="seed 内部迭代序号。")
     stage_label: str = Field(description="本轮样例阶段标签。")
+    iteration_tags: list[RunIterationTagSpec] = Field(default_factory=list, description="本轮展示标签。")
     scenario_understanding: ScenarioUnderstandingOutputSeed | None = Field(
         default=None, description="想定理解节点输出。"
     )
@@ -94,17 +98,21 @@ def _summary_md(*, stage_label: str, title: str, body: list[str]) -> str:
     )
 
 
-def _agent_parameter_output(iteration_index: int, stage_label: str) -> AgentParameterPlanningOutputSeed:
-    preset = select_display_agent_param_preset(iteration_index=iteration_index)
+def _agent_parameter_output(
+    iteration_index: int,
+    stage_label: str,
+    iteration_tags: list[RunIterationTagSpec],
+) -> AgentParameterPlanningOutputSeed:
+    preset = select_agent_param_preset(iteration_index=iteration_index)
     return AgentParameterPlanningOutputSeed(
-        preset_id=preset["preset_id"],
+        branch_executions=[item.model_copy(deep=True) for item in preset["branch_executions"]],
         planned_agent_params=[item.model_copy(deep=True) for item in preset["agents"]],
         trace_summary={
             "source": "run_output_seed",
             "node": "agent_parameter_planning",
             "stage_label": stage_label,
             "seed_iteration_index": iteration_index,
-            "preset_id": preset["preset_id"],
+            "iteration_tags": [tag.model_dump(mode="json") for tag in iteration_tags],
         },
     )
 
@@ -113,6 +121,7 @@ def _iteration_seed(
     *,
     iteration_index: int,
     stage_label: str,
+    iteration_tags: list[RunIterationTagSpec],
     battle_title: str,
     battle_body: list[str],
     summary_title: str,
@@ -121,35 +130,52 @@ def _iteration_seed(
     return IterationOutputSeed(
         iteration_index=iteration_index,
         stage_label=stage_label,
+        iteration_tags=iteration_tags,
         scenario_understanding=ScenarioUnderstandingOutputSeed(
             scenario_understanding_md=DEBUG_SCENARIO_UNDERSTANDING_MD,
-            trace_summary={
-                "source": "run_output_seed",
-                "node": "scenario_understanding",
-                "stage_label": stage_label,
-                "seed_iteration_index": iteration_index,
-            },
+            trace_summary=_trace_summary(
+                node="scenario_understanding",
+                stage_label=stage_label,
+                iteration_index=iteration_index,
+                iteration_tags=iteration_tags,
+            ),
         ),
         battle_plan_generation=BattlePlanGenerationOutputSeed(
             battle_plan_md=_battle_plan_md(stage_label=stage_label, title=battle_title, body=battle_body),
-            trace_summary={
-                "source": "run_output_seed",
-                "node": "battle_plan_generation",
-                "stage_label": stage_label,
-                "seed_iteration_index": iteration_index,
-            },
+            trace_summary=_trace_summary(
+                node="battle_plan_generation",
+                stage_label=stage_label,
+                iteration_index=iteration_index,
+                iteration_tags=iteration_tags,
+            ),
         ),
-        agent_parameter_planning=_agent_parameter_output(iteration_index, stage_label),
+        agent_parameter_planning=_agent_parameter_output(iteration_index, stage_label, iteration_tags),
         summary_generation=SummaryGenerationOutputSeed(
             summary_md=_summary_md(stage_label=stage_label, title=summary_title, body=summary_body),
-            trace_summary={
-                "source": "run_output_seed",
-                "node": "summary_generation",
-                "stage_label": stage_label,
-                "seed_iteration_index": iteration_index,
-            },
+            trace_summary=_trace_summary(
+                node="summary_generation",
+                stage_label=stage_label,
+                iteration_index=iteration_index,
+                iteration_tags=iteration_tags,
+            ),
         ),
     )
+
+
+def _trace_summary(
+    *,
+    node: str,
+    stage_label: str,
+    iteration_index: int,
+    iteration_tags: list[RunIterationTagSpec],
+) -> dict[str, Any]:
+    return {
+        "source": "run_output_seed",
+        "node": node,
+        "stage_label": stage_label,
+        "seed_iteration_index": iteration_index,
+        "iteration_tags": [tag.model_dump(mode="json") for tag in iteration_tags],
+    }
 
 
 LOCAL_RUN_OUTPUT_SEEDS: dict[str, LocalRunOutputSeed] = {
@@ -159,6 +185,18 @@ LOCAL_RUN_OUTPUT_SEEDS: dict[str, LocalRunOutputSeed] = {
             _iteration_seed(
                 iteration_index=0,
                 stage_label="insufficient_firepower",
+                iteration_tags=[
+                    RunIterationTagSpec(
+                        key="exploration",
+                        label="探索",
+                        reason="最小火力探测，用于确认链路和火力下限。",
+                    ),
+                    RunIterationTagSpec(
+                        key="insufficient_firepower",
+                        label="火力不足",
+                        reason="预期无法稳定摧毁目标，下一轮需要增加火力。",
+                    ),
+                ],
                 battle_title="火力探测",
                 battle_body=[
                     "- 先用单机空袭与单舰打击验证链路。",
@@ -173,6 +211,13 @@ LOCAL_RUN_OUTPUT_SEEDS: dict[str, LocalRunOutputSeed] = {
             _iteration_seed(
                 iteration_index=1,
                 stage_label="firepower_increase",
+                iteration_tags=[
+                    RunIterationTagSpec(
+                        key="firepower_increase",
+                        label="增加火力",
+                        reason="在上一轮火力不足后增加空中和舰艇打击强度。",
+                    )
+                ],
                 battle_title="增强火力",
                 battle_body=[
                     "- 增加空中编组和舰艇打击弹量。",
@@ -187,6 +232,13 @@ LOCAL_RUN_OUTPUT_SEEDS: dict[str, LocalRunOutputSeed] = {
             _iteration_seed(
                 iteration_index=2,
                 stage_label="overkill_waste",
+                iteration_tags=[
+                    RunIterationTagSpec(
+                        key="overkill",
+                        label="火力浪费",
+                        reason="强火力边界样例，用于确认目标可摧毁但存在冗余消耗。",
+                    )
+                ],
                 battle_title="强火力边界",
                 battle_body=[
                     "- 使用多批空中打击和舰艇补充打击形成强压制。",
@@ -201,6 +253,13 @@ LOCAL_RUN_OUTPUT_SEEDS: dict[str, LocalRunOutputSeed] = {
             _iteration_seed(
                 iteration_index=3,
                 stage_label="timing_balance",
+                iteration_tags=[
+                    RunIterationTagSpec(
+                        key="balance_adjustment",
+                        label="调整平衡",
+                        reason="在达成目标基础上回收冗余火力并调整打击时序。",
+                    )
+                ],
                 battle_title="时序平衡",
                 battle_body=[
                     "- 保留强火力框架，调整批次和弹量。",
@@ -215,6 +274,18 @@ LOCAL_RUN_OUTPUT_SEEDS: dict[str, LocalRunOutputSeed] = {
             _iteration_seed(
                 iteration_index=4,
                 stage_label="balanced_recommendation",
+                iteration_tags=[
+                    RunIterationTagSpec(
+                        key="recommended",
+                        label="推荐",
+                        reason="当前离线样例中的平衡推荐方案。",
+                    ),
+                    RunIterationTagSpec(
+                        key="stable",
+                        label="稳定",
+                        reason="目标达成和武器消耗之间更接近可接受平衡。",
+                    ),
+                ],
                 battle_title="平衡推荐",
                 battle_body=[
                     "- 保留关键批次，减少过量弹药。",

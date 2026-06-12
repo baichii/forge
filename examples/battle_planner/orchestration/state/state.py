@@ -6,6 +6,7 @@ from battle_planner.model import (
     EvaluationReport,
     LLMTrace,
     PlannerKnowledgePack,
+    SchemeBranchExecutionSpec,
     SimulationRunResult,
     SummaryEvaluation,
     TaskContextSpec,
@@ -34,13 +35,13 @@ class BattlePlannerState(BaseModel):
     battle_plan_md: str = ""
     tick_agent_specs: list[TickAgentSpec] = Field(default_factory=list)
     available_tools: list[dict[str, Any]] = Field(default_factory=list)
+    planned_branch_executions: list[SchemeBranchExecutionSpec] = Field(default_factory=list)
     planned_agent_params: list[TickAgentParams] = Field(default_factory=list)
     callback_params: list[CallbackParams] = Field(default_factory=list)
     iteration_index: int = 0
     history: list[dict[str, Any]] = Field(default_factory=list)
     verbose: int = Field(default_factory=lambda: settings.VERBOSE)
     agent_param_source: str = ""
-    agent_param_preset_id: str | None = None
     simulation_results: list[SimulationRunResult] = Field(default_factory=list)
     simulation_result: SimulationRunResult | None = None
     evaluation_reports: list[EvaluationReport] = Field(default_factory=list)

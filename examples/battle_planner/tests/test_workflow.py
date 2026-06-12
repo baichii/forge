@@ -60,7 +60,7 @@ def test_workflow_loop_smoke(monkeypatch) -> None:
     assert all(state.cur_stage == WorkflowStages.COMPLETE for state in states)
     assert all(state.evaluation_report is not None for state in states)
     assert all(state.summary_md for state in states)
-    assert states[0].agent_param_preset_id != states[1].agent_param_preset_id
+    assert states[0].planned_agent_params != states[1].planned_agent_params
     assert states[0].battle_plan_md != states[1].battle_plan_md
     assert len(result.history) == 2
     assert _trace_source(states[1], WorkflowStages.BATTLE_PLAN_GENERATION) == "run_output_seed"

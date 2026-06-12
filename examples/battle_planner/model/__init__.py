@@ -36,7 +36,7 @@ from battle_planner.model.requests import (
     TaskContextCreateRequest,
     TaskRunCreateRequest,
 )
-from battle_planner.model.scheme import SchemeSpec
+from battle_planner.model.scheme import SchemeBranchExecutionSpec, SchemeSpec
 from battle_planner.model.simulation import EvaluationFindingSpec, EvaluationReport, SimulationRunResult
 from battle_planner.model.source import TaskBranchSpec, TaskPlanSpec, TickAgentSourceSpec
 from battle_planner.model.task import (
@@ -66,6 +66,7 @@ __all__ = [
     "RunSimulationRecordSpec",
     "RunTextSummarySpec",
     "SchemeSpec",
+    "SchemeBranchExecutionSpec",
     "SimulationRunResult",
     "SummaryEvaluation",
     "TaskBranchContextSpec",

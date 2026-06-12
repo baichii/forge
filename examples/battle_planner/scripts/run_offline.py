@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from battle_planner.conf import LLMMode, settings
 from battle_planner.orchestration.history import build_history_item
+from battle_planner.orchestration.output import build_run_iteration_output
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState, build_initial_state
 from battle_planner.orchestration.workflow_stream import WorkflowStreamService
@@ -62,6 +63,15 @@ def run_offline_iterations(
         if print_artifacts and result.states:
             print("\n=== iteration 1 artifacts ===", flush=True)
             print(json.dumps(artifact_snapshot(result.states[0]), ensure_ascii=False, indent=2), flush=True)
+            print("\n=== iteration 1 run output ===", flush=True)
+            print(
+                json.dumps(
+                    build_run_iteration_output(result.states[0]).model_dump(mode="json"),
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                flush=True,
+            )
 
         return result
     finally:
@@ -76,9 +86,11 @@ def artifact_snapshot(state: BattlePlannerState) -> dict:
         "scenario_name": state.scenario_name,
         "cur_stage": state.cur_stage,
         "agent_param_source": state.agent_param_source,
-        "agent_param_preset_id": state.agent_param_preset_id,
         "scenario_understanding_md": state.scenario_understanding_md,
         "battle_plan_md": state.battle_plan_md,
+        "planned_branch_executions": [
+            item.model_dump(mode="json") for item in state.planned_branch_executions
+        ],
         "planned_agent_params": [item.model_dump(mode="json") for item in state.planned_agent_params],
         "simulation_results": [item.model_dump(mode="json") for item in state.simulation_results],
         "simulation_result": state.simulation_result.model_dump(mode="json")
@@ -104,7 +116,6 @@ def _iteration_summary(state: BattlePlannerState) -> str:
     return (
         f"iteration={state.iteration_index + 1} "
         f"stage={state.cur_stage} "
-        f"preset={state.agent_param_preset_id} "
         f"sim_runs={len(state.simulation_results)} "
         f"mean_score={state.evaluation_summary.mean_score if state.evaluation_summary else None} "
         f"objective_achieved={objective_achieved} "

@@ -12,6 +12,16 @@ from pydantic import BaseModel, Field
 from forge.core.specs import CallbackParams, TickAgentParams
 
 
+class SchemeBranchExecutionSpec(BaseModel):
+    """某个方案分支绑定的 tick-agent 运行参数。"""
+
+    branch_id: int = Field(description="来源任务分支 ID。")
+    planned_agent_params: list[TickAgentParams] = Field(
+        default_factory=list, description="该分支绑定的 tick-agent 参数。"
+    )
+    meta: dict[str, Any] = Field(default_factory=dict, description="预留字段。")
+
+
 class SchemeSpec(BaseModel):
     """LLM 迭代生成的一版可执行方案。
 
@@ -22,8 +32,11 @@ class SchemeSpec(BaseModel):
 
     scheme_id: int = Field(description="可执行方案 ID，在所属任务运行内从 1 开始自增。")
     run_id: str = Field(description="来源任务运行 ID。")
+    branch_executions: list[SchemeBranchExecutionSpec] = Field(
+        default_factory=list, description="分支到 tick-agent 参数的绑定关系。"
+    )
     planned_agent_params: list[TickAgentParams] = Field(
-        default_factory=list, description="tick-agent 参数。"
+        default_factory=list, description="展平后的 tick-agent 参数，供 runner 执行。"
     )
     callback_params: list[CallbackParams] = Field(default_factory=list, description="callback 参数。")
     meta: dict[str, Any] = Field(default_factory=dict, description="方案元信息，预留字段。")

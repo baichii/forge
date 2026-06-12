@@ -6,7 +6,7 @@ from battle_planner.conf import LLMMode, settings
 from battle_planner.orchestration.state.state import BattlePlannerState
 
 
-def test_agent_parameter_planning_node_uses_display_preset(monkeypatch) -> None:
+def test_agent_parameter_planning_node_uses_run_output_seed(monkeypatch) -> None:
     node_module = importlib.import_module("battle_planner.orchestration.nodes.agent_parameter_planning")
     monkeypatch.setattr(settings, "LLM_MODE", LLMMode.OFFLINE)
 
@@ -18,5 +18,5 @@ def test_agent_parameter_planning_node_uses_display_preset(monkeypatch) -> None:
     state = BattlePlannerState(iteration_index=1)
     result = node_module.agent_parameter_planning_node(state)
 
-    assert result.agent_param_source == "display_preset"
+    assert result.agent_param_source == "run_output_seed"
     assert result.planned_agent_params
