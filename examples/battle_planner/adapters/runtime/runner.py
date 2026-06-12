@@ -18,7 +18,7 @@ from forge.utils.common_utils import make_id_generator
 
 
 class RunnerStatus(enum.StrEnum):
-    """runner 逻辑"""
+    """runner状态"""
 
     INIT = enum.auto()
     RUNNING = enum.auto()
@@ -33,6 +33,9 @@ class Runner(BaseRuner):
     Notes:
         1. 必要条件，runner必须具备基于config启动的能力，env和agent都要在内部构造而不能作为实例输入
         2. 对于需要在不同callback中频繁统计的信息，应该在env外封装一个wrapper，在wrapper层实现中间指标计算
+        3. 评估，拆成2个体系去做这个工作，
+            - 业务评估，业务侧开发实现，继承callback进行开发，接收env的observation返回
+            - 系统评估，系统侧开发实现，暂时固化在report中，接收，env info返回和tick-agent返回
 
     """
 
@@ -66,11 +69,10 @@ class Runner(BaseRuner):
         self._callbacks.on_begin()
         self._max_step = max_step
         while True:
-            # step callbacks
             self._callbacks.on_step_begin()
-            observation, terminated, truncated, info = self.run_step()
+            observation, terminated, truncated, _ = self.run_step()
+            self._callbacks.observe(observation)
             self._callbacks.on_step_end()
-
             self._last_observation = observation if isinstance(observation, dict) else {}
             self._update_status(terminated=terminated, truncated=truncated)
             if self._is_terminal():
@@ -126,7 +128,6 @@ class Runner(BaseRuner):
                 )
             )
         self._callbacks: CallBackList = CallBackList(callbacks_)
-        self._callbacks.set_runner(self)
 
     def _init_report_state(self) -> None:
         self._battlefield_events: list[BattlefieldReport] = []
@@ -172,7 +173,86 @@ class Runner(BaseRuner):
             agents=list(self._agent_reports.values()),
             battlefield_events=self._battlefield_events,
             callbacks=self._callbacks.result(),
+            system_evaluation=self._build_system_evaluation_report(),
         )
+
+    def _build_system_evaluation_report(self) -> dict[str, Any]:
+        return {
+            "agent_execution": self._build_agent_execution_evaluation(),
+            "weapon_usage": self._build_weapon_usage_evaluation(),
+        }
+
+    def _build_agent_execution_evaluation(self) -> dict[str, Any]:
+        agent_records = []
+        total_action_count = 0
+        executed_agent_count = 0
+
+        for report in self._agent_reports.values():
+            executed = report.action_count > 0
+            total_action_count += report.action_count
+            if executed:
+                executed_agent_count += 1
+            agent_records.append(
+                {
+                    "agent_instance_id": report.agent_instance_id,
+                    "agent_name": report.agent_name,
+                    "side": report.side,
+                    "action_count": report.action_count,
+                    "executed": executed,
+                    "first_active_step": report.first_active_step,
+                    "finished_step": report.finished_step,
+                    "event_count": len(report.events),
+                    "status_history_count": len(report.status_history),
+                }
+            )
+
+        agent_count = len(agent_records)
+        inactive_agent_count = agent_count - executed_agent_count
+        execution_rate = executed_agent_count / agent_count if agent_count else 0.0
+
+        return {
+            "metrics": {
+                "agent_count": agent_count,
+                "executed_agent_count": executed_agent_count,
+                "inactive_agent_count": inactive_agent_count,
+                "agent_execution_rate": round(execution_rate, 4),
+                "agent_action_count": total_action_count,
+            },
+            "details": {"agents": agent_records},
+        }
+
+    def _build_weapon_usage_evaluation(self) -> dict[str, Any]:
+        requested_weapon_count = 0
+        weapon_action_count = 0
+        action_records = []
+
+        for report in self._agent_reports.values():
+            for event in report.events:
+                for action in _as_list(event.get("raw_actions")):
+                    action_payload = action if isinstance(action, dict) else {}
+                    weapon_count = _weapon_count_from_action(action_payload)
+                    if weapon_count <= 0:
+                        continue
+                    requested_weapon_count += weapon_count
+                    weapon_action_count += 1
+                    action_records.append(
+                        {
+                            "agent_instance_id": report.agent_instance_id,
+                            "agent_name": report.agent_name,
+                            "step": event.get("step"),
+                            "sim_time": event.get("sim_time"),
+                            "requested_weapon_count": weapon_count,
+                            "raw_action": action_payload,
+                        }
+                    )
+
+        return {
+            "metrics": {
+                "requested_weapon_count": requested_weapon_count,
+                "weapon_action_count": weapon_action_count,
+            },
+            "details": {"weapon_actions": action_records},
+        }
 
     def _record_tick_agent_step(
         self,
@@ -219,3 +299,38 @@ class Runner(BaseRuner):
 
 def _is_agent_running(status: dict[str, bool]) -> bool:
     return bool(status.get("运行中") or status.get("running"))
+
+
+def _weapon_count_from_action(action: dict[str, Any]) -> int:
+    action_params = _as_dict(action.get("params"))
+    mission_params = _as_dict(action_params.get("params"))
+    unit_ids = _as_list(mission_params.get("unit_ids"))
+    unit_count = max(1, len(unit_ids))
+
+    for key in ("wp_num", "wp_nums", "weapon_nums"):
+        value = mission_params.get(key)
+        if isinstance(value, list):
+            return _sum_ints(value)
+        if isinstance(value, int | float) and not isinstance(value, bool):
+            return max(0, int(value)) * unit_count
+    return 0
+
+
+def _as_dict(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    if hasattr(value, "model_dump"):
+        return value.model_dump()
+    return {}
+
+
+def _as_list(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else []
+
+
+def _sum_ints(values: list[Any]) -> int:
+    total = 0
+    for value in values:
+        if isinstance(value, int | float) and not isinstance(value, bool):
+            total += max(0, int(value))
+    return total

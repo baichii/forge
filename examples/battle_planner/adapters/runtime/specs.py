@@ -50,3 +50,4 @@ class RunnerReport(BaseModel):
     agents: list[TickAgentReport] = Field(default_factory=list)
     battlefield_events: list[BattlefieldReport] = Field(default_factory=list)
     callbacks: dict[str, Any] = Field(default_factory=dict)
+    system_evaluation: dict[str, Any] = Field(default_factory=dict)

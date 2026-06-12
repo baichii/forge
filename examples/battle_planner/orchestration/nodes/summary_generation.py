@@ -120,7 +120,7 @@ def build_summary_evaluation(state: BattlePlannerState) -> SummaryEvaluation:
     callback_instance_id = _target_statistic_callback_id(state)
     runner_report = _as_dict(state.simulation_result.raw_summary.get("runner_report"))
     callbacks = _as_dict(runner_report.get("callbacks"))
-    target_results = _as_dict(callbacks.get(callback_instance_id))
+    target_results = _target_statistic_targets(_as_dict(callbacks.get(callback_instance_id)))
     warnings: list[str] = []
 
     if not target_results:
@@ -159,6 +159,13 @@ def build_summary_evaluation(state: BattlePlannerState) -> SummaryEvaluation:
 def _target_statistic_callback_id(state: BattlePlannerState) -> str:
     plan_preset = load_plan_preset(state.plan_id, scenario_name=state.scenario_name)
     return plan_preset.objective_callback_instance_id
+
+
+def _target_statistic_targets(callback_result: dict[str, Any]) -> dict[str, Any]:
+    targets = _as_dict(_as_dict(callback_result.get("payload")).get("targets"))
+    if targets:
+        return targets
+    return callback_result
 
 
 def _build_target_summary(*, target_id: str, payload: dict[str, Any]) -> TargetObjectiveSummary:

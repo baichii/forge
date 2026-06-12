@@ -221,9 +221,12 @@ def _collect_target_statistic_results(runner_report: dict[str, Any]) -> dict[str
         callback_result = _as_dict(callback_payload)
         if not callback_result:
             continue
-        if not all(_looks_like_target_statistic(_as_dict(item)) for item in callback_result.values()):
+        targets = _as_dict(_as_dict(callback_result.get("payload")).get("targets"))
+        if targets:
+            results.update(targets)
             continue
-        results.update(callback_result)
+        if all(_looks_like_target_statistic(_as_dict(item)) for item in callback_result.values()):
+            results.update(callback_result)
     return results
 
 

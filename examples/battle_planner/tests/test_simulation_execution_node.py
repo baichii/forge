@@ -77,6 +77,7 @@ def _patch_fake_runner(monkeypatch, simulation_module, *, stop_reason: str) -> d
                 "agents": [],
                 "battlefield_events": [],
                 "callbacks": {},
+                "system_evaluation": {},
             }
 
     class FakeRunner:

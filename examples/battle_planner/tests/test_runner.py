@@ -1,7 +1,10 @@
 """测试 runner 运行并输出结构化 report。"""
 
+import inspect
+
 from battle_planner.adapters.runtime.runner import Runner
 from battle_planner.registry import register_battle_planner_modules
+from battle_planner.workspace.resource.callbacks.target_statistic import TargetStatistic
 
 from forge.core.specs import CallbackParams, EnvLink, EnvMode, EnvParams, TickAgentParams
 
@@ -69,3 +72,19 @@ def test_runner_simple() -> None:
     assert report.env.step_count > 0
     assert report.agents
     assert "2175601143269425153" in report.callbacks
+    assert report.system_evaluation["agent_execution"]["metrics"]["agent_count"] == 1
+    assert report.system_evaluation["agent_execution"]["metrics"]["agent_action_count"] >= 0
+    assert "requested_weapon_count" in report.system_evaluation["weapon_usage"]["metrics"]
+    assert "details" in report.system_evaluation["agent_execution"]
+    assert "details" in report.system_evaluation["weapon_usage"]
+    for evaluation in report.system_evaluation.values():
+        assert "role" not in evaluation
+        assert "findings" not in evaluation
+        assert "summary" not in evaluation
+        assert "payload" not in evaluation
+
+
+def test_business_callback_only_accepts_observation() -> None:
+    signature = inspect.signature(TargetStatistic.observe)
+
+    assert list(signature.parameters) == ["self", "observation"]
