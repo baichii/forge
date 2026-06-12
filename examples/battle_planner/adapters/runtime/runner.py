@@ -57,7 +57,7 @@ class Runner(BaseRuner):
         self._status = RunnerStatus.INIT
         self._step = 0
         self._max_step: int | None = None
-        self._last_observation: dict[str, Any] = {}
+        self._final_sim_time: float | None = None
         self._init_report_state()
 
     def reset(self):
@@ -73,7 +73,6 @@ class Runner(BaseRuner):
             observation, terminated, truncated, _ = self.run_step()
             self._callbacks.observe(observation)
             self._callbacks.on_step_end()
-            self._last_observation = observation if isinstance(observation, dict) else {}
             self._update_status(terminated=terminated, truncated=truncated)
             if self._is_terminal():
                 break
@@ -85,6 +84,7 @@ class Runner(BaseRuner):
         self._step += 1
         observation, _, terminated, truncated, info = self._env.step(self._last_actions)
         sim_time = observation.get("sim_time") if isinstance(observation, dict) else None
+        self._final_sim_time = sim_time
         if isinstance(info, dict):
             self._battlefield_events.extend(info.get("battlefield_events", []))
         actions = []
@@ -168,7 +168,7 @@ class Runner(BaseRuner):
                 step_count=self._step,
                 elapsed_seconds=end_time - self._start_time,
                 stop_reason=self._status.value,
-                final_sim_time=self._last_observation.get("sim_time"),
+                final_sim_time=self._final_sim_time,
             ),
             agents=list(self._agent_reports.values()),
             battlefield_events=self._battlefield_events,
@@ -179,6 +179,7 @@ class Runner(BaseRuner):
     def _build_system_evaluation_report(self) -> dict[str, Any]:
         return {
             "agent_execution": self._build_agent_execution_evaluation(),
+            "tick_agent_command_count": self._build_tick_agent_command_count_evaluation(),
             "weapon_usage": self._build_weapon_usage_evaluation(),
         }
 
@@ -219,6 +220,28 @@ class Runner(BaseRuner):
                 "agent_action_count": total_action_count,
             },
             "details": {"agents": agent_records},
+        }
+
+    def _build_tick_agent_command_count_evaluation(self) -> dict[str, Any]:
+        command_counts = {
+            report.agent_instance_id: report.action_count for report in self._agent_reports.values()
+        }
+        return {
+            "metrics": {
+                "total_command_count": sum(command_counts.values()),
+                "command_count_by_agent": command_counts,
+            },
+            "details": {
+                "agents": [
+                    {
+                        "agent_instance_id": report.agent_instance_id,
+                        "agent_name": report.agent_name,
+                        "side": report.side,
+                        "command_count": report.action_count,
+                    }
+                    for report in self._agent_reports.values()
+                ]
+            },
         }
 
     def _build_weapon_usage_evaluation(self) -> dict[str, Any]:

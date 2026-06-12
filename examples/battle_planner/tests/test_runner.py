@@ -74,8 +74,12 @@ def test_runner_simple() -> None:
     assert "2175601143269425153" in report.callbacks
     assert report.system_evaluation["agent_execution"]["metrics"]["agent_count"] == 1
     assert report.system_evaluation["agent_execution"]["metrics"]["agent_action_count"] >= 0
+    command_count = report.system_evaluation["tick_agent_command_count"]
+    assert command_count["metrics"]["total_command_count"] >= 0
+    assert command_count["metrics"]["command_count_by_agent"]["2175601143269425152"] >= 0
     assert "requested_weapon_count" in report.system_evaluation["weapon_usage"]["metrics"]
     assert "details" in report.system_evaluation["agent_execution"]
+    assert "details" in report.system_evaluation["tick_agent_command_count"]
     assert "details" in report.system_evaluation["weapon_usage"]
     for evaluation in report.system_evaluation.values():
         assert "role" not in evaluation
