@@ -1,1 +1,1 @@
-"""Local replay inputs for battle planner."""
+"""Local seed and workspace inputs for battle planner."""

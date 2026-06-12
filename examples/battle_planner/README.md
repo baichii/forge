@@ -68,8 +68,13 @@ agent 输入统一支持：
 - `InputContextMiddleware`：把 tool、memory、skill 注入模型上下文
 - `TraceMetadataMiddleware`：记录 middleware hook 和输出摘要
 
-模型调用通过 `llm_runtime/model_provider.py` 抽象。`.env` 中通过 `LLM_MODE` 控制是否真实调用模型，并通过 `MODEL` 显式选择模型 profile。默认使用 `LLM_MODE=offline` 和 `MODEL=by_qwen36`：
+模型调用通过 `llm_runtime/model_provider.py` 抽象。`.env` 中通过 `RUNTIME_MODE` 控制运行形态，通过 `SOURCE` 控制任务输入来源，通过 `LLM_MODE` 控制是否真实调用模型，并通过 `MODEL` 显式选择模型 profile。默认使用 `RUNTIME_MODE=local_dev`、`SOURCE=local`、`LLM_MODE=offline` 和 `MODEL=by_qwen36`：
 
+- `RUNTIME_MODE=local_dev`：本地开发，仅打印产物
+- `RUNTIME_MODE=local_full`：本地完整运行，打印并存储产物
+- `RUNTIME_MODE=server`：后端服务运行，存储产物并通过服务对外提供
+- `SOURCE=local`：从本地 plan_id、seed 和 workspace 资源构造任务输入
+- `SOURCE=service`：从服务接口请求构造任务输入
 - `LLM_MODE=offline`：不请求模型，LLM 节点从 `workspace/local/run_output_seed.py` 读取本地产物
 - `LLM_MODE=live`：按 `MODEL` 选择的 profile 请求真实模型
 - `MODEL=by_qwen36`：使用 `MODEL_BY_QWEN36_*`

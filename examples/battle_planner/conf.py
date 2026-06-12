@@ -9,21 +9,38 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 PACKAGE_ROOT = Path(__file__).resolve().parent
 
 
-class HostMode(StrEnum):
-    LOCAL = "local"
+class RuntimeMode(StrEnum):
+    """运行形态。
+
+    LOCAL_DEV 表示本地开发，仅打印产物；
+    LOCAL_FULL 表示本地完整运行，打印并存储产物；
+    SERVER 表示后端服务运行，存储产物并通过服务对外提供。
+    """
+
+    LOCAL_DEV = "local_dev"
+    LOCAL_FULL = "local_full"
     SERVER = "server"
 
 
 class SourceMode(StrEnum):
+    """任务输入来源。
+
+    LOCAL 表示从本地 plan_id、seed 和 workspace 资源构造输入；
+    SERVICE 表示从服务接口请求构造输入。
+    """
+
     LOCAL = "local"
     SERVICE = "service"
-    REPLAY = "replay"
 
 
 class LLMMode(StrEnum):
+    """LLM 产物来源。
+
+    LIVE 表示调用真实模型；OFFLINE 表示按本地输出 seed 读取模拟 LLM 产物。
+    """
+
     LIVE = "live"
     OFFLINE = "offline"
-    REPLAY = "replay"
 
 
 class Settings(BaseSettings):
@@ -40,9 +57,11 @@ class Settings(BaseSettings):
         cache_strings=True,
     )
 
-    # runtime mode
-    HOST: HostMode = HostMode.LOCAL
+    # 运行形态：控制本地开发、本地完整运行和服务运行的产物行为。
+    RUNTIME_MODE: RuntimeMode = RuntimeMode.LOCAL_DEV
+    # 任务输入来源：local 从本地 plan_id/seed 构造，service 从接口请求构造。
     SOURCE: SourceMode = SourceMode.LOCAL
+    # LLM 产物来源：offline 读取 run_output_seed，live 调用真实模型。
     LLM_MODE: LLMMode = LLMMode.OFFLINE
 
     # datetime
@@ -94,8 +113,20 @@ class Settings(BaseSettings):
     REPORT_INCLUDE_FAILED_RUNS: bool = True
     REPORT_FORMAT: str = "md"
 
-    # replay seed, only work when LLM_MODE is offline
+    # 本地 LLM 输出 seed，仅在 LLM_MODE=offline 时生效。
     OUTPUT_SEED: str = "debug"
+
+    @property
+    def should_print_artifacts(self) -> bool:
+        return self.RUNTIME_MODE in {RuntimeMode.LOCAL_DEV, RuntimeMode.LOCAL_FULL}
+
+    @property
+    def should_store_artifacts(self) -> bool:
+        return self.RUNTIME_MODE in {RuntimeMode.LOCAL_FULL, RuntimeMode.SERVER}
+
+    @property
+    def should_serve_artifacts(self) -> bool:
+        return self.RUNTIME_MODE == RuntimeMode.SERVER
 
     @property
     def model_profile_names(self) -> list[str]:

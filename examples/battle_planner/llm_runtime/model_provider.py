@@ -114,8 +114,6 @@ def build_model_provider(settings_obj: Settings | None = None) -> ModelProvider:
     active_settings = settings_obj or settings
     if active_settings.LLM_MODE == LLMMode.OFFLINE:
         raise ValueError("LLM_MODE=offline uses run_output_seed and must not build a model provider")
-    if active_settings.LLM_MODE == LLMMode.REPLAY:
-        raise ValueError("LLM_MODE=replay is not implemented by model provider yet")
 
     profile = _load_model_profile(active_settings)
     provider = profile.provider
