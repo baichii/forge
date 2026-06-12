@@ -51,6 +51,8 @@ def run_workflow_loop(*, max_iterations: int | None = None) -> WorkflowLoopResul
 
 
 def test_workflow_loop_smoke(monkeypatch) -> None:
+    """验证离线 workflow 能连续完成多轮迭代。"""
+
     _force_offline_llm_mode(monkeypatch)
 
     result = run_workflow_loop(max_iterations=2)
@@ -67,12 +69,16 @@ def test_workflow_loop_smoke(monkeypatch) -> None:
 
 
 def test_workflow_entropy_uses_configured_default() -> None:
+    """验证 workflow 工厂能使用默认 workflow 配置。"""
+
     workflow = build_workflow()
 
     assert isinstance(workflow, ZcLiteBaselineWorkflow)
 
 
 def test_workflow_entropy_accepts_option_workflow_name() -> None:
+    """验证 workflow 工厂能按显式名称构建流程。"""
+
     task_run = build_local_task_run()
     task_run.options.workflow_name = "zc_lite_baseline"
 
@@ -82,6 +88,8 @@ def test_workflow_entropy_accepts_option_workflow_name() -> None:
 
 
 def test_workflow_entropy_rejects_unknown_workflow_name(monkeypatch) -> None:
+    """验证 workflow 工厂能拒绝未知流程名称。"""
+
     monkeypatch.setattr(settings, "WORKFLOW_NAME", "missing")
 
     with pytest.raises(ValueError, match="Unknown battle planner workflow"):

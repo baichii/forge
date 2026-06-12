@@ -20,6 +20,8 @@ from forge.registration import make_callback, make_tick_agent, registry
 
 
 def test_tick_agent_resources_use_relative_entrypoints() -> None:
+    """验证 tick-agent 资源使用相对入口声明。"""
+
     descriptors = iter_tick_agent_resources()
 
     assert {descriptor.name for descriptor in descriptors} == {
@@ -31,6 +33,8 @@ def test_tick_agent_resources_use_relative_entrypoints() -> None:
 
 
 def test_load_tick_agent_specs_returns_resolved_entrypoints() -> None:
+    """验证 tick-agent spec 能解析为可导入入口。"""
+
     specs = load_tick_agent_specs()
 
     assert {spec.name for spec in specs} == {"air_to_sea_strike_agent", "naval_to_sea_strike_agent"}
@@ -38,6 +42,8 @@ def test_load_tick_agent_specs_returns_resolved_entrypoints() -> None:
 
 
 def test_register_tick_agent_resources_registers_makeable_agents() -> None:
+    """验证 tick-agent 资源注册后可以实例化。"""
+
     registry.pop("tick_agent/air_to_sea_strike_agent", None)
     registry.pop("tick_agent/naval_to_sea_strike_agent", None)
 
@@ -62,6 +68,8 @@ def test_register_tick_agent_resources_registers_makeable_agents() -> None:
 
 
 def test_callback_resources_use_entrypoint_constant() -> None:
+    """验证 callback 资源使用入口常量。"""
+
     descriptors = iter_callback_resources()
 
     assert {descriptor.name for descriptor in descriptors} == {"target_statistic"}
@@ -73,6 +81,8 @@ def test_callback_resources_use_entrypoint_constant() -> None:
 
 
 def test_load_callback_specs_returns_resolved_entrypoints_and_shared_params() -> None:
+    """验证 callback spec 能解析入口并复用参数声明。"""
+
     specs = load_callback_specs()
     target_spec = next(spec for spec in specs if spec.name == "target_statistic")
 
@@ -82,6 +92,8 @@ def test_load_callback_specs_returns_resolved_entrypoints_and_shared_params() ->
 
 
 def test_register_callback_resources_registers_makeable_callbacks() -> None:
+    """验证 callback 资源注册后可以实例化。"""
+
     registry.pop("callback/target_statistic", None)
 
     register_callback_resources()
@@ -100,6 +112,8 @@ def test_register_callback_resources_registers_makeable_callbacks() -> None:
 
 
 def test_callback_result_metrics_match_declared_metrics() -> None:
+    """验证 callback 返回指标与声明指标保持一致。"""
+
     registry.pop("callback/target_statistic", None)
     register_callback_resources()
     callback = make_callback(
@@ -120,6 +134,8 @@ def test_callback_result_metrics_match_declared_metrics() -> None:
 
 
 def test_target_callback_returns_total_and_per_target_metrics() -> None:
+    """验证目标统计 callback 返回总览和目标级指标。"""
+
     target_id = "red_target_1"
     registry.pop("callback/target_statistic", None)
     register_callback_resources()

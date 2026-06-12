@@ -1,3 +1,9 @@
+"""离线 workflow 运行入口。
+
+Notes:
+    LLM 产物读取 run_output_seed，仿真和评估仍走真实链路。
+"""
+
 from __future__ import annotations
 
 import json

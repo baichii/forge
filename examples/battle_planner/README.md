@@ -7,7 +7,8 @@
 ## Run
 
 ```bash
-PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/scripts/run_zc_lite_demo.py
+PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/scripts/run_offline.py
+PYTHONPATH=.:examples:pythonlib uv run python examples/battle_planner/scripts/validate_offline_multi_iteration.py
 ```
 
 当前测试环境通过 battle-planner 本地 registry 构造 `pysim` 环境，并由 runner 驱动有限步推演。

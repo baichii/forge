@@ -7,6 +7,8 @@ from battle_planner.orchestration.state.state import BattlePlannerState
 
 
 def test_result_evaluation_node_uses_target_outcome_report() -> None:
+    """验证评估节点能读取单局仿真报告并生成判定结果。"""
+
     state = BattlePlannerState(
         simulation_result=SimulationRunResult(
             steps=10,
@@ -25,6 +27,8 @@ def test_result_evaluation_node_uses_target_outcome_report() -> None:
 
 
 def test_result_evaluation_node_aggregates_multiple_simulation_results() -> None:
+    """验证评估节点能处理同一轮内的多次仿真结果。"""
+
     state = BattlePlannerState(
         simulation_results=[
             SimulationRunResult(

@@ -1,3 +1,9 @@
+"""导出 tick-agent 配置文件。
+
+Notes:
+    用于根据资源声明生成本地 config.yaml。
+"""
+
 from __future__ import annotations
 
 import importlib

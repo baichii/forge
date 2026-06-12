@@ -11,6 +11,8 @@ from battle_planner.workspace.local.run_input_seed import (
 
 
 def test_local_run_input_seed_builds_task_run_state_chain() -> None:
+    """验证本地输入 seed 能装配 TaskRun 到 workflow state。"""
+
     task_plan = build_local_task_plan()
     context_request = build_local_task_context_request()
     task_run = build_local_task_run()
@@ -32,12 +34,16 @@ def test_local_run_input_seed_builds_task_run_state_chain() -> None:
 
 
 def test_local_run_input_seed_builds_default_branch_humans() -> None:
+    """验证本地输入 seed 默认选择两个任务分支。"""
+
     context_request = build_local_task_context_request()
 
     assert [item.branch_id for item in context_request.branch_humans] == [1, 2]
 
 
 def test_local_run_input_seed_can_select_branch_ids() -> None:
+    """验证本地输入 seed 支持选择指定分支。"""
+
     context_request = build_local_task_context_request(branch_ids=[1])
     task_context = build_local_task_context(branch_ids=[1])
 
@@ -46,5 +52,7 @@ def test_local_run_input_seed_can_select_branch_ids() -> None:
 
 
 def test_local_run_input_seed_rejects_unknown_branch_ids() -> None:
+    """验证本地输入 seed 会拒绝未知分支。"""
+
     with pytest.raises(ValueError, match="do not exist in fixture"):
         build_local_task_context_request(branch_ids=[999])

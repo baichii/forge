@@ -5,6 +5,8 @@ from battle_planner.conf import LLMMode, settings
 
 
 def test_model_provider_rejects_requested_model_mismatch() -> None:
+    """验证模型 provider 能拒绝请求模型与配置模型不一致。"""
+
     from battle_planner.llm_runtime.model_provider import ModelRequest, OpenAICompatibleModelProvider
 
     provider = OpenAICompatibleModelProvider(
@@ -20,6 +22,8 @@ def test_model_provider_rejects_requested_model_mismatch() -> None:
 
 
 def test_model_provider_passes_reasoning_and_thinking_options(monkeypatch) -> None:
+    """验证模型 provider 能传递 reasoning 和 thinking 配置。"""
+
     from battle_planner.llm_runtime import model_provider
     from battle_planner.llm_runtime.model_provider import ModelRequest, OpenAICompatibleModelProvider
 
@@ -60,6 +64,8 @@ def test_model_provider_passes_reasoning_and_thinking_options(monkeypatch) -> No
 
 
 def test_model_provider_rejects_offline_mode(monkeypatch) -> None:
+    """验证 offline 模式不会创建真实模型 provider。"""
+
     from battle_planner.llm_runtime.model_provider import build_model_provider
 
     monkeypatch.setattr(settings, "LLM_MODE", LLMMode.OFFLINE)

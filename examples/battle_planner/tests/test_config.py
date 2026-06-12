@@ -4,6 +4,8 @@ from battle_planner.conf import HostMode, LLMMode, Settings, SourceMode
 
 
 def test_settings_env_file_does_not_override_existing_env(monkeypatch, tmp_path) -> None:
+    """验证运行时环境变量优先于 .env 文件。"""
+
     env_path = tmp_path / ".env"
     env_path.write_text("HOST=server\nMODEL=from_file\n", encoding="utf-8")
 
@@ -16,6 +18,8 @@ def test_settings_env_file_does_not_override_existing_env(monkeypatch, tmp_path)
 
 
 def test_settings_parse_key_runtime_and_model_env(monkeypatch) -> None:
+    """验证关键运行配置能从环境变量解析。"""
+
     monkeypatch.setenv("HOST", "server")
     monkeypatch.setenv("SOURCE", "service")
     monkeypatch.setenv("LLM_MODE", "offline")
@@ -36,6 +40,8 @@ def test_settings_parse_key_runtime_and_model_env(monkeypatch) -> None:
 
 
 def test_settings_defaults(monkeypatch) -> None:
+    """验证未设置环境变量时使用默认配置。"""
+
     for name in ["HOST", "SOURCE", "LLM_MODE", "VERBOSE", "MODEL", "MODEL_PROFILES"]:
         monkeypatch.delenv(name, raising=False)
 

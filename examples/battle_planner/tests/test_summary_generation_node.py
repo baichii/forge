@@ -20,6 +20,8 @@ from forge.core.specs import CallbackParams, TickAgentParams
 
 
 def test_summary_generation_node_evaluates_target_alive_with_agent_actions(monkeypatch) -> None:
+    """验证目标存活时总结节点能给出未达成判定。"""
+
     result = _run_summary_generation_node(
         monkeypatch,
         _make_state(target_alive=True, action_count=2, health_delta=-200),
@@ -31,6 +33,8 @@ def test_summary_generation_node_evaluates_target_alive_with_agent_actions(monke
 
 
 def test_summary_generation_node_evaluates_target_destroyed_with_agent_actions(monkeypatch) -> None:
+    """验证目标被摧毁时总结节点能给出达成判定。"""
+
     result = _run_summary_generation_node(
         monkeypatch,
         _make_state(target_alive=False, action_count=3, health_delta=-1000),
@@ -42,6 +46,8 @@ def test_summary_generation_node_evaluates_target_destroyed_with_agent_actions(m
 
 
 def test_summary_generation_node_marks_inactive_agent(monkeypatch) -> None:
+    """验证总结节点能识别未执行 agent。"""
+
     result = _run_summary_generation_node(
         monkeypatch,
         _make_state(target_alive=True, action_count=0, health_delta=0),
@@ -53,6 +59,8 @@ def test_summary_generation_node_marks_inactive_agent(monkeypatch) -> None:
 
 
 def test_summary_generation_node_writes_summary_evaluation(monkeypatch) -> None:
+    """验证总结节点能写入总结产物和完成状态。"""
+
     result = _run_summary_generation_node(
         monkeypatch,
         _make_state(target_alive=True, action_count=2, health_delta=-200),

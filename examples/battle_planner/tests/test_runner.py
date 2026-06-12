@@ -38,6 +38,8 @@ def _make_target_statistic_param(*, instance_id, params) -> CallbackParams:
 
 
 def test_runner_simple() -> None:
+    """验证 runner 能执行环境并输出结构化报告。"""
+
     register_battle_planner_modules()
     env_params = EnvParams(
         name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM, params={"render_mode": "none"}
@@ -89,6 +91,8 @@ def test_runner_simple() -> None:
 
 
 def test_business_callback_only_accepts_observation() -> None:
+    """验证业务 callback 只依赖 observation 输入。"""
+
     signature = inspect.signature(TargetStatistic.observe)
 
     assert list(signature.parameters) == ["self", "observation"]

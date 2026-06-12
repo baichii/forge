@@ -7,6 +7,8 @@ from forge.core.specs import CallbackParams
 
 
 def test_simulation_execution_node_passes_state_callback_params_to_runner(monkeypatch) -> None:
+    """验证仿真节点使用 state 中的 callback 参数。"""
+
     import battle_planner.orchestration.nodes.simulation_execution as simulation_module
 
     captured = _patch_fake_runner(monkeypatch, simulation_module, stop_reason="max_step")
@@ -32,6 +34,8 @@ def test_simulation_execution_node_passes_state_callback_params_to_runner(monkey
 
 
 def test_simulation_execution_node_runs_multiple_simulations(monkeypatch) -> None:
+    """验证仿真节点支持同一方案多次运行。"""
+
     import battle_planner.orchestration.nodes.simulation_execution as simulation_module
 
     captured = _patch_fake_runner(monkeypatch, simulation_module, stop_reason="env_terminal")

@@ -5,15 +5,8 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from battle_planner.orchestration.event import EventTypes
-from battle_planner.orchestration.nodes import (
-    battle_plan_generation_node,
-    scenario_preparation_node,
-    scenario_understanding_node,
-)
-from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
 from battle_planner.orchestration.workflow_entropy import build_graph
-from langgraph.graph import END, StateGraph
 
 StreamMode = Literal["custom", "updates"]
 NO_TRUNCATE_FIELDS = {"planned_agents"}
@@ -70,36 +63,6 @@ class WorkflowStreamService:
             custom_events=custom_events,
             updates=updates,
         )
-
-
-def build_scenario_preparation_understanding_graph():
-    """Build the first graph-stream slice for tests."""
-
-    builder = StateGraph(BattlePlannerState)
-    builder.add_node(WorkflowStages.SCENARIO_PREPARATION, scenario_preparation_node)
-    builder.add_node(WorkflowStages.SCENARIO_UNDERSTANDING, scenario_understanding_node)
-
-    builder.set_entry_point(WorkflowStages.SCENARIO_PREPARATION)
-    builder.add_edge(WorkflowStages.SCENARIO_PREPARATION, WorkflowStages.SCENARIO_UNDERSTANDING)
-    builder.add_edge(WorkflowStages.SCENARIO_UNDERSTANDING, END)
-
-    return builder.compile()
-
-
-def build_scenario_preparation_to_battle_plan_generation_graph():
-    """Build the first LLM-output-seed slice for tests."""
-
-    builder = StateGraph(BattlePlannerState)
-    builder.add_node(WorkflowStages.SCENARIO_PREPARATION, scenario_preparation_node)
-    builder.add_node(WorkflowStages.SCENARIO_UNDERSTANDING, scenario_understanding_node)
-    builder.add_node(WorkflowStages.BATTLE_PLAN_GENERATION, battle_plan_generation_node)
-
-    builder.set_entry_point(WorkflowStages.SCENARIO_PREPARATION)
-    builder.add_edge(WorkflowStages.SCENARIO_PREPARATION, WorkflowStages.SCENARIO_UNDERSTANDING)
-    builder.add_edge(WorkflowStages.SCENARIO_UNDERSTANDING, WorkflowStages.BATTLE_PLAN_GENERATION)
-    builder.add_edge(WorkflowStages.BATTLE_PLAN_GENERATION, END)
-
-    return builder.compile()
 
 
 def _normalise_stream_chunk(chunk: Any) -> dict[str, Any]:
