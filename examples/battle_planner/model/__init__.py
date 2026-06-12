@@ -28,6 +28,7 @@ from battle_planner.model.outputs import (
     RunIterationOutputSpec,
     RunIterationTagSpec,
     RunOutputSpec,
+    RunOutputStatus,
     RunSimulationRecordSpec,
     RunTextSummarySpec,
 )
@@ -63,6 +64,7 @@ __all__ = [
     "RunIterationOutputSpec",
     "RunIterationTagSpec",
     "RunOutputSpec",
+    "RunOutputStatus",
     "RunSimulationRecordSpec",
     "RunTextSummarySpec",
     "SchemeSpec",

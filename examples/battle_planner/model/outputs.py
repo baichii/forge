@@ -74,7 +74,10 @@ class RunIterationOutputSpec(BaseModel):
     iteration_tags: list[RunIterationTagSpec] = Field(default_factory=list, description="轮次业务标签。")
 
     # 总结信息
-    overall_summary: RunTextSummarySpec | None = Field(default=None, description="本轮总体摘要。")
+    overall_summary: RunTextSummarySpec | None = Field(
+        default=None,
+        description="截至本轮的总体摘要，可包含 session 现状分析。",
+    )
     effect_summary: RunTextSummarySpec | None = Field(default=None, description="本轮效果摘要。")
     report_summary: RunTextSummarySpec | None = Field(default=None, description="本轮仿真报告摘要。")
     decision_summary: RunTextSummarySpec | None = Field(default=None, description="本轮决策建议摘要。")
@@ -106,12 +109,9 @@ class RunOutputSpec(BaseModel):
     max_iterations: int | None = Field(default=None, description="最大迭代轮数。")
 
     # session 级信息
-    current_iteration_index: int | None = Field(default=None, description="当前迭代序号。")
     status: RunOutputStatus = Field(default="created", description="运行状态。")
-    text_summary: RunTextSummarySpec | None = Field(default=None, description="运行级短文本摘要。")
 
     # iteration级信息
     iterations: list[RunIterationOutputSpec] = Field(default_factory=list, description="迭代输出摘要列表。")
-    artifact_id: str | None = Field(default=None, description="运行产物集合 ID。")
 
     meta: dict[str, Any] = Field(default_factory=dict, description="预留扩展字段。")

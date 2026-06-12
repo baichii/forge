@@ -15,6 +15,7 @@ from battle_planner.orchestration.output import build_run_iteration_output
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState, build_initial_state
 from battle_planner.orchestration.workflow_stream import WorkflowStreamService
+from battle_planner.utils.run_store import LocalRunStore
 from battle_planner.workspace.local.run_input_seed import build_local_task_run
 
 
@@ -40,10 +41,15 @@ def run_offline_iterations(
     settings.OUTPUT_SEED = output_seed
     settings.SIM_MAX_DECISION_STEPS = sim_max_decision_steps
 
+    task_run = None
+    run_store = None
+    result = OfflineRunResult()
     try:
         task_run = build_local_task_run()
         stream_service = WorkflowStreamService(workflow_name=task_run.options.workflow_name)
-        result = OfflineRunResult()
+        run_store = LocalRunStore() if settings.should_store_artifacts else None
+        if run_store is not None:
+            run_store.write_run_info(task_run=task_run)
 
         if print_events:
             print(f"\n=== offline workflow stream: {max_iterations} iterations ===", flush=True)
@@ -61,10 +67,30 @@ def run_offline_iterations(
             stream_result = stream_service.stream(initial_state, print_events=print_events)
             state = stream_result.final_state
             result.states.append(state)
+            if run_store is not None:
+                run_store.write_iteration_output(
+                    run_id=task_run.run_id,
+                    output=build_run_iteration_output(state),
+                )
             if state.cur_stage == WorkflowStages.COMPLETE:
                 result.history.append(build_history_item(state))
             if print_events:
                 print(_iteration_summary(state), flush=True)
+
+        if run_store is not None:
+            error_states = [state for state in result.states if state.error]
+            if error_states:
+                run_store.mark_run_failed(
+                    run_id=task_run.run_id,
+                    reason="workflow_state_error",
+                    message=error_states[-1].error or "",
+                    last_iteration_index=error_states[-1].iteration_index,
+                )
+            else:
+                run_store.mark_run_completed(
+                    run_id=task_run.run_id,
+                    iteration_count=len(result.states),
+                )
 
         if print_artifacts and result.states:
             print("\n=== iteration 1 artifacts ===", flush=True)
@@ -80,6 +106,16 @@ def run_offline_iterations(
             )
 
         return result
+    except Exception as exc:
+        if run_store is not None and task_run is not None:
+            last_iteration_index = result.states[-1].iteration_index if result.states else None
+            run_store.mark_run_failed(
+                run_id=task_run.run_id,
+                reason="workflow_exception",
+                message=str(exc),
+                last_iteration_index=last_iteration_index,
+            )
+        raise
     finally:
         settings.LLM_MODE = original_llm_mode
         settings.OUTPUT_SEED = original_output_seed

@@ -94,7 +94,18 @@ def _battle_plan_md(*, stage_label: str, title: str, body: list[str]) -> str:
 
 def _summary_md(*, stage_label: str, title: str, body: list[str]) -> str:
     return "\n".join(
-        ["# 策略迭代总结（offline seed）", "", f"## {title}", *body, "", f"- stage_label: {stage_label}"]
+        [
+            "# 策略迭代总结（offline seed）",
+            "",
+            f"## {title}",
+            *body,
+            "",
+            "## Session 现状分析",
+            f"- 截至本轮，session 处于「{title}」阶段。",
+            "- 该段模拟 summary 节点结合历史趋势后的 session 当前摘要。",
+            "",
+            f"- stage_label: {stage_label}",
+        ]
     )
 
 

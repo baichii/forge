@@ -87,6 +87,7 @@ def summary_generation_node(state: BattlePlannerState) -> BattlePlannerState:
             evaluation_summary=state.evaluation_summary,
             summary_evaluation=summary_evaluation,
         )
+        output = _append_session_status_placeholder(output)
     state.summary_evaluation = summary_evaluation
     state.summary_md = output
     state.add_trace(trace)
@@ -207,6 +208,18 @@ def _build_iteration_advice(*, objective_achieved: bool, inactive_agents: list[s
     if inactive_agents:
         return "目标未达成且存在未执行 agent；下一轮优先检查时间窗口、目标接地和单位匹配。"
     return "目标未达成，下一轮可增强火力或调整打击时序。"
+
+
+def _append_session_status_placeholder(summary_md: str) -> str:
+    # TODO: 添加基于历史迭代趋势的 session 现状分析。
+    placeholder = "\n".join(
+        [
+            "",
+            "## Session 现状分析",
+            "- 当前为正式模型占位文本，后续结合历史轮次与多局仿真结果生成。",
+        ]
+    )
+    return f"{summary_md.rstrip()}\n{placeholder}"
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
