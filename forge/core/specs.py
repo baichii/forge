@@ -17,6 +17,7 @@ class ParamType:
     BOOL = "bool"
     STRING = "string"
     LIST = "list"
+    DICT = "dict"
     DATATIME = "datetime"
     TABLE = "table"  # 表格数据，格式为 list[dict]，每个 dict 代表一行数据，key 是列名
     ENUM_S = "enum_s"  # 单选
@@ -95,6 +96,15 @@ class TickAgentSpec(BaseModel):
     params: dict[str, ParamSpecTemplate] = Field(default_factory=dict, description="智能体参数规范")
     entrypoint: str = Field(description="智能体执行入口，path:Module格式")
     status: list[str] = Field(default_factory=list, description="描述智能体在执行过程中可以返回的状态列表")
+    version: str = "0.1"  # 0.1为初始版本，仅用于默认值填充
+
+
+class CallbackSpec(BaseModel):
+    name: str = Field(description="callback 类型名称")
+    description: str = Field(description="callback 描述")
+    params: dict[str, ParamSpecTemplate] = Field(default_factory=dict, description="callback 参数规范")
+    entrypoint: str = Field(description="callback 执行入口，path:Module格式")
+    metrics: dict[str, ParamSpecTemplate] = Field(default_factory=dict, description="callback 输出指标声明")
     version: str = "0.1"  # 0.1为初始版本，仅用于默认值填充
 
 

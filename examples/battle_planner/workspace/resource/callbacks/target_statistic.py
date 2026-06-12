@@ -6,7 +6,43 @@ from typing import Any
 from battle_planner.keys import CONT
 
 from forge.core.lib.callback import CallBack
-from forge.core.specs import CallbackParams
+from forge.core.specs import CallbackParams, CallbackSpec, ParamSpec, ParamSpecTemplate, ParamType
+
+ENTRYPOINT = "TargetStatistic"
+
+TARGET_STATISTIC_DECLARATION = CallbackSpec(
+    name="target_statistic",
+    description="统计指定目标在仿真开始和结束时的状态变化，并给出目标摧毁类任务的完成情况。",
+    version="0.1.0",
+    entrypoint=ENTRYPOINT,
+    params={
+        "side": ParamSpec.side.redeclaration(
+            required=True,
+            description="从该阵营的态势中读取目标单位状态。",
+        ),
+        "target_ids": ParamSpec.target_ids.redeclaration(
+            type=ParamType.LIST,
+            description="需要跟踪和评估的目标单位唯一 ID。",
+        ),
+    },
+    metrics={
+        "target_count": ParamSpecTemplate(
+            name="target_count",
+            description="本次 callback 评估的目标单位数量。",
+            type=ParamType.INT,
+        ),
+        "target_destroyed_count": ParamSpecTemplate(
+            name="target_destroyed_count",
+            description="终局态势中已经不存在或判定为不存活的目标数量。",
+            type=ParamType.INT,
+        ),
+        "target_damage_ratio": ParamSpecTemplate(
+            name="target_damage_ratio",
+            description="目标总毁伤比例，以及每个目标单位的毁伤比例。",
+            type=ParamType.DICT,
+        ),
+    },
+)
 
 
 class TargetStatistic(CallBack):
@@ -17,6 +53,8 @@ class TargetStatistic(CallBack):
 
     """
 
+    declaration = TARGET_STATISTIC_DECLARATION
+
     def __init__(self, params: CallbackParams):
         super().__init__(params=params)
         self._side = self.params["side"]
@@ -24,12 +62,11 @@ class TargetStatistic(CallBack):
         self._target_init_snapshots = {}
         self._target_last_snapshots = {}
 
-    def on_step_begin(self):
-        target_state = self._target_state()
+    def observe(self, observation: dict[str, Any]):
+        target_state = self._target_state(observation)
         if not target_state:
             return
 
-        # fixme: 性能优化
         for target_id in self._target_ids:
             if target_id in self._target_init_snapshots:
                 continue
@@ -37,18 +74,13 @@ class TargetStatistic(CallBack):
             if snapshot is not None:
                 self._target_init_snapshots[target_id] = copy.deepcopy(snapshot)
 
-    def on_end(self):
-        target_state = self._target_state()
-        if not target_state:
-            return
-
         for target_id in self._target_ids:
             snapshot = target_state.get(target_id)
             if snapshot is not None:
                 self._target_last_snapshots[target_id] = copy.deepcopy(snapshot)
 
     def result(self):
-        results = {}
+        targets = {}
         for target_id in self._target_ids:
             initial_snapshot = self._target_init_snapshots.get(target_id)
             current_snapshot = self._target_last_snapshots.get(target_id)
@@ -57,7 +89,7 @@ class TargetStatistic(CallBack):
             initial = self._build_snapshot_summary(initial_snapshot)
             current = self._build_snapshot_summary(current_snapshot, alive=alive, initial=initial)
 
-            results[target_id] = {
+            targets[target_id] = {
                 "alive": alive,
                 "initial": initial,
                 "current": current,
@@ -74,14 +106,32 @@ class TargetStatistic(CallBack):
                     ),
                 },
             }
-        return results
 
-    def _target_state(self) -> dict[str, Any]:
-        last_observation = getattr(self._runner, "_last_observation", {})
-        if not isinstance(last_observation, dict):
-            return {}
+        target_count = len(targets)
+        destroyed_count = sum(1 for item in targets.values() if not item["alive"])
+        initial_health = sum(number_or_zero(item["initial"].get("health")) for item in targets.values())
+        health_delta = sum(number_or_zero(item["delta"].get("health")) for item in targets.values())
+        damage = max(0.0, -health_delta)
+        damage_ratio = min(1.0, damage / initial_health) if initial_health > 0 else 0.0
+        damage_ratio_by_target = self._damage_ratio_by_target(
+            targets=targets,
+            total_damage_ratio=damage_ratio,
+        )
 
-        cont_observation = last_observation.get(CONT, {})
+        return {
+            "schema_version": "callback_eval.v0",
+            "callback_instance_id": self.id,
+            "callback_name": self.name,
+            "metrics": {
+                "target_count": target_count,
+                "target_destroyed_count": destroyed_count,
+                "target_damage_ratio": damage_ratio_by_target,
+            },
+            "payload": {"targets": targets},
+        }
+
+    def _target_state(self, observation: dict[str, Any]) -> dict[str, Any]:
+        cont_observation = observation.get(CONT, {})
         if not isinstance(cont_observation, dict):
             return {}
 
@@ -91,6 +141,23 @@ class TargetStatistic(CallBack):
 
         target_state = state.get(self._side, {})
         return target_state if isinstance(target_state, dict) else {}
+
+    def _damage_ratio_by_target(
+        self,
+        *,
+        targets: dict[str, Any],
+        total_damage_ratio: float,
+    ) -> dict[str, int | float]:
+        result = {"total": round_metric(total_damage_ratio)}
+        for target_id, target_payload in targets.items():
+            initial = target_payload.get("initial", {})
+            delta = target_payload.get("delta", {})
+            initial_health = number_or_zero(initial.get("health"))
+            health_delta = number_or_zero(delta.get("health"))
+            damage = max(0.0, -health_delta)
+            damage_ratio = min(1.0, damage / initial_health) if initial_health > 0 else 0.0
+            result[target_id] = round_metric(damage_ratio)
+        return result
 
     def _build_snapshot_summary(
         self,
@@ -152,3 +219,14 @@ class TargetStatistic(CallBack):
             return value
         rounded_value = round(value, 4 if digits is None else digits)
         return int(rounded_value) if rounded_value.is_integer() else rounded_value
+
+
+def number_or_zero(value: Any) -> float:
+    if isinstance(value, bool):
+        return 0.0
+    return float(value) if isinstance(value, int | float) else 0.0
+
+
+def round_metric(value: float) -> int | float:
+    rounded = round(value, 4)
+    return int(rounded) if rounded.is_integer() else rounded
