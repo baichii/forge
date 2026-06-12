@@ -55,6 +55,7 @@ pythonlib/
 
 # battle planner runtime artifacts
 examples/battle_planner/artifacts/
+examples/battle_planner/runs/
 examples/battle_planner/experimental/
 
 

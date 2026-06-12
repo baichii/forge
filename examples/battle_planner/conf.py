@@ -115,6 +115,8 @@ class Settings(BaseSettings):
 
     # 本地 LLM 输出 seed，仅在 LLM_MODE=offline 时生效。
     OUTPUT_SEED: str = "debug"
+    # 运行记录目录，用于 local_full 和 server 模式下保存 run 数据。
+    RUNS_DIR: Path = PACKAGE_ROOT / "runs"
 
     @property
     def should_print_artifacts(self) -> bool:
