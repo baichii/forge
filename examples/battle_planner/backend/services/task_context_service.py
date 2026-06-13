@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from battle_planner.backend.config import backend_settings
+from battle_planner.backend.schemas import TaskContextListItemView
 from battle_planner.model import (
     BranchHumanInputSpec,
     TaskBranchContextSpec,
@@ -60,10 +63,15 @@ class TaskContextService:
                 )
                 for branch_id in selected_branch_ids
             ],
-            meta=task_plan.meta,
+            meta=_with_created_at(task_plan.meta),
         )
         self.store.write_task_context(task_context=task_context)
         return task_context
+
+    def list_contexts(self) -> list[TaskContextListItemView]:
+        """列出已保存的任务上下文。"""
+
+        return [_build_context_list_item(task_context) for task_context in self.store.list_task_contexts()]
 
     def get_context(self, *, context_id: str) -> TaskContextSpec:
         """读取任务上下文。"""
@@ -78,3 +86,23 @@ def _branch_human_by_id(request: TaskContextCreateRequest) -> dict[int, BranchHu
             raise ValueError(f"duplicated branch id: {item.branch_id}")
         branch_human_by_id[item.branch_id] = item.human
     return branch_human_by_id
+
+
+def _with_created_at(meta: dict | None) -> dict:
+    payload = dict(meta) if isinstance(meta, dict) else {}
+    if not payload.get("created_at"):
+        payload["created_at"] = datetime.now().astimezone().isoformat()
+    return payload
+
+
+def _build_context_list_item(task_context: TaskContextSpec) -> TaskContextListItemView:
+    meta = task_context.meta if isinstance(task_context.meta, dict) else {}
+    return TaskContextListItemView(
+        context_id=task_context.context_id,
+        name=task_context.name,
+        plan_id=task_context.plan_id,
+        plan_name=task_context.plan_name,
+        scenario_name=task_context.scenario_name,
+        branch_count=len(task_context.branches),
+        created_at=str(meta.get("created_at", "")),
+    )

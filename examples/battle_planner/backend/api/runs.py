@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+from battle_planner.backend.schemas import TaskRunListItemView
 from battle_planner.backend.services.run_event_service import RunEventService
 from battle_planner.backend.services.run_execution_service import RunExecutionService
 from battle_planner.backend.services.run_query_service import RunQueryService
 from battle_planner.backend.services.run_task_registry import RunCapacityExceeded
-from battle_planner.model import RunIterationOutputSpec, RunOutputSpec, TaskRunCreateRequest
+from battle_planner.model import (
+    RunIterationOutputSpec,
+    RunOutputSpec,
+    TaskRunCreateRequest,
+)
 from fastapi import APIRouter, HTTPException, Request
 from sse_starlette.sse import EventSourceResponse
 
@@ -37,8 +42,8 @@ def create_run(request: TaskRunCreateRequest) -> RunOutputSpec:
         raise HTTPException(status_code=404, detail=f"Context not found: {request.context_id}") from exc
 
 
-@router.get("")
-def list_runs() -> list[dict]:
+@router.get("", response_model=list[TaskRunListItemView])
+def list_runs() -> list[TaskRunListItemView]:
     """列出本地 run 缓存。"""
 
     return _query_service().list_runs()

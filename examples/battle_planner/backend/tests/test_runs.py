@@ -25,6 +25,9 @@ def test_backend_reads_run_cache(tmp_path, monkeypatch) -> None:
     missing_response = client.get("/battle-planner/runs/missing-run")
 
     assert runs_response.status_code == 200
+    assert runs_response.json()[0]["run_id"] == task_run.run_id
+    assert runs_response.json()[0]["run_name"]
+    assert runs_response.json()[0]["created_at"]
     assert run_response.json()["status"] == "completed"
     assert iteration_response.json()["iteration_index"] == 0
     assert missing_response.status_code == 404

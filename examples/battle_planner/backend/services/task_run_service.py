@@ -23,7 +23,7 @@ class TaskRunService:
             run_id=run_id,
             context_id=task_context.context_id,
             plan_id=task_context.plan_id,
-            run_name=request.run_name or f"battle-planner-run-{run_id}",
+            run_name=request.run_name or f"{task_context.name} 运行 {run_id}",
             task_context=task_context,
             options=request.options.model_copy(deep=True),
         )

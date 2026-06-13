@@ -39,6 +39,7 @@ def test_backend_starts_run_execution(tmp_path, monkeypatch) -> None:
     assert final_payload["iterations"]
     assert (tmp_path / "task_runs" / run_id / "run.json").exists()
     assert (tmp_path / "task_runs" / run_id / "input" / "context.json").exists()
+    assert (tmp_path / "task_runs" / run_id / "input" / "task_run.json").exists()
 
 
 def test_backend_marks_run_failed_when_workflow_errors(tmp_path, monkeypatch) -> None:
@@ -97,6 +98,32 @@ def test_backend_rejects_run_when_capacity_is_full(tmp_path, monkeypatch) -> Non
     assert response.status_code == 429
     assert response.json()["detail"]["code"] == "run_capacity_exceeded"
     assert not (tmp_path / "task_runs").exists()
+
+
+def test_backend_uses_readable_run_name_fallback(tmp_path, monkeypatch) -> None:
+    """验证空 run_name 会生成可读名称。"""
+
+    _configure_runtime(tmp_path, monkeypatch)
+    client = TestClient(app)
+    context_id = _create_context(client)
+
+    response = client.post(
+        "/battle-planner/runs",
+        json={
+            "context_id": context_id,
+            "options": {
+                "workflow_name": "missing_workflow",
+                "max_iterations": 1,
+                "sim_runs_per_scheme": 1,
+                "max_retry": 1,
+                "timeout_seconds": None,
+                "extra": {},
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    assert "运行" in response.json()["run_name"]
 
 
 def _configure_runtime(tmp_path, monkeypatch) -> None:

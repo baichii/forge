@@ -17,10 +17,14 @@ def test_backend_creates_task_context(tmp_path, monkeypatch) -> None:
     )
     context_id = response.json()["context_id"]
     read_response = client.get(f"/battle-planner/contexts/{context_id}")
+    list_response = client.get("/battle-planner/contexts")
 
     assert response.status_code == 200
     assert read_response.status_code == 200
+    assert list_response.status_code == 200
     assert read_response.json()["plan_id"] == "2175600675558391808"
+    assert list_response.json()[0]["context_id"] == context_id
+    assert list_response.json()[0]["name"]
     assert (tmp_path / "task_contexts" / context_id / "context.json").exists()
 
 

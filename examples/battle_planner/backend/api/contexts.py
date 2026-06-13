@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from battle_planner.backend.schemas import TaskContextListItemView
 from battle_planner.backend.services.task_context_service import TaskContextService
 from battle_planner.model import TaskContextCreateRequest, TaskContextSpec
 from fastapi import APIRouter, HTTPException
@@ -23,6 +24,13 @@ def create_context(request: TaskContextCreateRequest) -> TaskContextSpec:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("", response_model=list[TaskContextListItemView])
+def list_contexts() -> list[TaskContextListItemView]:
+    """列出已保存任务上下文。"""
+
+    return _context_service().list_contexts()
 
 
 @router.get("/{context_id}", response_model=TaskContextSpec)
