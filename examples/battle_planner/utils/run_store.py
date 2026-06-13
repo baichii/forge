@@ -12,7 +12,12 @@ from pathlib import Path
 from typing import Any
 
 from battle_planner.conf import settings
-from battle_planner.model import RunIterationOutputSpec, RunOutputStatus
+from battle_planner.model import (
+    RunIterationOutputSpec,
+    RunOutputSpec,
+    RunOutputStatus,
+    TaskContextSpec,
+)
 from battle_planner.model.task import TaskRunSpec
 
 TERMINAL_MARKERS = {
@@ -20,6 +25,8 @@ TERMINAL_MARKERS = {
     "failed": "_FAILED",
     "cancelled": "_CANCELLED",
 }
+TASK_CONTEXTS_DIR_NAME = "task_contexts"
+TASK_RUNS_DIR_NAME = "task_runs"
 
 
 class LocalRunStore:
@@ -43,12 +50,59 @@ class LocalRunStore:
             json.dumps(_build_run_info(task_run), ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
+        input_dir = run_dir / "input"
+        input_dir.mkdir(parents=True, exist_ok=True)
+        (input_dir / "context.json").write_text(
+            json.dumps(task_run.task_context.model_dump(mode="json"), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
         return run_path
 
     def read_run_info(self, *, run_id: str) -> dict:
         """读取运行级基础信息。"""
 
         return json.loads((self._run_dir(run_id=run_id) / "run.json").read_text(encoding="utf-8"))
+
+    def write_task_context(self, *, task_context: TaskContextSpec) -> Path:
+        """缓存任务上下文。"""
+
+        context_dir = self._context_dir(context_id=task_context.context_id)
+        context_dir.mkdir(parents=True, exist_ok=True)
+        context_path = context_dir / "context.json"
+        context_path.write_text(
+            json.dumps(task_context.model_dump(mode="json"), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return context_path
+
+    def read_task_context(self, *, context_id: str) -> TaskContextSpec:
+        """读取任务上下文。"""
+
+        context_path = self._context_dir(context_id=context_id) / "context.json"
+        return TaskContextSpec.model_validate_json(context_path.read_text(encoding="utf-8"))
+
+    def list_runs(self) -> list[dict[str, Any]]:
+        """列出本地已缓存的 run 基础信息。"""
+
+        task_runs_dir = self._task_runs_dir()
+        if not task_runs_dir.exists():
+            return []
+
+        runs: list[dict[str, Any]] = []
+        for run_dir in sorted(item for item in task_runs_dir.iterdir() if item.is_dir()):
+            run_path = run_dir / "run.json"
+            if not run_path.exists():
+                continue
+            run_id = run_dir.name
+            run_info = json.loads(run_path.read_text(encoding="utf-8"))
+            runs.append(
+                {
+                    **run_info,
+                    "status": self.get_run_status(run_id=run_id),
+                    "iteration_count": len(self.list_iteration_outputs(run_id=run_id)),
+                }
+            )
+        return runs
 
     def write_iteration_output(
         self,
@@ -87,6 +141,38 @@ class LocalRunStore:
             / "output.json"
         )
         return RunIterationOutputSpec.model_validate_json(output_path.read_text(encoding="utf-8"))
+
+    def list_iteration_outputs(self, *, run_id: str) -> list[RunIterationOutputSpec]:
+        """读取某个 run 下所有已完成写入的轮次输出。"""
+
+        iterations_dir = self._run_dir(run_id=run_id) / "iterations"
+        if not iterations_dir.exists():
+            return []
+
+        outputs: list[RunIterationOutputSpec] = []
+        for iteration_dir in sorted(
+            (item for item in iterations_dir.iterdir() if item.is_dir() and item.name.isdigit()),
+            key=lambda item: int(item.name),
+        ):
+            if not (iteration_dir / "_READY").exists():
+                continue
+            outputs.append(
+                self.read_iteration_output(
+                    run_id=run_id,
+                    iteration_index=int(iteration_dir.name),
+                )
+            )
+        return outputs
+
+    def read_run_output(self, *, run_id: str) -> RunOutputSpec:
+        """组装某个 run 的完整查询快照。"""
+
+        run_info = self.read_run_info(run_id=run_id)
+        return RunOutputSpec(
+            **run_info,
+            status=self.get_run_status(run_id=run_id),
+            iterations=self.list_iteration_outputs(run_id=run_id),
+        )
 
     def mark_run_completed(
         self,
@@ -139,11 +225,27 @@ class LocalRunStore:
             return "running"
         return "created"
 
+    def read_terminal_marker(self, *, run_id: str) -> dict[str, Any]:
+        """读取 run 终态 marker 信息。"""
+
+        run_dir = self._run_dir(run_id=run_id)
+        for status in ("failed", "cancelled", "completed"):
+            marker_path = run_dir / TERMINAL_MARKERS[status]
+            if marker_path.exists():
+                return json.loads(marker_path.read_text(encoding="utf-8"))
+        return {}
+
     def _iteration_dir(self, *, run_id: str, iteration_index: int) -> Path:
         return self._run_dir(run_id=run_id) / "iterations" / str(iteration_index)
 
     def _run_dir(self, *, run_id: str) -> Path:
-        return self.root_dir / run_id
+        return self._task_runs_dir() / run_id
+
+    def _context_dir(self, *, context_id: str) -> Path:
+        return self.root_dir / TASK_CONTEXTS_DIR_NAME / context_id
+
+    def _task_runs_dir(self) -> Path:
+        return self.root_dir / TASK_RUNS_DIR_NAME
 
     def _write_terminal_marker(
         self,
