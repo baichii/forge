@@ -1,4 +1,4 @@
-import { ConfigProvider } from 'antd'
+import { App as AntdApp, ConfigProvider } from 'antd'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import WorkbenchShell from './layouts/WorkbenchShell'
 import DeductionShowcasePage from './pages/DeductionShowcasePage'
@@ -10,16 +10,18 @@ import { antdTheme } from './styles/antdTheme'
 function App() {
   return (
     <ConfigProvider theme={antdTheme}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<WorkbenchShell />}>
-            <Route index element={<HomePage />} />
-            <Route path="strategy" element={<StrategyConfigPage />} />
-            <Route path="iteration" element={<SimulationShowcasePage />} />
-            <Route path="showcase" element={<DeductionShowcasePage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AntdApp>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<WorkbenchShell />}>
+              <Route index element={<HomePage />} />
+              <Route path="strategy" element={<StrategyConfigPage />} />
+              <Route path="iteration" element={<SimulationShowcasePage />} />
+              <Route path="showcase" element={<DeductionShowcasePage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AntdApp>
     </ConfigProvider>
   )
 }

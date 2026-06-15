@@ -11,7 +11,7 @@ function WorkbenchShell() {
       <Header className="workbench-header">
         <div className="workbench-header__inner">
           <Link className="workbench-brand" to="/">
-            battle-planner
+            Battle-Planner
           </Link>
           <nav className="workbench-nav" aria-label="工作台导览">
             <NavLink to="/strategy">方案配置</NavLink>
