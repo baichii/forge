@@ -13,6 +13,7 @@ def test_local_run_store_reads_run_output(tmp_path) -> None:
     output = RunIterationOutputSpec(iteration_index=0, status="completed")
 
     store.write_run_info(task_run=task_run)
+    running_output = store.read_run_output(run_id=task_run.run_id)
     store.write_iteration_output(run_id=task_run.run_id, output=output)
     store.mark_run_completed(run_id=task_run.run_id, iteration_count=1)
 
@@ -21,13 +22,20 @@ def test_local_run_store_reads_run_output(tmp_path) -> None:
     runs = store.list_runs()
     contexts = store.list_task_contexts()
 
+    assert running_output.status == "running"
+    assert running_output.started_at
+    assert running_output.ended_at is None
     assert run_output.status == "completed"
+    assert run_output.started_at == running_output.started_at
+    assert run_output.ended_at
     assert len(run_output.iterations) == 1
     assert runs[0]["iteration_count"] == 1
     assert runs[0]["created_at"]
+    assert runs[0]["started_at"]
     assert contexts[0].context_id == task_run.context_id
     assert contexts[0].meta["created_at"]
     assert "status" not in store.read_run_info(run_id=task_run.run_id)
+    assert store.read_terminal_marker(run_id=task_run.run_id)["ended_at"] == run_output.ended_at
     assert (tmp_path / "task_contexts" / task_run.context_id / "context.json").exists()
     assert (tmp_path / "task_runs" / task_run.run_id / "run.json").exists()
     assert (tmp_path / "task_runs" / task_run.run_id / "input" / "context.json").exists()

@@ -29,6 +29,8 @@ def test_backend_reads_run_cache(tmp_path, monkeypatch) -> None:
     assert runs_response.json()[0]["run_name"]
     assert runs_response.json()[0]["created_at"]
     assert run_response.json()["status"] == "completed"
+    assert run_response.json()["started_at"]
+    assert run_response.json()["ended_at"]
     assert iteration_response.json()["iteration_index"] == 0
     assert missing_response.status_code == 404
 

@@ -110,6 +110,8 @@ class RunOutputSpec(BaseModel):
 
     # session 级信息
     status: RunOutputStatus = Field(default="created", description="运行状态。")
+    started_at: str = Field(default="", description="任务开始时间。")
+    ended_at: str | None = Field(default=None, description="任务结束时间。")
 
     # iteration级信息
     iterations: list[RunIterationOutputSpec] = Field(default_factory=list, description="迭代输出摘要列表。")

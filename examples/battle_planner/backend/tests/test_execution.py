@@ -35,7 +35,10 @@ def test_backend_starts_run_execution(tmp_path, monkeypatch) -> None:
 
     assert run_response.status_code == 200
     assert run_response.json()["status"] == "running"
+    assert run_response.json()["started_at"]
+    assert run_response.json()["ended_at"] is None
     assert final_payload["status"] == "completed"
+    assert final_payload["ended_at"]
     assert final_payload["iterations"]
     assert (tmp_path / "task_runs" / run_id / "run.json").exists()
     assert (tmp_path / "task_runs" / run_id / "input" / "context.json").exists()

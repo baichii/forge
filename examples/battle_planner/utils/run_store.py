@@ -46,7 +46,7 @@ class LocalRunStore:
         run_dir.mkdir(parents=True, exist_ok=True)
         self._clear_terminal_markers(run_dir)
         run_path = run_dir / "run.json"
-        task_run_meta = _with_created_at(task_run.meta)
+        task_run_meta = _with_run_times(task_run.meta)
         task_run_payload = task_run.model_dump(mode="json")
         task_run_payload["meta"] = task_run_meta
         run_path.write_text(
@@ -193,9 +193,11 @@ class LocalRunStore:
         """组装某个 run 的完整查询快照。"""
 
         run_info = self.read_run_info(run_id=run_id)
+        terminal_marker = self.read_terminal_marker(run_id=run_id)
         return RunOutputSpec(
             **run_info,
             status=self.get_run_status(run_id=run_id),
+            ended_at=terminal_marker.get("ended_at"),
             iterations=self.list_iteration_outputs(run_id=run_id),
         )
 
@@ -285,7 +287,7 @@ class LocalRunStore:
         marker_path = run_dir / TERMINAL_MARKERS[status]
         marker_payload = {
             "status": status,
-            "created_at": datetime.now().astimezone().isoformat(),
+            "ended_at": _now_iso(),
             **payload,
         }
         marker_path.write_text(
@@ -303,7 +305,7 @@ class LocalRunStore:
 
 def _build_run_info(task_run: TaskRunSpec, *, meta: dict[str, Any] | None = None) -> dict:
     task_context = task_run.task_context
-    meta = _with_created_at(meta if meta is not None else task_run.meta)
+    meta = _with_run_times(meta if meta is not None else task_run.meta)
     return {
         "run_id": task_run.run_id,
         "run_name": task_run.run_name,
@@ -315,6 +317,7 @@ def _build_run_info(task_run: TaskRunSpec, *, meta: dict[str, Any] | None = None
         "objective": task_context.human.goal,
         "max_iterations": task_run.options.max_iterations,
         "created_at": meta["created_at"],
+        "started_at": meta["started_at"],
         "meta": meta,
     }
 
@@ -323,6 +326,13 @@ def _with_created_at(meta: Any) -> dict[str, Any]:
     payload = dict(meta) if isinstance(meta, dict) else {}
     if not payload.get("created_at"):
         payload["created_at"] = _now_iso()
+    return payload
+
+
+def _with_run_times(meta: Any) -> dict[str, Any]:
+    payload = _with_created_at(meta)
+    if not payload.get("started_at"):
+        payload["started_at"] = payload["created_at"]
     return payload
 
 
