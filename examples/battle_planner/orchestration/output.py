@@ -53,13 +53,12 @@ def build_run_iteration_output(state: BattlePlannerState) -> RunIterationOutputS
 
     report_summary = None
     if state.evaluation_summary is not None:
+        metric_count = len(state.evaluation_summary.metric_summary)
         report_summary = RunTextSummarySpec(
             label="report",
             title="仿真报告摘要",
             summary=(
-                f"完成 {state.evaluation_summary.case_count} 次仿真验证，"
-                f"成功率 {state.evaluation_summary.success_rate:.2f}，"
-                f"平均得分 {state.evaluation_summary.mean_score:.2f}。"
+                f"完成 {state.evaluation_summary.case_count} 次仿真验证，形成 {metric_count} 项聚合指标。"
             ),
         )
 
@@ -68,6 +67,7 @@ def build_run_iteration_output(state: BattlePlannerState) -> RunIterationOutputS
             simulation_index=simulation_index,
             seed=_extract_simulation_seed(simulation_result),
             simulation_result=simulation_result,
+            callback_reports=_extract_callback_reports(simulation_result),
             summary=RunTextSummarySpec(
                 label="simulation",
                 title=f"仿真 {simulation_index + 1}",
@@ -93,7 +93,6 @@ def build_run_iteration_output(state: BattlePlannerState) -> RunIterationOutputS
             scheme_id=state.iteration_index + 1,
             run_id=state.run_id or "",
             branch_executions=state.planned_branch_executions,
-            planned_agent_params=state.planned_agent_params,
             callback_params=state.callback_params,
         ),
         simulation_runs=simulation_runs,
@@ -119,6 +118,11 @@ def _extract_simulation_seed(simulation_result: Any) -> int | None:
     env_report = _as_dict(runner_report.get("env"))
     seed = env_report.get("seed")
     return seed if isinstance(seed, int) else None
+
+
+def _extract_callback_reports(simulation_result: Any) -> dict[str, Any]:
+    runner_report = _as_dict(simulation_result.raw_summary.get("runner_report"))
+    return _as_dict(runner_report.get("callbacks"))
 
 
 def _compact_text(text: str, *, max_length: int = 240) -> str:

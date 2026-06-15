@@ -154,15 +154,15 @@ def artifact_snapshot(state: BattlePlannerState) -> dict:
 
 def _iteration_summary(state: BattlePlannerState) -> str:
     metrics = state.simulation_result.metrics if state.simulation_result else {}
-    objective_achieved = state.evaluation_report.objective_achieved if state.evaluation_report else None
+    objective_achieved = state.summary_evaluation.objective_achieved if state.summary_evaluation else None
+    metric_count = len(state.evaluation_summary.metric_summary) if state.evaluation_summary else None
     return (
         f"iteration={state.iteration_index + 1} "
         f"stage={state.cur_stage} "
         f"sim_runs={len(state.simulation_results)} "
-        f"mean_score={state.evaluation_summary.mean_score if state.evaluation_summary else None} "
+        f"metric_count={metric_count} "
         f"objective_achieved={objective_achieved} "
-        f"target_health_delta={metrics.get('target_health_delta')} "
-        f"requested_weapon_count={metrics.get('requested_weapon_count')}"
+        f"target_damage_ratio={metrics.get('target_damage_ratio')}"
     )
 
 

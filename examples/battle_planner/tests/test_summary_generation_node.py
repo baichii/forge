@@ -2,174 +2,108 @@ from __future__ import annotations
 
 from battle_planner.conf import LLMMode
 from battle_planner.model import (
-    EvaluationReport,
+    EvaluationAggregateSpec,
     LLMTrace,
-    PlannerKnowledgePack,
-    PlanningGoal,
     SimulationRunResult,
+    SummaryEvaluation,
 )
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
-from battle_planner.workspace.local.plan_presets import (
-    ZC3_LITE_PLAN_ID,
-    ZC3_LITE_TARGET_CARRIER_ID,
-    ZC3_LITE_TARGET_STATISTIC_CALLBACK_ID,
-)
-
-from forge.core.specs import CallbackParams, TickAgentParams
 
 
-def test_summary_generation_node_evaluates_target_alive_with_agent_actions(monkeypatch) -> None:
-    """验证目标存活时总结节点能给出未达成判定。"""
+def test_summary_generation_node_accepts_missing_evaluation_report(monkeypatch) -> None:
+    """验证总结节点不再要求硬编码 EvaluationReport。"""
 
-    result = _run_summary_generation_node(
-        monkeypatch,
-        _make_state(target_alive=True, action_count=2, health_delta=-200),
-    )
+    state = _make_state()
 
-    evaluation = result.summary_evaluation
+    result = _run_summary_generation_node(monkeypatch, state)
 
-    assert evaluation.objective_achieved is False
-
-
-def test_summary_generation_node_evaluates_target_destroyed_with_agent_actions(monkeypatch) -> None:
-    """验证目标被摧毁时总结节点能给出达成判定。"""
-
-    result = _run_summary_generation_node(
-        monkeypatch,
-        _make_state(target_alive=False, action_count=3, health_delta=-1000),
-    )
-
-    evaluation = result.summary_evaluation
-
-    assert evaluation.objective_achieved is True
-
-
-def test_summary_generation_node_marks_inactive_agent(monkeypatch) -> None:
-    """验证总结节点能识别未执行 agent。"""
-
-    result = _run_summary_generation_node(
-        monkeypatch,
-        _make_state(target_alive=True, action_count=0, health_delta=0),
-    )
-
-    evaluation = result.summary_evaluation
-
-    assert evaluation.inactive_agents == ["air_001"]
-
-
-def test_summary_generation_node_writes_summary_evaluation(monkeypatch) -> None:
-    """验证总结节点能写入总结产物和完成状态。"""
-
-    result = _run_summary_generation_node(
-        monkeypatch,
-        _make_state(target_alive=True, action_count=2, health_delta=-200),
-    )
-
-    assert result.summary_md == "summary from fake"
+    assert result.evaluation_report is None
+    assert result.summary_md.startswith("summary from fake")
+    assert result.summary_evaluation.objective_achieved is True
+    assert result.summary_evaluation.advice == "由 summary agent 输出。"
     assert result.cur_stage == WorkflowStages.COMPLETE
 
 
-def _run_summary_generation_node(monkeypatch, state: BattlePlannerState) -> BattlePlannerState:
+def test_summary_generation_node_passes_callback_reports_to_agent(monkeypatch) -> None:
+    """验证总结节点把 runner report callback 原始结果传给 summary agent。"""
+
+    captured: dict[str, object] = {}
+    state = _make_state()
+
+    result = _run_summary_generation_node(monkeypatch, state, captured=captured)
+
+    assert result.cur_stage == WorkflowStages.COMPLETE
+    assert "evaluation_report" not in captured
+    assert captured["evaluation_summary"] == state.evaluation_summary
+    assert captured["callback_reports"] == _runner_report()["callbacks"]
+
+
+def _run_summary_generation_node(
+    monkeypatch,
+    state: BattlePlannerState,
+    *,
+    captured: dict[str, object] | None = None,
+) -> BattlePlannerState:
     import battle_planner.orchestration.nodes.summary_generation as summary_module
 
     def fake_generate_summary(**kwargs):
-        return "summary from fake", LLMTrace(node_name=WorkflowStages.SUMMARY_GENERATION)
+        if captured is not None:
+            captured.update(kwargs)
+        return (
+            "summary from fake",
+            LLMTrace(node_name=WorkflowStages.SUMMARY_GENERATION),
+            SummaryEvaluation(
+                iteration_index=state.iteration_index,
+                objective_achieved=True,
+                advice="由 summary agent 输出。",
+            ),
+        )
 
     monkeypatch.setattr(summary_module.settings, "LLM_MODE", LLMMode.LIVE)
     monkeypatch.setattr(summary_module, "generate_summary", fake_generate_summary)
     return summary_module.summary_generation_node(state)
 
 
-def _make_state(*, target_alive: bool, action_count: int, health_delta: int) -> BattlePlannerState:
-    current_health = 0 if not target_alive else 1000 + health_delta
+def _make_state() -> BattlePlannerState:
     return BattlePlannerState(
-        plan_id=ZC3_LITE_PLAN_ID,
-        scenario_name="zc3_lite",
         iteration_index=1,
-        planner_knowledge_pack=PlannerKnowledgePack(
-            planning_goal=PlanningGoal(
-                objective="摧毁红方航母",
-                optimization_objective="以最小武器消耗摧毁航母",
-            )
-        ),
         scenario_understanding_md="红方航母为关键目标。",
         battle_plan_md="使用空中突击和海对海打击。",
-        callback_params=[_make_target_statistic_callback()],
-        planned_agent_params=[
-            TickAgentParams(
-                agent_instance_id="air_001",
-                agent_name="air_to_sea_strike_agent",
-                side="blue",
-                params={
-                    "unit_ids": ["blue_air_1"],
-                    "target_ids": [ZC3_LITE_TARGET_CARRIER_ID],
-                    "wp_num": 2,
-                },
-            )
-        ],
         simulation_result=SimulationRunResult(
             steps=10,
-            done=not target_alive,
-            raw_summary={
-                "runner_report": _runner_report(
-                    target_alive=target_alive,
-                    current_health=current_health,
-                    health_delta=health_delta,
-                    action_count=action_count,
-                )
+            done=True,
+            raw_summary={"runner_report": _runner_report()},
+        ),
+        evaluation_summary=EvaluationAggregateSpec(
+            case_count=1,
+            metric_summary={
+                "target_damage_ratio": {
+                    "key": "target_damage_ratio",
+                    "name": "目标毁伤比例",
+                    "description": "每个目标单位的毁伤比例。",
+                    "mean": 1.0,
+                    "min": 1.0,
+                    "max": 1.0,
+                    "std": 0.0,
+                }
             },
         ),
-        evaluation_report=EvaluationReport(objective_achieved=not target_alive),
     )
 
 
-def _make_target_statistic_callback() -> CallbackParams:
-    return CallbackParams(
-        name="target_statistic",
-        callback_instance_id=ZC3_LITE_TARGET_STATISTIC_CALLBACK_ID,
-        params={
-            "side": "red",
-            "target_ids": [ZC3_LITE_TARGET_CARRIER_ID],
-        },
-    )
-
-
-def _runner_report(
-    *,
-    target_alive: bool,
-    current_health: int,
-    health_delta: int,
-    action_count: int,
-) -> dict:
+def _runner_report() -> dict:
     return {
-        "agents": [
-            {
-                "agent_instance_id": "air_001",
-                "agent_name": "air_to_sea_strike_agent",
-                "side": "blue",
-                "action_count": action_count,
-                "first_active_step": 1 if action_count else None,
-                "finished_step": 5 if action_count else None,
-            }
-        ],
         "callbacks": {
-            ZC3_LITE_TARGET_STATISTIC_CALLBACK_ID: {
-                ZC3_LITE_TARGET_CARRIER_ID: {
-                    "alive": target_alive,
-                    "initial": {
-                        "health": 1000,
-                        "health_percent": 1.0,
-                    },
-                    "current": {
-                        "health": current_health,
-                        "health_percent": current_health / 1000,
-                    },
-                    "delta": {
-                        "health": health_delta,
-                        "health_percent": health_delta / 1000,
-                    },
-                }
+            "target_statistic_carrier": {
+                "schema_version": "callback_eval.v0",
+                "callback_instance_id": "target_statistic_carrier",
+                "callback_name": "target_statistic",
+                "metrics": {
+                    "target_destroyed_count": 1,
+                    "target_damage_ratio": {"target_a": 1.0},
+                },
+                "payload": {"targets": {"target_a": {"alive": False}}},
             }
-        },
+        }
     }

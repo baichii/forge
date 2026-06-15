@@ -19,6 +19,10 @@ def test_build_run_iteration_output_from_offline_workflow() -> None:
 
     assert output.model_dump(mode="json")
     assert output.metric_aggregates
+    assert output.simulation_runs[0].callback_reports
+    assert "成功率" not in output.report_summary.summary
+    assert "平均分" not in output.report_summary.summary
+    assert "聚合指标" in output.report_summary.summary
 
 
 def test_build_run_iteration_output_from_two_offline_iterations() -> None:

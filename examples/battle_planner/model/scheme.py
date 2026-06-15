@@ -35,8 +35,5 @@ class SchemeSpec(BaseModel):
     branch_executions: list[SchemeBranchExecutionSpec] = Field(
         default_factory=list, description="分支到 tick-agent 参数的绑定关系。"
     )
-    planned_agent_params: list[TickAgentParams] = Field(
-        default_factory=list, description="展平后的 tick-agent 参数，供 runner 执行。"
-    )
     callback_params: list[CallbackParams] = Field(default_factory=list, description="callback 参数。")
     meta: dict[str, Any] = Field(default_factory=dict, description="方案元信息，预留字段。")

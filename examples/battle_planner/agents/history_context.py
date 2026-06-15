@@ -17,18 +17,13 @@ def render_history_for_planning(history: list[dict[str, Any]]) -> str:
     for item in history:
         simulation_result = _as_dict(item.get("simulation_result"))
         metrics = _as_dict(simulation_result.get("metrics"))
-        evaluation_report = _as_dict(item.get("evaluation_report"))
         summary_evaluation = _as_dict(item.get("summary_evaluation"))
         lines.extend(
             [
                 "",
                 f"## Iteration {int(item.get('iteration_index') or 0) + 1}",
-                (
-                    "- objective_achieved: "
-                    f"{evaluation_report.get('objective_achieved', summary_evaluation.get('objective_achieved', ''))}"
-                ),
-                f"- target_health_delta: {metrics.get('target_health_delta', '')}",
-                f"- requested_weapon_count: {metrics.get('requested_weapon_count', '')}",
+                f"- objective_achieved: {summary_evaluation.get('objective_achieved', '')}",
+                f"- metrics: {metrics}",
                 "- previous_plan:",
                 str(item.get("battle_plan_md") or "").strip(),
                 "- previous_summary:",

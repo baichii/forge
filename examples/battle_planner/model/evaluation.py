@@ -16,25 +16,10 @@ class LLMTrace(BaseModel):
     error: str | None = None
 
 
-class EvaluationFailureReason(BaseModel):
-    reason: str
-    count: int = 0
-    summary: str = ""
-
-
 class EvaluationAggregateSpec(BaseModel):
     """多次仿真评估后的聚合结果。"""
 
     case_count: int = 0
-    success_count: int = 0
-    success_rate: float = 0.0
-    mean_score: float = 0.0
-    best_score: float = 0.0
-    worst_score: float = 0.0
-    std_score: float = 0.0
-    objective_achieved_count: int = 0
-    recommended_simulation_index: int | None = None
-    failure_reasons: list[EvaluationFailureReason] = Field(default_factory=list)
     metric_summary: dict[str, Any] = Field(default_factory=dict)
 
 

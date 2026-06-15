@@ -7,7 +7,6 @@ from battle_planner.model.deduction import DeductionSpec
 from battle_planner.model.evaluation import (
     AgentExecutionSummary,
     EvaluationAggregateSpec,
-    EvaluationFailureReason,
     LLMTrace,
     SummaryEvaluation,
     TargetObjectiveSummary,
@@ -55,7 +54,6 @@ __all__ = [
     "BranchHumanInputSpec",
     "DeductionSpec",
     "EvaluationAggregateSpec",
-    "EvaluationFailureReason",
     "EvaluationFindingSpec",
     "EvaluationReport",
     "LLMTrace",

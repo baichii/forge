@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from battle_planner.agents.agent_parameter_planning import plan_agent_params
+from battle_planner.agents.agent_parameter_planning import plan_branch_executions
 from battle_planner.conf import LLMMode, settings
 from battle_planner.llm_runtime.model_provider import build_model_provider
 from battle_planner.llm_runtime.trace import identity_trace
+from battle_planner.model import SchemeBranchExecutionSpec
 from battle_planner.orchestration.event import EventLevels, EventPhases, EventTypes, event_handler
 from battle_planner.orchestration.stages import WorkflowStages
 from battle_planner.orchestration.state.state import BattlePlannerState
@@ -32,15 +33,16 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
             "model": getattr(model_provider, "model", "") or model_provider.name,
         },
     )
-    planned, trace = plan_agent_params(
+    branch_executions, trace = plan_branch_executions(
         scenario_understanding_md=state.scenario_understanding_md,
         battle_plan_md=state.battle_plan_md,
         agent_specs=state.tick_agent_specs,
+        branch_contexts=_branch_context_items(state),
         model=getattr(model_provider, "model", None),
         model_provider=model_provider,
     )
-    state.planned_branch_executions = []
-    state.planned_agent_params = planned
+    state.planned_branch_executions = branch_executions
+    state.planned_agent_params = _flatten_branch_executions(branch_executions)
     state.agent_param_source = "llm"
     state.add_trace(trace)
     state.cur_stage = node_name
@@ -53,7 +55,7 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
         payload={
             "display_mode": False,
             "fallback": trace.fallback_used,
-            "planned_agents": _planned_agent_log_items(planned),
+            "planned_agents": _planned_agent_log_items(state.planned_agent_params),
             "error": trace.error,
         },
     )
@@ -62,8 +64,8 @@ def agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerSta
 
 def _run_output_seed_agent_parameter_planning_node(state: BattlePlannerState) -> BattlePlannerState:
     seed = load_agent_parameter_planning_output_seed(iteration_index=state.iteration_index)
-    planned = [item.model_copy(deep=True) for item in seed.planned_agent_params]
     branch_executions = [item.model_copy(deep=True) for item in seed.branch_executions]
+    planned = _flatten_branch_executions(branch_executions)
     node_name = WorkflowStages.AGENT_PARAMETER_PLANNING
     event_handler(
         EventTypes.LOG,
@@ -93,7 +95,6 @@ def _run_output_seed_agent_parameter_planning_node(state: BattlePlannerState) ->
                 "source": "run_output_seed",
                 "trace_summary": seed.trace_summary,
                 "branch_executions": [item.model_dump(mode="json") for item in branch_executions],
-                "agents": [item.model_dump(mode="json") for item in planned],
             },
         )
     )
@@ -112,6 +113,30 @@ def _run_output_seed_agent_parameter_planning_node(state: BattlePlannerState) ->
         },
     )
     return state
+
+
+def _flatten_branch_executions(
+    branch_executions: list[SchemeBranchExecutionSpec],
+) -> list[TickAgentParams]:
+    return [
+        agent.model_copy(deep=True)
+        for branch_execution in branch_executions
+        for agent in branch_execution.planned_agent_params
+    ]
+
+
+def _branch_context_items(state: BattlePlannerState) -> list[dict]:
+    if state.task_context is None:
+        return []
+    return [
+        {
+            "branch_id": branch.branch_id,
+            "name": branch.name,
+            "description": branch.description,
+            "human": branch.human.model_dump(mode="json"),
+        }
+        for branch in state.task_context.branches
+    ]
 
 
 def _planned_agent_log_items(planned: list[TickAgentParams]) -> list[dict]:

@@ -4,7 +4,6 @@ from battle_planner.agents.base import AgentInputs, AgentRunResult, BasePlanning
 from battle_planner.llm_runtime.fallback import fallback_markdown
 from battle_planner.model import (
     EvaluationAggregateSpec,
-    EvaluationReport,
     SimulationRunResult,
     SummaryEvaluation,
 )
@@ -30,7 +29,7 @@ class SummaryAgent(BasePlanningAgent[str]):
                     f"作战方案：\n{inputs.data['battle_plan_md']}\n\n"
                     f"智能体参数：\n{[item.model_dump() for item in inputs.data['planned_agent_params']]}\n\n"
                     f"仿真结果：\n{inputs.data['simulation_result'].model_dump()}\n\n"
-                    f"评估报告：\n{inputs.data['evaluation_report'].model_dump()}\n\n"
+                    f"Callback 报告：\n{inputs.data['callback_reports']}\n\n"
                     f"多次评估聚合：\n{_model_dump_or_none(inputs.data.get('evaluation_summary'))}\n\n"
                     f"报告理解反馈：\n{inputs.data['summary_evaluation'].model_dump()}"
                 ),
@@ -47,7 +46,7 @@ class SummaryAgent(BasePlanningAgent[str]):
         if raw_output and model_error is None:
             return raw_output, False, None
         simulation_result = inputs.data["simulation_result"]
-        evaluation_report = inputs.data["evaluation_report"]
+        callback_reports = inputs.data["callback_reports"]
         evaluation_summary = inputs.data.get("evaluation_summary")
         summary_evaluation = inputs.data["summary_evaluation"]
         return (
@@ -55,7 +54,7 @@ class SummaryAgent(BasePlanningAgent[str]):
                 "Demo 总结",
                 _fallback_summary_body(
                     simulation_result=simulation_result,
-                    evaluation_report=evaluation_report,
+                    callback_reports=callback_reports,
                     evaluation_summary=evaluation_summary,
                     summary_evaluation=summary_evaluation,
                 ),
@@ -71,10 +70,11 @@ def generate_summary(
     battle_plan_md: str,
     planned_agent_params: list[TickAgentParams],
     simulation_result: SimulationRunResult,
-    evaluation_report: EvaluationReport,
+    callback_reports: dict[str, object],
     evaluation_summary: EvaluationAggregateSpec | None = None,
-    summary_evaluation: SummaryEvaluation,
-) -> tuple[str, object]:
+    summary_evaluation: SummaryEvaluation | None = None,
+) -> tuple[str, object, SummaryEvaluation]:
+    summary_evaluation = summary_evaluation or SummaryEvaluation()
     result: AgentRunResult[str] = SummaryAgent().run(
         AgentInputs(
             data={
@@ -82,18 +82,19 @@ def generate_summary(
                 "battle_plan_md": battle_plan_md,
                 "planned_agent_params": planned_agent_params,
                 "simulation_result": simulation_result,
-                "evaluation_report": evaluation_report,
+                "callback_reports": callback_reports,
                 "evaluation_summary": evaluation_summary,
                 "summary_evaluation": summary_evaluation,
             },
             memory={
+                "callback_reports": callback_reports,
                 "evaluation_summary": _model_dump_or_none(evaluation_summary),
                 "summary_evaluation": summary_evaluation.model_dump(mode="json"),
             },
             skills=["读取仿真和评估结果并生成 Markdown 复盘"],
         )
     )
-    return result.output, result.trace
+    return result.output, result.trace, summary_evaluation
 
 
 def _model_dump_or_none(value: object | None) -> dict | None:
@@ -107,7 +108,7 @@ def _model_dump_or_none(value: object | None) -> dict | None:
 def _fallback_summary_body(
     *,
     simulation_result: SimulationRunResult,
-    evaluation_report: EvaluationReport,
+    callback_reports: dict[str, object],
     evaluation_summary: EvaluationAggregateSpec | None,
     summary_evaluation: SummaryEvaluation,
 ) -> str:
@@ -128,17 +129,15 @@ def _fallback_summary_body(
         for item in summary_evaluation.agent_execution
     ]
     warning_lines = [f"- {item}" for item in summary_evaluation.warnings] or ["- 无"]
-    requested_weapon_count = simulation_result.metrics.get("requested_weapon_count", 0)
-    mean_score = evaluation_summary.mean_score if evaluation_summary else None
+    metric_count = len(evaluation_summary.metric_summary) if evaluation_summary else 0
     next_advice = summary_evaluation.advice
     return "\n".join(
         [
             (
                 f"真实环境执行 {simulation_result.steps} 个决策步，"
-                f"多局平均评分为 {mean_score}，"
-                f"请求火力数为 {requested_weapon_count}。"
+                f"接收 {len(callback_reports)} 组 callback 报告，"
+                f"形成 {metric_count} 项聚合指标。"
             ),
-            f"评估判定 objective_achieved={evaluation_report.objective_achieved}。",
             objective_line,
             "",
             "## 目标状态",

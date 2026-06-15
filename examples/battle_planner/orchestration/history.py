@@ -17,7 +17,6 @@ def build_history_item(state: Any) -> dict[str, Any]:
         "planned_branch_executions": _dump_model_list(state.planned_branch_executions),
         "planned_agent_params": _dump_model_list(state.planned_agent_params),
         "simulation_result": _dump_model(state.simulation_result),
-        "evaluation_report": _dump_model(state.evaluation_report),
         "evaluation_summary": _dump_model(state.evaluation_summary),
         "summary_evaluation": _dump_model(state.summary_evaluation),
         "summary_md": state.summary_md,

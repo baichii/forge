@@ -5,11 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from battle_planner.conf import settings
-from battle_planner.model import RunIterationTagSpec, SchemeBranchExecutionSpec
+from battle_planner.model import RunIterationTagSpec, SchemeBranchExecutionSpec, SummaryEvaluation
 from battle_planner.workspace.local.presets import select_agent_param_preset
 from pydantic import BaseModel, Field
-
-from forge.core.specs import TickAgentParams
 
 
 class ScenarioUnderstandingOutputSeed(BaseModel):
@@ -32,7 +30,6 @@ class AgentParameterPlanningOutputSeed(BaseModel):
     branch_executions: list[SchemeBranchExecutionSpec] = Field(
         default_factory=list, description="分支绑定的 agent runtime 参数。"
     )
-    planned_agent_params: list[TickAgentParams] = Field(description="预置的 agent runtime 参数。")
     trace_summary: dict[str, Any] = Field(default_factory=dict, description="可选 trace 摘要。")
 
 
@@ -40,6 +37,10 @@ class SummaryGenerationOutputSeed(BaseModel):
     """Offline output for the summary generation node."""
 
     summary_md: str = Field(description="预置的总结 Markdown。")
+    summary_evaluation: SummaryEvaluation = Field(
+        default_factory=SummaryEvaluation,
+        description="预置的总结结构化评估。",
+    )
     trace_summary: dict[str, Any] = Field(default_factory=dict, description="可选 trace 摘要。")
 
 
@@ -117,7 +118,6 @@ def _agent_parameter_output(
     preset = select_agent_param_preset(iteration_index=iteration_index)
     return AgentParameterPlanningOutputSeed(
         branch_executions=[item.model_copy(deep=True) for item in preset["branch_executions"]],
-        planned_agent_params=[item.model_copy(deep=True) for item in preset["agents"]],
         trace_summary={
             "source": "run_output_seed",
             "node": "agent_parameter_planning",
@@ -163,6 +163,11 @@ def _iteration_seed(
         agent_parameter_planning=_agent_parameter_output(iteration_index, stage_label, iteration_tags),
         summary_generation=SummaryGenerationOutputSeed(
             summary_md=_summary_md(stage_label=stage_label, title=summary_title, body=summary_body),
+            summary_evaluation=_summary_evaluation_seed(
+                iteration_index=iteration_index,
+                stage_label=stage_label,
+                summary_title=summary_title,
+            ),
             trace_summary=_trace_summary(
                 node="summary_generation",
                 stage_label=stage_label,
@@ -170,6 +175,20 @@ def _iteration_seed(
                 iteration_tags=iteration_tags,
             ),
         ),
+    )
+
+
+def _summary_evaluation_seed(
+    *,
+    iteration_index: int,
+    stage_label: str,
+    summary_title: str,
+) -> SummaryEvaluation:
+    return SummaryEvaluation(
+        iteration_index=iteration_index,
+        objective=summary_title,
+        warnings=[],
+        advice=f"继续结合 callback 指标观察 {stage_label} 阶段表现。",
     )
 
 

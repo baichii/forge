@@ -57,8 +57,8 @@ def _validate_outputs(outputs: list[Any]) -> None:
             continue
         if not output.scheme.branch_executions:
             failures.append(f"iteration {output.iteration_index}: missing scheme.branch_executions")
-        if not output.scheme.planned_agent_params:
-            failures.append(f"iteration {output.iteration_index}: missing scheme.planned_agent_params")
+        if not any(item.planned_agent_params for item in output.scheme.branch_executions):
+            failures.append(f"iteration {output.iteration_index}: missing branch planned_agent_params")
         if not output.scheme.callback_params:
             failures.append(f"iteration {output.iteration_index}: missing scheme.callback_params")
         if not output.simulation_runs:
@@ -76,6 +76,7 @@ def _build_summary_row(output: dict[str, Any]) -> dict[str, Any]:
     simulation_runs = output.get("simulation_runs") or []
     first_simulation_result = (simulation_runs[0] or {}).get("simulation_result") if simulation_runs else {}
     metrics = (first_simulation_result or {}).get("metrics") or {}
+    metric_aggregates = output.get("metric_aggregates") or []
     return {
         "iteration_index": output.get("iteration_index"),
         "status": output.get("status"),
@@ -87,10 +88,10 @@ def _build_summary_row(output: dict[str, Any]) -> dict[str, Any]:
             }
             for item in branch_executions
         ],
-        "agent_count": len(scheme.get("planned_agent_params") or []),
+        "agent_count": sum(len(item.get("planned_agent_params") or []) for item in branch_executions),
         "simulation_count": len(simulation_runs),
-        "target_health_delta": metrics.get("target_health_delta"),
-        "requested_weapon_count": metrics.get("requested_weapon_count"),
+        "metric_keys": sorted(metrics),
+        "metric_aggregate_count": len(metric_aggregates),
         "summary": (output.get("overall_summary") or {}).get("summary"),
     }
 
