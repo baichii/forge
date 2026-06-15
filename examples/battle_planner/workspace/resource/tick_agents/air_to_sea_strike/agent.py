@@ -37,7 +37,7 @@ declaration = TickAgentSpec(
         "unit_ids": ParamSpec.unit_ids.redeclaration(description="执行任务的飞机单位 id 列表。"),
         "target_ids": ParamSpec.target_ids.redeclaration(description="海上目标单位 id 列表。"),
         "wp_num": ParamSpecTemplate(
-            name="wp_num",
+            name="武器数量",
             description="每个目标分配的武器数量。",
             type=ParamType.INT,
             required=False,
@@ -46,7 +46,7 @@ declaration = TickAgentSpec(
             other={"min_value": 1},
         ),
         "clear_targets": ParamSpecTemplate(
-            name="clear_targets",
+            name="清理旧目标",
             description="是否清理旧目标。",
             type=ParamType.BOOL,
             required=False,

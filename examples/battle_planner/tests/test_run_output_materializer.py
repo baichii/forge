@@ -18,6 +18,7 @@ def test_build_run_iteration_output_from_offline_workflow() -> None:
     output = build_run_iteration_output(state)
 
     assert output.model_dump(mode="json")
+    assert output.metric_aggregates
 
 
 def test_build_run_iteration_output_from_two_offline_iterations() -> None:

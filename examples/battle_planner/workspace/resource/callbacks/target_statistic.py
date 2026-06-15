@@ -27,19 +27,22 @@ TARGET_STATISTIC_DECLARATION = CallbackSpec(
     },
     metrics={
         "target_count": ParamSpecTemplate(
-            name="target_count",
+            name="目标数量",
             description="本次 callback 评估的目标单位数量。",
             type=ParamType.INT,
+            other={"agg": True},
         ),
         "target_destroyed_count": ParamSpecTemplate(
-            name="target_destroyed_count",
+            name="目标摧毁数量",
             description="终局态势中已经不存在或判定为不存活的目标数量。",
             type=ParamType.INT,
+            other={"agg": True},
         ),
         "target_damage_ratio": ParamSpecTemplate(
-            name="target_damage_ratio",
-            description="目标总毁伤比例，以及每个目标单位的毁伤比例。",
+            name="目标毁伤比例",
+            description="每个目标单位的毁伤比例。",
             type=ParamType.DICT,
+            other={"agg": True},
         ),
     },
 )
@@ -109,13 +112,8 @@ class TargetStatistic(CallBack):
 
         target_count = len(targets)
         destroyed_count = sum(1 for item in targets.values() if not item["alive"])
-        initial_health = sum(number_or_zero(item["initial"].get("health")) for item in targets.values())
-        health_delta = sum(number_or_zero(item["delta"].get("health")) for item in targets.values())
-        damage = max(0.0, -health_delta)
-        damage_ratio = min(1.0, damage / initial_health) if initial_health > 0 else 0.0
         damage_ratio_by_target = self._damage_ratio_by_target(
             targets=targets,
-            total_damage_ratio=damage_ratio,
         )
 
         return {
@@ -146,9 +144,8 @@ class TargetStatistic(CallBack):
         self,
         *,
         targets: dict[str, Any],
-        total_damage_ratio: float,
     ) -> dict[str, int | float]:
-        result = {"total": round_metric(total_damage_ratio)}
+        result = {}
         for target_id, target_payload in targets.items():
             initial = target_payload.get("initial", {})
             delta = target_payload.get("delta", {})

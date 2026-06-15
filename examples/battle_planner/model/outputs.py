@@ -41,6 +41,38 @@ class RunIterationTagSpec(BaseModel):
     reason: str = Field(default="", description="标签判定原因。")
 
 
+class RunMetricAggregateSpec(BaseModel):
+    """单轮内某个指标的聚合结果。"""
+
+    key: str = Field(description="指标键。")
+    name: str = Field(description="指标展示名称。")
+    description: str = Field(default="", description="指标说明。")
+    mean: float = Field(default=0.0, description="均值。")
+    min: float = Field(default=0.0, description="最小值。")
+    max: float = Field(default=0.0, description="最大值。")
+    std: float = Field(default=0.0, description="标准差。")
+
+
+class RunMetricTrendPointSpec(BaseModel):
+    """跨轮指标趋势中的单个轮次数据点。"""
+
+    iteration_index: int = Field(description="迭代序号。")
+    mean: float = Field(default=0.0, description="均值。")
+    min: float = Field(default=0.0, description="最小值。")
+    max: float = Field(default=0.0, description="最大值。")
+    std: float = Field(default=0.0, description="标准差。")
+
+
+class RunMetricTrendSpec(BaseModel):
+    """跨轮指标趋势。"""
+
+    key: str = Field(description="指标键。")
+    name: str = Field(description="指标展示名称。")
+    description: str = Field(default="", description="指标说明。")
+    chart_type: Literal["line"] = Field(default="line", description="前端展示图表类型。")
+    points: list[RunMetricTrendPointSpec] = Field(default_factory=list, description="跨轮趋势点。")
+
+
 class RunArtifactSpec(BaseModel):
     """一次运行或某轮迭代产生的可追溯产物。"""
 
@@ -90,6 +122,10 @@ class RunIterationOutputSpec(BaseModel):
         default_factory=list,
         description="本轮仿真验证记录。",
     )
+    metric_aggregates: list[RunMetricAggregateSpec] = Field(
+        default_factory=list,
+        description="本轮仿真指标聚合结果。",
+    )
 
     meta: dict[str, Any] = Field(default_factory=dict, description="预留扩展字段。")
 
@@ -115,5 +151,6 @@ class RunOutputSpec(BaseModel):
 
     # iteration级信息
     iterations: list[RunIterationOutputSpec] = Field(default_factory=list, description="迭代输出摘要列表。")
+    metric_trends: list[RunMetricTrendSpec] = Field(default_factory=list, description="跨迭代指标趋势。")
 
     meta: dict[str, Any] = Field(default_factory=dict, description="预留扩展字段。")

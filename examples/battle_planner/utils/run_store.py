@@ -14,6 +14,8 @@ from typing import Any
 from battle_planner.conf import settings
 from battle_planner.model import (
     RunIterationOutputSpec,
+    RunMetricTrendPointSpec,
+    RunMetricTrendSpec,
     RunOutputSpec,
     RunOutputStatus,
     TaskContextSpec,
@@ -194,11 +196,13 @@ class LocalRunStore:
 
         run_info = self.read_run_info(run_id=run_id)
         terminal_marker = self.read_terminal_marker(run_id=run_id)
+        iterations = self.list_iteration_outputs(run_id=run_id)
         return RunOutputSpec(
             **run_info,
             status=self.get_run_status(run_id=run_id),
             ended_at=terminal_marker.get("ended_at"),
-            iterations=self.list_iteration_outputs(run_id=run_id),
+            iterations=iterations,
+            metric_trends=_build_metric_trends(iterations),
         )
 
     def mark_run_completed(
@@ -338,6 +342,30 @@ def _with_run_times(meta: Any) -> dict[str, Any]:
 
 def _created_at_from_meta(meta: Any) -> str:
     return str(meta.get("created_at", "")) if isinstance(meta, dict) else ""
+
+
+def _build_metric_trends(iterations: list[RunIterationOutputSpec]) -> list[RunMetricTrendSpec]:
+    trend_map: dict[str, RunMetricTrendSpec] = {}
+    for iteration in iterations:
+        for aggregate in iteration.metric_aggregates:
+            trend = trend_map.setdefault(
+                aggregate.key,
+                RunMetricTrendSpec(
+                    key=aggregate.key,
+                    name=aggregate.name,
+                    description=aggregate.description,
+                ),
+            )
+            trend.points.append(
+                RunMetricTrendPointSpec(
+                    iteration_index=iteration.iteration_index,
+                    mean=aggregate.mean,
+                    min=aggregate.min,
+                    max=aggregate.max,
+                    std=aggregate.std,
+                )
+            )
+    return list(trend_map.values())
 
 
 def _now_iso() -> str:

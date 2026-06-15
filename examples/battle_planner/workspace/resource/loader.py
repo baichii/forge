@@ -106,13 +106,13 @@ def _load_tick_agent(agent_dir: Path) -> ResourceDescriptor:
         "description": str(meta.get("description") or ""),
         "params": {
             str(param["name"]): {
-                "name": str(param["name"]),
+                "name": str(param["chineseName"]),
                 "type": str(param.get("type") or ""),
                 "required": bool(param.get("required", True)),
                 "description": str(param.get("description") or ""),
                 "default_value": param.get("default_value"),
                 "examples": list(param.get("examples") or []),
-                "other": {"chineseName": param["chineseName"]} if param.get("chineseName") else {},
+                "other": {},
             }
             for param in config.get("PARAMS", [])
         },

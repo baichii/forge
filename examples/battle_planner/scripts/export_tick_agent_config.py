@@ -75,19 +75,18 @@ def _config_payload(declaration: Any, *, meta_id: int) -> dict[str, Any]:
             "name": declaration.name,
             "description": declaration.description,
         },
-        "PARAMS": [_param_payload(param) for param in declaration.params.values()],
+        "PARAMS": [_param_payload(param_key, param) for param_key, param in declaration.params.items()],
         "STATUS": list(declaration.status),
         "VERSION": declaration.version,
     }
 
 
-def _param_payload(param: Any) -> dict[str, Any]:
-    other = dict(param.other or {})
+def _param_payload(param_key: str, param: Any) -> dict[str, Any]:
     return {
-        "name": param.name,
+        "name": param_key,
         "type": TYPE_LABELS.get(param.type, param.type),
         "default_value": param.default_value,
-        "chineseName": other.get("chineseName") or other.get("chinese_name") or param.name,
+        "chineseName": param.name,
         "description": param.description,
         "required": param.required,
     }

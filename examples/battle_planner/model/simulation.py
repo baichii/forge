@@ -12,7 +12,7 @@ class SimulationRunResult(BaseModel):
     done: bool = Field(description="仿真环境是否进入终止或截断状态。")
     logs: list[str] = Field(default_factory=list, description="仿真运行日志摘要。")
     raw_summary: dict[str, Any] = Field(default_factory=dict, description="仿真原始报告摘要。")
-    metrics: dict[str, float | int | str | bool] = Field(
+    metrics: dict[str, float | int | str | bool | dict[str, Any]] = Field(
         default_factory=dict, description="单局可观测指标。"
     )
 

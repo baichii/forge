@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import yaml
 from battle_planner.keys import CONT
 from battle_planner.workspace.resource.loader import (
+    TICK_AGENT_ROOT,
     iter_callback_resources,
     iter_tick_agent_resources,
     load_callback_specs,
@@ -39,6 +41,23 @@ def test_load_tick_agent_specs_returns_resolved_entrypoints() -> None:
 
     assert {spec.name for spec in specs} == {"air_to_sea_strike_agent", "naval_to_sea_strike_agent"}
     assert all(spec.entrypoint.startswith("battle_planner.workspace.resource.") for spec in specs)
+
+
+def test_tick_agent_config_preserves_param_key_and_display_name() -> None:
+    """验证 config.yaml 中 name 是参数键，chineseName 还原为展示名。"""
+
+    config = yaml.safe_load(
+        (TICK_AGENT_ROOT / "air_to_sea_strike" / "config.yaml").read_text(encoding="utf-8")
+    )
+    start_time_param = next(param for param in config["PARAMS"] if param["name"] == "start_time")
+    specs = load_tick_agent_specs()
+    air_spec = next(spec for spec in specs if spec.name == "air_to_sea_strike_agent")
+
+    assert start_time_param["name"] == "start_time"
+    assert start_time_param["chineseName"] == "开始时间"
+    assert air_spec.params["start_time"].name == "开始时间"
+    assert air_spec.params["wp_num"].name == "武器数量"
+    assert "chineseName" not in air_spec.params["start_time"].other
 
 
 def test_register_tick_agent_resources_registers_makeable_agents() -> None:
@@ -89,6 +108,11 @@ def test_load_callback_specs_returns_resolved_entrypoints_and_shared_params() ->
     assert target_spec.entrypoint.startswith("battle_planner.workspace.resource.")
     assert isinstance(target_spec.params["side"], ParamSpecTemplate)
     assert isinstance(target_spec.params["target_ids"], ParamSpecTemplate)
+    assert target_spec.params["side"].name == "参演方"
+    assert target_spec.params["target_ids"].name == "目标单位 ID 列表"
+    assert target_spec.metrics["target_damage_ratio"].name == "目标毁伤比例"
+    assert target_spec.metrics["target_damage_ratio"].other["agg"] is True
+    assert "label" not in target_spec.metrics["target_damage_ratio"].other
 
 
 def test_register_callback_resources_registers_makeable_callbacks() -> None:
@@ -133,8 +157,8 @@ def test_callback_result_metrics_match_declared_metrics() -> None:
     assert "completion_rate" not in result
 
 
-def test_target_callback_returns_total_and_per_target_metrics() -> None:
-    """验证目标统计 callback 返回总览和目标级指标。"""
+def test_target_callback_returns_per_target_metrics() -> None:
+    """验证目标统计 callback 返回目标级指标。"""
 
     target_id = "red_target_1"
     registry.pop("callback/target_statistic", None)
@@ -152,10 +176,7 @@ def test_target_callback_returns_total_and_per_target_metrics() -> None:
 
     result = callback.result()
 
-    assert result["metrics"]["target_damage_ratio"] == {
-        "total": 0.75,
-        target_id: 0.75,
-    }
+    assert result["metrics"]["target_damage_ratio"] == {target_id: 0.75}
 
 
 def _target_observation(target_id: str, *, health: int, health_percent: float) -> dict:

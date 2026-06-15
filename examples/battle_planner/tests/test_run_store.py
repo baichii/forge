@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from battle_planner.model import RunIterationOutputSpec
+from battle_planner.model import RunIterationOutputSpec, RunMetricAggregateSpec
 from battle_planner.utils.run_store import LocalRunStore
 from battle_planner.workspace.local.run_input_seed import build_local_task_run
 
@@ -10,7 +10,21 @@ def test_local_run_store_reads_run_output(tmp_path) -> None:
 
     store = LocalRunStore(root_dir=tmp_path)
     task_run = build_local_task_run()
-    output = RunIterationOutputSpec(iteration_index=0, status="completed")
+    output = RunIterationOutputSpec(
+        iteration_index=0,
+        status="completed",
+        metric_aggregates=[
+            RunMetricAggregateSpec(
+                key="target_damage_ratio",
+                name="目标毁伤比例",
+                description="每个目标单位的毁伤比例。",
+                mean=0.75,
+                min=0.5,
+                max=1.0,
+                std=0.25,
+            )
+        ],
+    )
 
     store.write_run_info(task_run=task_run)
     running_output = store.read_run_output(run_id=task_run.run_id)
@@ -29,6 +43,11 @@ def test_local_run_store_reads_run_output(tmp_path) -> None:
     assert run_output.started_at == running_output.started_at
     assert run_output.ended_at
     assert len(run_output.iterations) == 1
+    assert run_output.iterations[0].metric_aggregates[0].key == "target_damage_ratio"
+    assert run_output.iterations[0].metric_aggregates[0].name == "目标毁伤比例"
+    assert run_output.metric_trends[0].key == "target_damage_ratio"
+    assert run_output.metric_trends[0].name == "目标毁伤比例"
+    assert run_output.metric_trends[0].points[0].mean == 0.75
     assert runs[0]["iteration_count"] == 1
     assert runs[0]["created_at"]
     assert runs[0]["started_at"]

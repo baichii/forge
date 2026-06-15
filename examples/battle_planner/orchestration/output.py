@@ -6,6 +6,7 @@ from battle_planner.model import (
     LLMTrace,
     RunIterationOutputSpec,
     RunIterationTagSpec,
+    RunMetricAggregateSpec,
     RunSimulationRecordSpec,
     RunTextSummarySpec,
     SchemeSpec,
@@ -96,6 +97,9 @@ def build_run_iteration_output(state: BattlePlannerState) -> RunIterationOutputS
             callback_params=state.callback_params,
         ),
         simulation_runs=simulation_runs,
+        metric_aggregates=_build_metric_aggregates(
+            state.evaluation_summary.metric_summary if state.evaluation_summary else {}
+        ),
     )
 
 
@@ -123,6 +127,15 @@ def _compact_text(text: str, *, max_length: int = 240) -> str:
     if len(compacted) <= max_length:
         return compacted
     return f"{compacted[: max_length - 3]}..."
+
+
+def _build_metric_aggregates(metric_summary: dict[str, Any]) -> list[RunMetricAggregateSpec]:
+    aggregates: list[RunMetricAggregateSpec] = []
+    for payload in metric_summary.values():
+        if not isinstance(payload, dict):
+            continue
+        aggregates.append(RunMetricAggregateSpec.model_validate(payload))
+    return aggregates
 
 
 def _as_dict(value: Any) -> dict[str, Any]:

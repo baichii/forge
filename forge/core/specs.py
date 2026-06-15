@@ -28,7 +28,7 @@ class ParamType:
 
 
 class ParamSpecTemplate(BaseModel):
-    """参数声明规范, 用于描述参数的类型、是否必需、默认值等信息"""
+    """参数声明规范, 用于描述参数展示名、类型、是否必需、默认值等信息"""
 
     name: str
     type: str
@@ -47,43 +47,43 @@ class ParamSpec:
     """智能体参数规范"""
 
     start_time = ParamSpecTemplate(
-        name="start_time",
+        name="开始时间",
         type=ParamType.DATATIME,
         required=True,
         description="智能体开始运行时间。",
     )
     end_time = ParamSpecTemplate(
-        name="end_time",
+        name="结束时间",
         type=ParamType.DATATIME,
         required=True,
         description="智能体停止运行时间。",
     )
     unit_id = ParamSpecTemplate(
-        name="unit_id",
+        name="执行单位 ID",
         type=ParamType.STRING,
         required=True,
         description="执行任务的单位 id。",
     )
     unit_ids = ParamSpecTemplate(
-        name="unit_ids",
+        name="执行单位 ID 列表",
         type=ParamType.LIST,
         required=True,
         description="执行任务的单位 id 列表。",
     )
     target_id = ParamSpecTemplate(
-        name="target_id",
+        name="目标单位 ID",
         type=ParamType.STRING,
         required=True,
         description="目标单位 id。",
     )
     target_ids = ParamSpecTemplate(
-        name="target_ids",
+        name="目标单位 ID 列表",
         type=ParamType.LIST,
         required=True,
         description="目标单位 id 列表。",
     )
     side = ParamSpecTemplate(
-        name="side",
+        name="参演方",
         type=ParamType.STRING,
         required=False,
         description="执行方名称。",
