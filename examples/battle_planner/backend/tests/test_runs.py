@@ -6,10 +6,12 @@ import json
 from battle_planner.backend.app import app
 from battle_planner.backend.config import backend_settings
 from battle_planner.backend.services.run_event_service import RunEventService
-from battle_planner.model import RunIterationOutputSpec
+from battle_planner.model import RunIterationOutputSpec, SchemeBranchExecutionSpec, SchemeSpec
 from battle_planner.utils.run_store import LocalRunStore
 from battle_planner.workspace.local.run_input_seed import build_local_task_run
 from fastapi.testclient import TestClient
+
+from forge.core.specs import TickAgentParams
 
 
 def test_backend_reads_run_cache(tmp_path, monkeypatch) -> None:
@@ -32,6 +34,9 @@ def test_backend_reads_run_cache(tmp_path, monkeypatch) -> None:
     assert run_response.json()["started_at"]
     assert run_response.json()["ended_at"]
     assert iteration_response.json()["iteration_index"] == 0
+    assert "planned_agent_params" not in run_response.json()["iterations"][0]["scheme"]
+    assert "planned_agent_params" not in iteration_response.json()["scheme"]
+    assert iteration_response.json()["scheme"]["branch_executions"][0]["planned_agent_params"]
     assert missing_response.status_code == 404
 
 
@@ -57,7 +62,26 @@ def _write_demo_run(tmp_path):
     store.write_run_info(task_run=task_run)
     store.write_iteration_output(
         run_id=task_run.run_id,
-        output=RunIterationOutputSpec(iteration_index=0, status="completed"),
+        output=RunIterationOutputSpec(
+            iteration_index=0,
+            status="completed",
+            scheme=SchemeSpec(
+                scheme_id=1,
+                run_id=task_run.run_id,
+                branch_executions=[
+                    SchemeBranchExecutionSpec(
+                        branch_id=1,
+                        planned_agent_params=[
+                            TickAgentParams(
+                                agent_instance_id="air_001",
+                                agent_name="air_to_sea_strike_agent",
+                                side="blue",
+                            )
+                        ],
+                    )
+                ],
+            ),
+        ),
     )
     store.mark_run_completed(run_id=task_run.run_id, iteration_count=1)
     return task_run

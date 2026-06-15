@@ -40,6 +40,10 @@ def test_backend_starts_run_execution(tmp_path, monkeypatch) -> None:
     assert final_payload["status"] == "completed"
     assert final_payload["ended_at"]
     assert final_payload["iterations"]
+    scheme = final_payload["iterations"][0]["scheme"]
+    assert "planned_agent_params" not in scheme
+    assert scheme["branch_executions"]
+    assert scheme["branch_executions"][0]["planned_agent_params"]
     assert (tmp_path / "task_runs" / run_id / "run.json").exists()
     assert (tmp_path / "task_runs" / run_id / "input" / "context.json").exists()
     assert (tmp_path / "task_runs" / run_id / "input" / "task_run.json").exists()
