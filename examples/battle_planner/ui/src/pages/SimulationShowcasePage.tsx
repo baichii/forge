@@ -29,7 +29,7 @@ import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import type { ECharts, EChartsCoreOption } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { battlePlannerClient } from '../api/battlePlannerClient'
 import type {
   RunIterationOutput,
@@ -120,6 +120,8 @@ function SimulationShowcasePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
   const [loadError, setLoadError] = useState('')
+  const selectedIterationIndexRef = useRef(0)
+  const runOutputRef = useRef<RunOutput | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -142,6 +144,7 @@ function SimulationShowcasePage() {
           }
           setSelectedRunId(firstRun.run_id)
           setRunOutput(output.run)
+          runOutputRef.current = output.run
           setRunContext(output.context)
           setSelectedIterationIndex(output.run.iterations.at(-1)?.iteration_index ?? 0)
         }
@@ -162,6 +165,14 @@ function SimulationShowcasePage() {
     }
   }, [])
 
+  useEffect(() => {
+    selectedIterationIndexRef.current = selectedIterationIndex
+  }, [selectedIterationIndex])
+
+  useEffect(() => {
+    runOutputRef.current = runOutput
+  }, [runOutput])
+
   const selectedContext = contexts.find((item) => item.context_id === selectedContextId)
   const selectedIteration = useMemo(
     () =>
@@ -169,13 +180,51 @@ function SimulationShowcasePage() {
       runOutput?.iterations.at(-1),
     [runOutput, selectedIterationIndex],
   )
+  const watchedRunId = runOutput?.run_id
+  const watchedRunStatus = runOutput?.status
+
+  const refreshRunList = useCallback(async () => {
+    const nextRuns = await battlePlannerClient.listRuns()
+    setRuns(nextRuns)
+  }, [])
+
+  const applyRunRefresh = useCallback(
+    (nextRun: RunOutput, options: { forceLatest?: boolean } = {}) => {
+      const currentRun = runOutputRef.current
+      const currentLatestIndex = currentRun?.iterations.at(-1)?.iteration_index
+      const shouldFollowLatest =
+        options.forceLatest ||
+        currentLatestIndex === undefined ||
+        selectedIterationIndexRef.current === currentLatestIndex
+      runOutputRef.current = nextRun
+      setRunOutput(nextRun)
+      if (shouldFollowLatest) {
+        setSelectedIterationIndex(nextRun.iterations.at(-1)?.iteration_index ?? 0)
+      }
+    },
+    [],
+  )
+
+  useEffect(() => {
+    if (!watchedRunId || watchedRunStatus !== 'running' || selectedRunId !== watchedRunId) {
+      return undefined
+    }
+    return battlePlannerClient.watchRun(watchedRunId, {
+      onUpdate: (nextRun) => {
+        applyRunRefresh(nextRun)
+        void refreshRunList()
+      },
+      onError: (error) => {
+        console.warn(error)
+      },
+    })
+  }, [applyRunRefresh, refreshRunList, selectedRunId, watchedRunId, watchedRunStatus])
 
   async function handleHistoryRunChange(runId: string) {
     setSelectedRunId(runId)
     const output = await loadRunWithContext(runId)
-    setRunOutput(output.run)
+    applyRunRefresh(output.run, { forceLatest: true })
     setRunContext(output.context)
-    setSelectedIterationIndex(output.run.iterations.at(-1)?.iteration_index ?? 0)
   }
 
   async function handleCreateRun(values: RunFormValues) {
@@ -203,9 +252,8 @@ function SimulationShowcasePage() {
       const nextRuns = await battlePlannerClient.listRuns()
       setRuns(nextRuns)
       setSelectedRunId(output.run_id)
-      setRunOutput(output)
+      applyRunRefresh(output, { forceLatest: true })
       setRunContext(context)
-      setSelectedIterationIndex(output.iterations.at(-1)?.iteration_index ?? 0)
       setMode('history')
       message.success('运行任务已创建')
     } catch (error) {
@@ -358,18 +406,40 @@ function SimulationShowcasePage() {
         </Card>
 
         <Card className="showcase-detail" variant="borderless">
-          {runOutput && selectedIteration ? (
-            <RunDetail
-              runContext={runContext}
-              runOutput={runOutput}
-              selectedIteration={selectedIteration}
-            />
+          {runOutput ? (
+            selectedIteration ? (
+              <RunDetail
+                runContext={runContext}
+                runOutput={runOutput}
+                selectedIteration={selectedIteration}
+              />
+            ) : (
+              <RunWaitingCard runOutput={runOutput} />
+            )
           ) : (
             <Empty className="showcase-empty" description="请选择或创建运行任务" />
           )}
         </Card>
       </section>
     </main>
+  )
+}
+
+function RunWaitingCard({ runOutput }: { runOutput: RunOutput }) {
+  return (
+    <section className="showcase-waiting-card" aria-label="等待运行输出">
+      <Tag color={statusColor(runOutput.status)}>{statusText(runOutput.status)}</Tag>
+      <Title level={2}>{runOutput.run_name}</Title>
+      <Paragraph>
+        后端已接收运行任务，正在等待第一轮策略迭代输出。页面会自动监听运行事件并刷新结果。
+      </Paragraph>
+      <div>
+        <Info label="任务上下文" value={runOutput.context_name} />
+        <Info label="任务方案" value={runOutput.plan_name} />
+        <Info label="想定" value={runOutput.scenario_name || '-'} />
+        <Info label="当前状态" value={statusText(runOutput.status)} />
+      </div>
+    </section>
   )
 }
 

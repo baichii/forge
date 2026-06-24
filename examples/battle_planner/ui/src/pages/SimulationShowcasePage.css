@@ -232,6 +232,55 @@
   padding: 20px 0 8px;
 }
 
+.showcase-waiting-card {
+  display: grid;
+  gap: 14px;
+  min-height: 360px;
+  align-content: center;
+  padding: 24px;
+  border: 1px solid var(--bp-border);
+  border-radius: 10px;
+  background: rgba(250, 249, 245, 0.74);
+}
+
+.showcase-waiting-card h2.ant-typography {
+  margin: 0;
+  color: var(--bp-text);
+}
+
+.showcase-waiting-card p.ant-typography {
+  max-width: 560px;
+  margin: 0;
+  color: var(--bp-muted);
+  line-height: 1.7;
+}
+
+.showcase-waiting-card > div {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.showcase-waiting-card > div > div {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--bp-border);
+  border-radius: 8px;
+  background: var(--bp-surface);
+}
+
+.showcase-waiting-card .ant-typography {
+  color: var(--bp-meta);
+  font-size: 12px;
+}
+
+.showcase-waiting-card strong {
+  color: var(--bp-text-soft);
+  font-size: 13px;
+}
+
 .showcase-empty-inline {
   display: grid;
   min-height: 76px;
@@ -1391,6 +1440,7 @@
   .showcase-overview-grid--double,
   .showcase-overview-grid--triple,
   .showcase-overview-texts,
+  .showcase-waiting-card > div,
   .showcase-implementation-grid,
   .showcase-support-panel {
     grid-template-columns: 1fr;
