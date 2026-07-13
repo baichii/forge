@@ -369,6 +369,7 @@ dependencies = [
     { name = "numpy" },
     { name = "openai" },
     { name = "openai-agents" },
+    { name = "opencode-ai" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pyyaml" },
@@ -403,6 +404,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.0.0" },
     { name = "openai", specifier = ">=2.35.1" },
     { name = "openai-agents", specifier = ">=0.16.0" },
+    { name = "opencode-ai", specifier = ">=0.1.0a36" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pydantic-settings", specifier = ">=2.14.0" },
     { name = "pygame", marker = "extra == 'pysim'", specifier = ">=2.6.1" },
@@ -1046,6 +1048,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/59/47/ecc92fb10898bd5458c887e3a8814ee3d612c585ea80aa3f6dc41b636030/openai_agents-0.16.0.tar.gz", hash = "sha256:5efd3a994c974ebe05fc38b5bc9b405f4ad61185fdab2c19d58b1d22901433a3", size = 5344082, upload-time = "2026-05-07T00:28:37.648Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/60/ac/150e54b7114346501f9b1059fa90bfe3967e12902981e4f30df3473d04b8/openai_agents-0.16.0-py3-none-any.whl", hash = "sha256:10042d5374080c5323e1745723569fa19288f49c9f2eecb8921ec8d3529cf4c3", size = 824698, upload-time = "2026-05-07T00:28:35.549Z" },
+]
+
+[[package]]
+name = "opencode-ai"
+version = "0.1.0a36"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b1/d5/51f96d49dd41c5d9996c7f03e22a760085c3589a43dacb8fa77a77c4d1cb/opencode_ai-0.1.0a36.tar.gz", hash = "sha256:3cd89e86e4a333f52999fc0df337afc9be39298c755e1a241d77dd33d7d79050", size = 108133, upload-time = "2025-08-27T02:38:58.878Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/17/af/0379ba45fd2f4c14be3b62a78714b1b34705d0472cdd8d62df47a8fb1ffd/opencode_ai-0.1.0a36-py3-none-any.whl", hash = "sha256:73bce046ec3d841dadb31bed658a5049f25cf0c2e3ebda2e2d1ff37d792ea1b5", size = 110221, upload-time = "2025-08-27T02:38:57.501Z" },
 ]
 
 [[package]]

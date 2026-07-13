@@ -42,7 +42,7 @@ def test_runner_simple() -> None:
 
     register_battle_planner_modules()
     env_params = EnvParams(
-        name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM, params={"render_mode": "none"}
+        name="pysim", mode=EnvMode.CREATE, link=EnvLink.GYM, params={"render_mode": "human"}
     )
     tick_agents = [
         _make_air_strike_params(
@@ -68,7 +68,7 @@ def test_runner_simple() -> None:
         callbacks=callbacks,
     )
     runner.reset()
-    report = runner.run(max_step=5)
+    report = runner.run(max_step=None)
 
     assert report.env.env_name == "pysim"
     assert report.env.step_count > 0
@@ -96,3 +96,7 @@ def test_business_callback_only_accepts_observation() -> None:
     signature = inspect.signature(TargetStatistic.observe)
 
     assert list(signature.parameters) == ["self", "observation"]
+
+
+if __name__ == "__main__":
+    test_runner_simple()

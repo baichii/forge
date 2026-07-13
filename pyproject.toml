@@ -21,6 +21,7 @@ dependencies = [
     "openai-agents>=0.16.0",
     "sse-starlette>=3.4.2",
     "uvicorn>=0.46.0",
+    "opencode-ai>=0.1.0a36",
 ]
 
 [project.optional-dependencies]
