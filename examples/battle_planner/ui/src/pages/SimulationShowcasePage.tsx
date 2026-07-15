@@ -21,9 +21,11 @@ import {
   Space,
   Spin,
   Tabs,
+  Table,
   Tag,
   Typography,
 } from 'antd'
+import type { TableColumnsType } from 'antd'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
@@ -65,6 +67,12 @@ type SimulationMetricValue =
   | null
   | undefined
 
+type BranchAgentParameterRow = {
+  agent: TickAgentRunParams
+  agentIndex: number
+  key: string
+}
+
 const defaultRunOptions: RunFormValues = {
   runName: '',
   maxIterations: 10,
@@ -91,6 +99,15 @@ const paramNameMap: Record<string, string> = {
   unit_ids: '执行单位',
   wp_num: '武器数量',
 }
+
+const preferredParamOrder = [
+  'start_time',
+  'end_time',
+  'unit_ids',
+  'target_ids',
+  'wp_num',
+  'clear_targets',
+]
 
 const metricNameMap: Record<string, string> = {
   target_count: '目标数量',
@@ -1014,89 +1031,129 @@ function TargetStatisticReportCard({
 
 function SchemePanel({ selectedIteration }: { selectedIteration: RunIterationOutput }) {
   const branchExecutions = selectedIteration.scheme?.branch_executions ?? []
+  const agentCount = branchExecutions.reduce(
+    (count, branch) => count + (branch.planned_agent_params?.length ?? 0),
+    0,
+  )
+
   return (
     <div className="showcase-execution">
       <div className="showcase-section-title">
         <span>
           <SlidersOutlined /> 当前轮运行参数
         </span>
-        <Text>按分支查看智能体输入参数</Text>
+        <Text>
+          {branchExecutions.length} 个策略分支 · {agentCount} 个执行组
+        </Text>
       </div>
-      <div className="showcase-agent-branches" aria-label="分支智能体运行参数">
-        {branchExecutions.length ? (
-          branchExecutions.map((branch) => (
-            <BranchAgentParamsCard
+      {branchExecutions.length ? (
+        <div className="showcase-agent-branch-tables">
+          {branchExecutions.map((branch, branchIndex) => (
+            <BranchAgentParameterTable
               branch={branch}
-              key={branch.branch_id ?? 'unknown'}
+              key={branch.branch_id ?? `branch-${branchIndex}`}
             />
-          ))
-        ) : (
-          <div className="showcase-agent-empty">暂无分支执行参数</div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function BranchAgentParamsCard({ branch }: { branch: SchemeBranchExecution }) {
-  const agents = branch.planned_agent_params ?? []
-  const [selectedAgentIndex, setSelectedAgentIndex] = useState('0')
-  const activeIndex = agents[Number(selectedAgentIndex)] ? Number(selectedAgentIndex) : 0
-  const activeAgent = agents[activeIndex]
-
-  return (
-    <article className="showcase-agent-branch">
-      <div className="showcase-agent-branch__head">
-        <Text strong>{formatBranchName(branch.branch_id)}</Text>
-        <span>{agents.length} 个智能体</span>
-      </div>
-      {agents.length ? (
-        <>
-          <Segmented
-            block
-            className="showcase-agent-switch"
-            options={agents.map((agent, index) => ({
-              label: `${formatAgentName(agent.agent_name)} ${index + 1}`,
-              value: String(index),
-            }))}
-            value={String(activeIndex)}
-            onChange={(value) => setSelectedAgentIndex(String(value))}
-          />
-          <TickAgentParamCard agent={activeAgent} agentIndex={activeIndex} />
-        </>
-      ) : (
-        <span className="showcase-agent-empty">暂无智能体参数</span>
-      )}
-    </article>
-  )
-}
-
-function TickAgentParamCard({
-  agent,
-  agentIndex,
-}: {
-  agent: TickAgentRunParams
-  agentIndex: number
-}) {
-  return (
-    <div className="showcase-agent-card">
-      <div className="showcase-agent-card__head">
-        <div>
-          <strong>{formatAgentName(agent.agent_name)}</strong>
-          <span>第 {agentIndex + 1} 组输入参数</span>
+          ))}
         </div>
-        <Tag>{formatSideName(agent.side)}</Tag>
-      </div>
-      <div className="showcase-agent-param-grid">
-        {Object.entries(agent.params ?? {}).map(([key, value]) => (
-          <div key={key}>
-            <Text>{formatParamName(key)}</Text>
-            <strong>{formatParamValue(value)}</strong>
-          </div>
-        ))}
-      </div>
+      ) : (
+        <div className="showcase-agent-empty">暂无分支执行参数</div>
+      )}
     </div>
   )
+}
+
+function BranchAgentParameterTable({ branch }: { branch: SchemeBranchExecution }) {
+  const rows: BranchAgentParameterRow[] = (branch.planned_agent_params ?? []).map(
+    (agent, agentIndex) => ({
+      agent,
+      agentIndex,
+      key: agent.agent_instance_id ?? `agent-${agentIndex}`,
+    }),
+  )
+  const parameterKeys = Array.from(
+    new Set(rows.flatMap(({ agent }) => Object.keys(agent.params ?? {}))),
+  )
+    .filter((key) => key !== 'side')
+    .sort((left, right) => {
+      const leftIndex = preferredParamOrder.indexOf(left)
+      const rightIndex = preferredParamOrder.indexOf(right)
+      if (leftIndex === -1 && rightIndex === -1) {
+        return left.localeCompare(right, 'zh-CN')
+      }
+      if (leftIndex === -1) {
+        return 1
+      }
+      if (rightIndex === -1) {
+        return -1
+      }
+      return leftIndex - rightIndex
+    })
+  const columns: TableColumnsType<BranchAgentParameterRow> = [
+    {
+      key: 'agent',
+      render: (_value, row) => formatAgentName(row.agent.agent_name),
+      title: '执行智能体',
+      width: 180,
+    },
+    {
+      key: 'group',
+      render: (_value, row) => `第 ${row.agentIndex + 1} 组`,
+      title: '执行组',
+      width: 88,
+    },
+    {
+      key: 'side',
+      render: (_value, row) => formatSideName(row.agent.side),
+      title: '参演方',
+      width: 82,
+    },
+    ...parameterKeys.map((parameterKey) => ({
+      key: parameterKey,
+      render: (_value: unknown, row: (typeof rows)[number]) => {
+        const displayValue = formatParamValue(row.agent.params?.[parameterKey])
+        return (
+          <span className="showcase-agent-table__value" title={displayValue}>
+            {displayValue}
+          </span>
+        )
+      },
+      title: formatParamName(parameterKey),
+      width: parameterColumnWidth(parameterKey),
+    })),
+  ]
+
+  return (
+    <section className="showcase-agent-branch-table">
+      <div className="showcase-agent-branch-table__head">
+        <Text strong>{formatBranchName(branch.branch_id)}</Text>
+        <span>{rows.length} 个执行组</span>
+      </div>
+      {rows.length ? (
+        <Table
+          bordered
+          className="showcase-agent-table"
+          columns={columns}
+          dataSource={rows}
+          pagination={false}
+          rowKey="key"
+          scroll={{ x: 'max-content' }}
+          size="small"
+        />
+      ) : (
+        <div className="showcase-agent-empty">该分支暂无执行参数</div>
+      )}
+    </section>
+  )
+}
+
+function parameterColumnWidth(parameterName: string) {
+  if (parameterName === 'unit_ids' || parameterName === 'target_ids') {
+    return 230
+  }
+  if (parameterName === 'start_time' || parameterName === 'end_time') {
+    return 92
+  }
+  return 110
 }
 
 function Info({ label, value }: { label: string; value: string }) {
@@ -1129,20 +1186,20 @@ function formatSideName(side: string) {
 
 function formatParamValue(value: unknown) {
   if (Array.isArray(value)) {
-    return value.map((item) => formatParamItem(item)).join('、') || '-'
+    return value.map((item) => formatParamItem(item)).join('、') || '—'
   }
   if (typeof value === 'boolean') {
     return value ? '是' : '否'
   }
   if (value === null || value === undefined || value === '') {
-    return '-'
+    return '—'
   }
   if (typeof value === 'string') {
     return formatParamItem(value)
   }
   if (typeof value === 'object') {
     const keys = Object.keys(asRecord(value))
-    return keys.length ? `结构化数据 ${keys.length} 项` : '-'
+    return keys.length ? `结构化数据 ${keys.length} 项` : '—'
   }
   return String(value)
 }
@@ -1344,7 +1401,7 @@ function buildMetricTrendOption(
 ): EChartsCoreOption {
   const ratioMetric = isRatioMetric(trend)
   return {
-    animationDuration: 320,
+    animation: false,
     grid: {
       bottom: 30,
       containLabel: true,
@@ -1424,7 +1481,7 @@ function buildMetricTrendOption(
           width: 3,
         },
         name: trend.name,
-        smooth: true,
+        smooth: false,
         symbol: 'circle',
         type: 'line',
       },

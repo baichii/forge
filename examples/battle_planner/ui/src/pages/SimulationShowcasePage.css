@@ -819,101 +819,86 @@
   line-height: 1.55;
 }
 
-.showcase-agent-branches {
+.showcase-agent-branch-tables {
   display: grid;
-  gap: 14px;
+  gap: 22px;
   margin-top: 16px;
 }
 
-.showcase-agent-branch {
+.showcase-agent-branch-table {
   min-width: 0;
-  padding: 14px;
-  border: 1px solid var(--bp-border);
-  border-radius: 8px;
-  background: rgba(250, 249, 245, 0.74);
 }
 
-.showcase-agent-branch__head {
+.showcase-agent-branch-table + .showcase-agent-branch-table {
+  padding-top: 20px;
+  border-top: 1px solid var(--bp-border);
+}
+
+.showcase-agent-branch-table__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.showcase-agent-branch__head > span {
+.showcase-agent-branch-table__head .ant-typography {
+  color: var(--bp-text-soft);
+  font-size: 14px;
+}
+
+.showcase-agent-branch-table__head > span {
   color: var(--bp-meta);
   font-size: 12px;
   white-space: nowrap;
 }
 
-.showcase-agent-list {
-  display: grid;
-  gap: 10px;
-  margin-top: 12px;
+.showcase-agent-table {
+  margin-top: 10px;
 }
 
-.showcase-agent-switch {
-  margin-top: 12px;
-}
-
-.showcase-agent-card {
-  display: grid;
-  min-width: 0;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 13px;
-  border: 1px solid var(--bp-border);
-  border-radius: 8px;
-  background: var(--bp-surface);
-}
-
-.showcase-agent-card__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.showcase-agent-card__head strong {
-  display: block;
+.showcase-agent-table .ant-table {
+  border-radius: 6px;
   color: var(--bp-text-soft);
-  line-height: 1.45;
-}
-
-.showcase-agent-card__head span {
-  display: block;
-  margin-top: 3px;
-  color: var(--bp-meta);
   font-size: 12px;
 }
 
-.showcase-agent-param-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 4px;
+.showcase-agent-table .ant-table-container {
+  border-color: var(--bp-border) !important;
+  border-radius: 6px;
 }
 
-.showcase-agent-param-grid div {
-  display: grid;
-  min-width: 0;
-  gap: 5px;
+.showcase-agent-table .ant-table-thead > tr > th {
+  padding: 9px 10px;
+  border-color: var(--bp-border) !important;
+  background: rgba(232, 230, 220, 0.58);
+  color: var(--bp-text-soft);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.showcase-agent-table .ant-table-tbody > tr > td {
+  height: 42px;
   padding: 10px;
-  border: 1px solid var(--bp-border);
-  border-radius: 8px;
-  background: rgba(232, 230, 220, 0.22);
+  border-color: var(--bp-border) !important;
+  background: var(--bp-surface);
+  line-height: 1.5;
+  vertical-align: top;
 }
 
-.showcase-agent-param-grid .ant-typography {
-  color: var(--bp-meta);
-  font-size: 12px;
+.showcase-agent-table .ant-table-tbody > tr:nth-child(even) > td {
+  background: rgba(250, 249, 245, 0.72);
 }
 
-.showcase-agent-param-grid strong {
-  overflow-wrap: anywhere;
-  color: var(--bp-text-soft);
-  font-size: 13px;
-  line-height: 1.45;
+.showcase-agent-table .ant-table-tbody > tr:hover > td {
+  background: rgba(201, 100, 66, 0.07) !important;
+}
+
+.showcase-agent-table__value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .showcase-agent-empty {
@@ -1435,7 +1420,6 @@
   .showcase-layout,
   .showcase-detail-grid,
   .showcase-execution-grid,
-  .showcase-agent-param-grid,
   .showcase-overview-grid,
   .showcase-overview-grid--double,
   .showcase-overview-grid--triple,

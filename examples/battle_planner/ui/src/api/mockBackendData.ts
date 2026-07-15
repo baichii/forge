@@ -12,6 +12,25 @@ import type {
 } from './types'
 
 const createdAt = new Date().toISOString()
+const mockTargetDamageRatioSamples = [
+  [0.34, 0.3, 0.38, 0.32, 0.36],
+  [0.47, 0.43, 0.51, 0.45, 0.49],
+  [0.42, 0.36, 0.47, 0.4, 0.45],
+  [0.58, 0.53, 0.64, 0.56, 0.61],
+  [0.64, 0.59, 0.68, 0.62, 0.66],
+  [0.57, 0.5, 0.63, 0.54, 0.6],
+  [0.72, 0.67, 0.78, 0.7, 0.75],
+  [0.68, 0.61, 0.74, 0.65, 0.71],
+  [0.81, 0.76, 0.86, 0.79, 0.84],
+  [0.89, 0.85, 0.94, 0.87, 0.92],
+]
+const simulationSampleIndexes: Record<number, number[]> = {
+  1: [0],
+  2: [1, 2],
+  3: [0, 1, 2],
+  4: [1, 2, 3, 4],
+  5: [0, 1, 2, 3, 4],
+}
 
 export const mockTaskPlans: TaskPlan[] = [
   {
@@ -291,7 +310,7 @@ function buildIteration(
     '推荐方案',
   ]
   const tagLabel = labels[iterationIndex] ?? `第 ${iterationIndex + 1} 轮`
-  const simulationRuns = buildSimulationRuns(iterationIndex, iterationCount, simulationCount)
+  const simulationRuns = buildSimulationRuns(iterationIndex, simulationCount)
   return {
     iteration_index: iterationIndex,
     status: 'completed',
@@ -409,13 +428,15 @@ function buildIteration(
 
 function buildSimulationRuns(
   iterationIndex: number,
-  iterationCount: number,
   simulationCount: number,
 ): RunIterationOutput['simulation_runs'] {
-  const progress = iterationCount > 1 ? iterationIndex / (iterationCount - 1) : 1
+  const damageSamples =
+    mockTargetDamageRatioSamples[iterationIndex] ??
+    mockTargetDamageRatioSamples[mockTargetDamageRatioSamples.length - 1]
+  const sampleIndexes = simulationSampleIndexes[simulationCount] ?? simulationSampleIndexes[5]
   return Array.from({ length: simulationCount }, (_item, simulationIndex) => {
-    const variance = (simulationIndex - (simulationCount - 1) / 2) * 0.035
-    const targetDamageRatio = clampMetric(0.34 + progress * 0.58 + variance)
+    const sampleIndex = sampleIndexes[simulationIndex] ?? simulationIndex % damageSamples.length
+    const targetDamageRatio = damageSamples[sampleIndex]
     const targetDestroyedCount = targetDamageRatio >= 0.82 ? 1 : 0
     const initialHealth = 1000
     const currentHealth = Math.round(initialHealth * (1 - targetDamageRatio))
@@ -562,10 +583,6 @@ function calculateAggregate(values: number[]) {
     max: roundMetric(max),
     std: roundMetric(Math.sqrt(variance)),
   }
-}
-
-function clampMetric(value: number) {
-  return Math.max(0, Math.min(1, value))
 }
 
 function roundMetric(value: number) {
